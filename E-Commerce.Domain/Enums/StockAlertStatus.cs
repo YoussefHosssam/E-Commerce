@@ -1,0 +1,1 @@
+﻿public enum StockAlertStatus { Active = 0, Triggered = 1, Cancelled = 2 }
