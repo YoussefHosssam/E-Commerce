@@ -10,6 +10,8 @@ public interface IUnitOfWork
     IUserRepository Users { get; }
     IGenericRepository<UserTwoFactor> User2fa { get; }
     IGenericRepository<UserCredential> UserCredentials { get; }
+    IInventoryRepository Inventories { get; }
+    IGenericRepository<StockMovement> StockMovements { get; }
     IRefreshTokenRepository RefreshTokens { get; }
     IGenericRepository<EmailMessage> EmailMessages { get; }
     IGenericRepository<TwoFactorRecoveryCode> TwoFactorRecoveryCodes { get; }

@@ -18,6 +18,8 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
     public IUserRepository Users { get; }
     public IRefreshTokenRepository RefreshTokens { get; }
     public IGenericRepository<EmailMessage> EmailMessages { get; }
+    public IInventoryRepository Inventories { get; }
+    public IGenericRepository<StockMovement> StockMovements { get; }
     public IGenericRepository<UserTwoFactor> User2fa { get; }
     public IGenericRepository<TwoFactorRecoveryCode> TwoFactorRecoveryCodes { get; }
     public IGenericRepository<TwoFactorLoginChallenge> TwoFactorLoginChallenges { get; }
@@ -38,7 +40,9 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
         IRefreshTokenRepository refreshTokens,
         IAuthTokenRepository authTokens,
         IGenericRepository<TwoFactorRecoveryCode> twoFactorRecoveryCodes,
-        IGenericRepository<TwoFactorLoginChallenge> twoFactorLoginChallenges)
+        IGenericRepository<TwoFactorLoginChallenge> twoFactorLoginChallenges,
+        IInventoryRepository inventories,
+        IGenericRepository<StockMovement> stockMovements)
     {
         _context = context;
         Products = productRepository;
@@ -53,6 +57,8 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
         AuthTokens = authTokens;
         TwoFactorRecoveryCodes = twoFactorRecoveryCodes;
         TwoFactorLoginChallenges = twoFactorLoginChallenges;
+        Inventories = inventories;
+        StockMovements = stockMovements;
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct)

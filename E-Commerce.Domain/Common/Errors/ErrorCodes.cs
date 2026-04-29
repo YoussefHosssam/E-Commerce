@@ -123,9 +123,40 @@ public static class ErrorCodes
         public const string TokenHashRequired = "VO_400_TOKEN_HASH_REQUIRED";
         public const string TokenHashInvalid = "VO_400_TOKEN_HASH_INVALID";
     }
+    public static class StockMovement
+    {
+        public const string TypeInvalid = "SM_400_TYPE_INVALID";
+        public const string VariantIdRequired = "SM_400_VARIANT_ID_REQUIRED";
+        public const string ReasonTooLong = "SM_400_REASON_TOO_LONG";
+        public const string QuantityDeltaInvalid = "SM_400_QUANTITY_DELTA_INVALID";
+
+    }
 
     public static class Domain
     {
+        public static class Inventory
+        {
+            public const string VariantIdRequired = "INV_400_VARIANT_ID_REQUIRED";
+            public const string InitialQuantityInvalid = "INV_400_INITIAL_QUANTITY_INVALID";
+            public const string QuantityInvalid = "INV_400_QUANTITY_INVALID";
+            public const string InsufficientStock = "INV_409_INSUFFICIENT_STOCK";
+            public const string ReservedQuantityInvalid = "INV_400_RESERVED_QUANTITY_INVALID";
+            public const string OnHandInvalid = "INV_400_ON_HAND_INVALID";
+            public const string OnHandLessThanReserved = "INV_409_ON_HAND_LESS_THAN_RESERVED";
+            public const string NowRequired = "INV_400_NOW_REQUIRED";
+        }
+        public static class StockMovement
+        {
+            public const string VariantIdRequired = "SM_400_VARIANT_ID_REQUIRED";
+            public const string QuantityDeltaInvalid = "SM_400_QUANTITY_DELTA_INVALID";
+            public const string TypeInvalid = "SM_400_TYPE_INVALID";
+            public const string PositiveDeltaRequired = "SM_400_POSITIVE_DELTA_REQUIRED";
+            public const string NegativeDeltaRequired = "SM_400_NEGATIVE_DELTA_REQUIRED";
+            public const string ReasonTooLong = "SM_400_REASON_TOO_LONG";
+            public const string NowRequired = "SM_400_NOW_REQUIRED";
+            public const string RefIdInvalid = "SM_400_REF_ID_INVALID";
+            public const string ActorUserIdInvalid = "SM_400_ACTOR_USER_ID_INVALID";
+        }
         public static class TwoFactor
         {
             public const string AlreadyDisabled = "TF_409_ALREADY_DISABLED";

@@ -11,5 +11,6 @@ public sealed record CreateVariantCommand(
     string? Color,
     decimal? PriceOverrideAmount,
     string? PriceOverrideCurrency,
+    int stock,
     bool IsActive) : IRequest<Result<VariantDetailDto>>;
 

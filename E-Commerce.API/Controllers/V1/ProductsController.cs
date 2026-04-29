@@ -103,6 +103,7 @@ public sealed partial class ProductsController : ControllerBase
             request.Color,
             request.PriceOverrideAmount,
             request.PriceOverrideCurrency,
+            request.stock,
             request.IsActive);
 
         return this.FromResult(await _sender.Send(command, ct), "Variant created successfully.", StatusCodes.Status201Created);
@@ -131,4 +132,10 @@ public sealed partial class ProductsController : ControllerBase
     [HttpDelete("{productId:guid}/variants/{variantId:guid}")]
     public async Task<ApiResult> DeleteVariant(Guid productId, Guid variantId, CancellationToken ct)
         => this.FromResult(await _sender.Send(new DeleteVariantCommand(productId, variantId), ct), "Variant deleted successfully.");
+
+    [Authorize]
+    [ServiceFilter(typeof(AdminRouteFilter))]
+    [HttpPatch("{productId:guid}/variants/{variantId:guid}/stock-movement")]
+    public async Task<ApiResult> UpdateStockMovement(UpdateStockMovementRequest request, CancellationToken ct)
+    => this.FromResult(await _sender.Send(new UpdateStockMovementCommand(request.VariantId , request.Type , request.Quantity , request.Reason), ct), "Variant deleted successfully.");
 }
