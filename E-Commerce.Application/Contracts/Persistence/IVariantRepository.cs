@@ -8,5 +8,6 @@ public interface IVariantRepository : IGenericRepository<Variant>
     Task<Variant?> GetByIdWithDetailsAsync(Guid variantId, CancellationToken ct);
     Task<IReadOnlyCollection<Variant>> GetByProductIdAsync(Guid productId, CancellationToken ct);
     Task<bool> SkuExistsAsync(string sku, Guid? excludedVariantId, CancellationToken ct);
+    Task<bool> VariantExistsAsync(Guid id, CancellationToken ct);
     Task<bool> IsVariantReferencedAsync(Guid variantId, CancellationToken ct);
 }

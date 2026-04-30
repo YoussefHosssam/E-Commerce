@@ -20,9 +20,22 @@ namespace E_Commerce.Persistence.Repositories
             _inventoryDbSet = ecommerceContext.Set<Inventory>();
         }
 
-        public async Task<Inventory?> GetByVariantIdAsync(Guid variantId, CancellationToken ctn)
+        public Task<Inventory?> GetByVariantIdAsync(Guid variantId, CancellationToken ctn)
         {
-            return await _inventoryDbSet.FirstOrDefaultAsync(i => i.VariantId == variantId);
+            return _inventoryDbSet.FirstOrDefaultAsync(i => i.VariantId == variantId);
+        }
+
+        public async Task<bool> IsQuantityValid (Guid variantId , int quantity , CancellationToken ctn)
+        {
+            var inventory = await _inventoryDbSet.AsNoTracking().FirstOrDefaultAsync(i => i.VariantId == variantId , ctn);
+            var existQuantity = inventory!.Available - inventory.Reserved;
+            return quantity >= existQuantity;
+        }
+        public async Task<int> GetQuantityForVariant(Guid variantId, CancellationToken ctn)
+        {
+            var inventory = await _inventoryDbSet.AsNoTracking().Select(i => new {i.VariantId , i.Available , i.Reserved}).FirstOrDefaultAsync(i => i.VariantId == variantId, ctn);
+            var existQuantity = inventory!.Available - inventory.Reserved;
+            return existQuantity;
         }
     }
 }

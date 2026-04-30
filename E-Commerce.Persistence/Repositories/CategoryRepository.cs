@@ -28,7 +28,7 @@ internal sealed class CategoryRepository : GenericRepository<Category>, ICategor
             .Include(x => x.Children)
             .Include(x => x.Products)
             .OrderBy(x => x.SortOrder)
-            .ThenBy(x => x.Slug.Value)
+            .ThenBy(x => x.Slug)
             .ToPagedResultAsync(page , ct);
         return AllPagedCategories;
     }

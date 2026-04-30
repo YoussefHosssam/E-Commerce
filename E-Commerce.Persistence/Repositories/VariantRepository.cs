@@ -46,6 +46,15 @@ internal sealed class VariantRepository : GenericRepository<Variant>, IVariantRe
                 ct);
     }
 
+    public Task<bool> VariantExistsAsync(Guid id, CancellationToken ct)
+    {
+        return _variants
+            .AsNoTracking()
+            .AnyAsync(
+                x => x.Id == id,
+                ct);
+    }
+
     public async Task<bool> IsVariantReferencedAsync(Guid variantId, CancellationToken ct)
     {
         return await _context.OrderItems.AsNoTracking().AnyAsync(x => x.VariantId == variantId, ct)

@@ -20,7 +20,7 @@ public sealed class StockMovement : BaseEntity
     public Guid? ActorUserId { get; private set; }
     public User? ActorUser { get; private set; }
 
-    public DateTimeOffset OccurredAt { get; private set; }
+    public DateTimeOffset UpdatedAt { get; private set; }
 
     private StockMovement() { } // EF
 
@@ -39,7 +39,7 @@ public sealed class StockMovement : BaseEntity
         Reason = reason;
         RefId = refId;
         ActorUserId = actorUserId;
-        OccurredAt = now;
+        UpdatedAt = now;
     }
 
     public static StockMovement Create(

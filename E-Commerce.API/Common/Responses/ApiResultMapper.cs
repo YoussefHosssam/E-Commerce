@@ -21,11 +21,11 @@ internal static class ApiResultMapper
     {
         if (result.IsSuccess)
         {
-            return ApiResult<T>.Success(result.Data!, successMessage, statusCode: successStatusCode);
+            return ApiResult<T>.Success(result.Data!, successMessage, result.Meta ,successStatusCode);
         }
 
-        var statusCode = MapStatusCode(result.Error);
-        return ApiResult<T>.Fail(statusCode, result.Error.Code, result.Error.Message);
+        var statusCode = MapStatusCode(result.Error!);
+        return ApiResult<T>.Fail(statusCode, result.Error!.Code, result.Error.Message);
     }
 
     public static int MapStatusCode(Error error)

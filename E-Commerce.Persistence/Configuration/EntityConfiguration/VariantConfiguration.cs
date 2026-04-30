@@ -10,6 +10,8 @@ internal sealed class VariantConfiguration : IEntityTypeConfiguration<Variant>
     {
         builder.ToTable("Variants");
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id)
+       .ValueGeneratedNever();
 
         builder.Property(x => x.ProductId).IsRequired();
 
@@ -50,5 +52,13 @@ internal sealed class VariantConfiguration : IEntityTypeConfiguration<Variant>
                .WithOne()
                .HasForeignKey(i => i.VariantId)
                .OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(x => x.Inventory)
+                .WithOne(x => x.Variant)
+                .HasForeignKey<Inventory>(x => x.VariantId)
+                .OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany<StockMovement>()
+               .WithOne(x => x.Variant)
+               .HasForeignKey(x => x.VariantId)
+               .OnDelete(DeleteBehavior.Restrict);
     }
 }

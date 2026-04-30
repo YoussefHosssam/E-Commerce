@@ -21,6 +21,8 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
     public IInventoryRepository Inventories { get; }
     public IGenericRepository<StockMovement> StockMovements { get; }
     public IGenericRepository<UserTwoFactor> User2fa { get; }
+    public ICartRepository Carts { get; }
+    public IGenericRepository<CartItem> CartItems { get; }
     public IGenericRepository<TwoFactorRecoveryCode> TwoFactorRecoveryCodes { get; }
     public IGenericRepository<TwoFactorLoginChallenge> TwoFactorLoginChallenges { get; }
     public IAuthTokenRepository AuthTokens { get; }
@@ -39,6 +41,8 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
         IGenericRepository<UserOAuthAccount> userOauthAccounts,
         IRefreshTokenRepository refreshTokens,
         IAuthTokenRepository authTokens,
+        ICartRepository carts,
+        IGenericRepository<CartItem> cartItems,
         IGenericRepository<TwoFactorRecoveryCode> twoFactorRecoveryCodes,
         IGenericRepository<TwoFactorLoginChallenge> twoFactorLoginChallenges,
         IInventoryRepository inventories,
@@ -58,6 +62,8 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
         TwoFactorRecoveryCodes = twoFactorRecoveryCodes;
         TwoFactorLoginChallenges = twoFactorLoginChallenges;
         Inventories = inventories;
+        Carts = carts;
+        CartItems = cartItems;
         StockMovements = stockMovements;
     }
 

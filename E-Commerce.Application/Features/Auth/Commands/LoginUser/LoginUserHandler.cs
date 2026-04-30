@@ -3,6 +3,7 @@ using E_Commerce.Application.Contracts.Infrastructure.Common;
 using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
 using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Jwt;
 using E_Commerce.Application.Contracts.Infrastrucuture.Auth.RefreshTokens;
+using E_Commerce.Application.Contracts.Infrastrucuture.Cart;
 using E_Commerce.Application.Services.Contracts;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
@@ -22,14 +23,16 @@ namespace E_Commerce.Application.Features.Auth.Commands.LoginUser
         private readonly IPasswordHasherAdapter _passwordHasherAdapter;
         private readonly IRandomStringGenerator _randomStringGenerator;
         private readonly IGenerateLoginTokens _generateLoginTokens;
+        private readonly ICartMergeService _cartMergeService;
 
 
-        public LoginUserHandler(IUnitOfWork uow, IPasswordHasherAdapter passwordHasherAdapter, IRandomStringGenerator randomStringGenerator, IGenerateLoginTokens generateAccessAndRefreshTokens)
+        public LoginUserHandler(IUnitOfWork uow, IPasswordHasherAdapter passwordHasherAdapter, IRandomStringGenerator randomStringGenerator, IGenerateLoginTokens generateAccessAndRefreshTokens, ICartMergeService cartMergeService)
         {
             _uow = uow;
             _passwordHasherAdapter = passwordHasherAdapter;
             _randomStringGenerator = randomStringGenerator;
             _generateLoginTokens = generateAccessAndRefreshTokens;
+            _cartMergeService = cartMergeService;
         }
 
         public async Task<Result<LoginUserResponse>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
@@ -45,6 +48,8 @@ namespace E_Commerce.Application.Features.Auth.Commands.LoginUser
             }
             else
             {
+                (bool isNeedToMerge, string anonymousToken) = _cartMergeService.IsNeedToBeMerged();
+                if (isNeedToMerge) await _cartMergeService.MergeCarts(existUser.Id, anonymousToken, cancellationToken);
                 return await HandleLoginWithDisabled2fa(existUser, cancellationToken);
             }
         }
@@ -53,6 +58,7 @@ namespace E_Commerce.Application.Features.Auth.Commands.LoginUser
         {
             (string accessToken, string refreshToken) = await _generateLoginTokens.GenerateTokensAndSaveAsync(user, ctn);
             FinalizeLoginResponse responseObject = new FinalizeLoginResponse(accessToken, refreshToken, DateTimeOffset.UtcNow);
+
             return Result<LoginUserResponse>.Success(responseObject);
         }
         private async Task<Result<LoginUserResponse>> HandleLoginWithEnabled2fa(User user, CancellationToken ctn)

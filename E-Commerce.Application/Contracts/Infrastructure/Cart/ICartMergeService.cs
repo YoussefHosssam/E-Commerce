@@ -9,5 +9,7 @@ namespace E_Commerce.Application.Contracts.Infrastrucuture.Cart
     public interface ICartMergeService
     {
         (bool , string) IsNeedToBeMerged();
+        Task MergeCarts(Guid userId, string anonymousToken, CancellationToken ct);
+
     }
 }

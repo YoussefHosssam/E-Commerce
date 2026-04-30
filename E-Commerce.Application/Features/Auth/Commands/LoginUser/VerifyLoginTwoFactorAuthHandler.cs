@@ -1,5 +1,6 @@
 using E_Commerce.Application.Common.Result;
 using E_Commerce.Application.Contracts.Infrastructure.TotpTwoFactorAuth;
+using E_Commerce.Application.Contracts.Infrastrucuture.Cart;
 using E_Commerce.Application.Services.Contracts;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
@@ -12,12 +13,14 @@ namespace E_Commerce.Application.Features.Auth.Commands.LoginUser
         private readonly IUnitOfWork _uow;
         private readonly IGenerateLoginTokens _generateLoginTokens;
         private readonly ITotpHandler _totpHandler;
+        private readonly ICartMergeService _cartMergeService;
 
-        public VerifyLoginTwoFactorAuthHandler(IUnitOfWork uow, IGenerateLoginTokens generateLoginTokens, ITotpHandler totpHandler)
+        public VerifyLoginTwoFactorAuthHandler(IUnitOfWork uow, IGenerateLoginTokens generateLoginTokens, ITotpHandler totpHandler, ICartMergeService cartMergeService)
         {
             _uow = uow;
             _generateLoginTokens = generateLoginTokens;
             _totpHandler = totpHandler;
+            _cartMergeService = cartMergeService;
         }
 
         public async Task<Result<FinalizeLoginResponse>> Handle(VerifyLoginTwoFactorAuthCommand request, CancellationToken cancellationToken)
@@ -28,13 +31,13 @@ namespace E_Commerce.Application.Features.Auth.Commands.LoginUser
                 return Result<FinalizeLoginResponse>.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.TwoFactorInvalid));
             }
 
-            User? existingUser = await _uow.Users.GetByIdWithLoadingDataAsync(loginChallenge.UserId, cancellationToken);
-            if (existingUser?.TwoFactorAuth is null || string.IsNullOrWhiteSpace(existingUser.TwoFactorAuth.TotpSecretEncrypted))
+            User? existUser = await _uow.Users.GetByIdWithLoadingDataAsync(loginChallenge.UserId, cancellationToken);
+            if (existUser?.TwoFactorAuth is null || string.IsNullOrWhiteSpace(existUser.TwoFactorAuth.TotpSecretEncrypted))
             {
                 return Result<FinalizeLoginResponse>.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.TwoFactorInvalid));
             }
 
-            if (!_totpHandler.VerifyCode(existingUser.TwoFactorAuth.TotpSecretEncrypted, request.OtpCode))
+            if (!_totpHandler.VerifyCode(existUser.TwoFactorAuth.TotpSecretEncrypted, request.OtpCode))
             {
                 return Result<FinalizeLoginResponse>.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.TwoFactorInvalid));
             }
@@ -42,8 +45,10 @@ namespace E_Commerce.Application.Features.Auth.Commands.LoginUser
             loginChallenge.MarkVerified(DateTimeOffset.UtcNow);
             await _uow.SaveChangesAsync(cancellationToken);
 
-            (string accessToken, string refreshToken) = await _generateLoginTokens.GenerateTokensAndSaveAsync(existingUser, cancellationToken);
+            (string accessToken, string refreshToken) = await _generateLoginTokens.GenerateTokensAndSaveAsync(existUser, cancellationToken);
             var response = new FinalizeLoginResponse(accessToken, refreshToken, DateTimeOffset.UtcNow, false, false);
+            (bool isNeedToMerge, string anonymousToken) = _cartMergeService.IsNeedToBeMerged();
+            if (isNeedToMerge) await _cartMergeService.MergeCarts(existUser.Id, anonymousToken, cancellationToken);
             return Result<FinalizeLoginResponse>.Success(response);
         }
     }

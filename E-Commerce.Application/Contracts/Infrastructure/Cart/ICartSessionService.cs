@@ -8,8 +8,7 @@ namespace E_Commerce.Application.Contracts.Infrastrucuture.Cart
 {
     public interface ICartSessionService
     {
-        string GetOrCreateAnonymousId();
+        string CreateAnonymousId();
         string? GetAnonymousId();
-        void ClearAnonymousId();
     }
 }

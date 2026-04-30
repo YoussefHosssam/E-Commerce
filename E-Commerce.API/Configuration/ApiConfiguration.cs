@@ -3,6 +3,8 @@ using E_Commerce.API.Filters;
 using E_Commerce.Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 namespace E_Commerce.API.Configuration
@@ -47,6 +49,15 @@ namespace E_Commerce.API.Configuration
                 opt.ReportApiVersions = true;
                 opt.ApiVersionReader = new QueryStringApiVersionReader();
             }).AddMvc();
+            services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "E-Commerce API",
+                    Version = "v1",
+                    Description = "API documentation for E-Commerce project"
+                });
+            });
             return services;
         }
     }

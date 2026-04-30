@@ -11,6 +11,8 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
     {
         builder.ToTable("Products");
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id)
+       .ValueGeneratedNever();
 
         builder.Property(x => x.CategoryId).IsRequired();
 

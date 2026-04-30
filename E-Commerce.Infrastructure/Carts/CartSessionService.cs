@@ -15,16 +15,10 @@ namespace E_Commerce.Infrastructure.Carts
 
         public string? GetAnonymousId() => _cookie.Read();
 
-        public string GetOrCreateAnonymousId()
+        public string CreateAnonymousId()
         {
-            var existing = _cookie.Read();
-            if (!string.IsNullOrWhiteSpace(existing)) return existing;
-
             var id = Guid.NewGuid().ToString("N");
-            _cookie.Write(id);
             return id;
         }
-
-        public void ClearAnonymousId() => _cookie.Delete();
     }
 }

@@ -10,5 +10,8 @@ namespace E_Commerce.Application.Contracts.Persistence.Shared
     public interface IInventoryRepository : IGenericRepository<Inventory>
     {
         Task<Inventory?> GetByVariantIdAsync(Guid variantId, CancellationToken ctn);
+        Task<bool> IsQuantityValid(Guid variantId, int quantity, CancellationToken ctn);
+        Task<int> GetQuantityForVariant(Guid variantId, CancellationToken ctn);
+
     }
 }

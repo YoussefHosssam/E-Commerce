@@ -26,7 +26,8 @@ public static class PersistenceConfiguration
         services.AddScoped<IAuthTokenRepository, AuthTokenRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-
+        services.AddScoped<IInventoryRepository, InventoryRepository>();
+        services.AddScoped<ICartRepository, CartRepository>();
         return services;
     }
 }

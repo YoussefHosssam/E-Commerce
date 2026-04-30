@@ -62,7 +62,6 @@ public sealed class Cart : BaseEntity
         if (userId == Guid.Empty)
             throw new DomainValidationException(ErrorCodes.Domain.Cart.UserIdRequired);
 
-        // ??? ?????? ????? ???? ?? anonymous
         UserId = userId;
         AnonymousToken = null;
         Touch(now);
@@ -123,7 +122,15 @@ public sealed class Cart : BaseEntity
             throw new DomainValidationException(ErrorCodes.Domain.Cart.NotActive);
     }
 
-    private void Touch(DateTimeOffset now)
+    public int GetTotalQuantity()
+    {
+        return _items.Count;
+    }
+    public decimal GetTotalPrice()
+    {
+        return _items.Sum(i => i.GetTotal());
+    }
+    public void Touch(DateTimeOffset now)
     {
         if (now == default)
             throw new DomainValidationException(ErrorCodes.Domain.Cart.NowRequired);

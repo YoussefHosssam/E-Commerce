@@ -8,6 +8,8 @@ public interface IUnitOfWork
     ICategoryRepository Categories { get; }
     IVariantRepository Variants { get; }
     IUserRepository Users { get; }
+    ICartRepository Carts { get; }
+    IGenericRepository<CartItem> CartItems { get; }
     IGenericRepository<UserTwoFactor> User2fa { get; }
     IGenericRepository<UserCredential> UserCredentials { get; }
     IInventoryRepository Inventories { get; }
@@ -18,6 +20,5 @@ public interface IUnitOfWork
     IGenericRepository<TwoFactorLoginChallenge> TwoFactorLoginChallenges { get; }
     IAuthTokenRepository AuthTokens { get; }
     IGenericRepository<UserOAuthAccount> UserOauthAccounts { get; }
-
     Task<int> SaveChangesAsync(CancellationToken ct);
 }

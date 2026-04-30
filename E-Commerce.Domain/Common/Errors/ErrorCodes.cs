@@ -131,6 +131,22 @@ public static class ErrorCodes
         public const string QuantityDeltaInvalid = "SM_400_QUANTITY_DELTA_INVALID";
 
     }
+    public static class Cart
+    {
+        public const string AnonymousTokenRequired = "CART_400_ANONYMOUS_TOKEN_REQUIRED";
+        public const string ItemMismatch = "CART_409_ITEM_MISMATCH";
+        public const string ItemNotFound = "CART_404_ITEM_NOT_FOUND";
+        public const string ItemRequired = "CART_400_ITEM_REQUIRED";
+        public const string NotActive = "CART_409_NOT_ACTIVE";
+    }
+
+    public static class CartItem
+    {
+        public const string CartIdRequired = "CI_400_CART_ID_REQUIRED";
+        public const string DeltaInvalid = "CI_400_DELTA_INVALID";
+        public const string QuantityInvalid = "CI_400_QUANTITY_INVALID";
+        public const string VariantIdRequired = "CI_400_VARIANT_ID_REQUIRED";
+    }
 
     public static class Domain
     {
