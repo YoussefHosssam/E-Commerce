@@ -1,4 +1,7 @@
-﻿using System;
+﻿using E_Commerce.Application.Common.Result;
+using E_Commerce.Application.Features.Cart.Commands;
+using MediatR;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace E_Commerce.Application.Features.Cart.Queries
 {
-    internal class GetCartQuery
+    public sealed record GetCartQuery : IRequest<Result<CartSummaryDTO>>
     {
     }
 }

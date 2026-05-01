@@ -76,7 +76,19 @@ namespace E_Commerce.Application.Features.Cart.Commands.AddItem
             if (!await _uow.Inventories.IsQuantityValid(request.variantId, cartItem.Quantity, cancellationToken)) return Result<CartSummaryDTO>.Fail(ErrorCatalog.FromCode(ErrorCodes.CartItem.QuantityInvalid));
             cart.AddItem(cartItem, now);
             await _uow.SaveChangesAsync(cancellationToken);
-            CartSummaryDTO cartSummary = new CartSummaryDTO(cart.Id, cart.Items.ToList(), cart.GetTotalQuantity(), cart.GetTotalPrice() , cart.AnonymousToken);
+            var reloadedCart = cart.UserId.HasValue
+            ? await _uow.Carts.GetCartWithItemsByUserId(cart.UserId.Value, cancellationToken)
+            : await _uow.Carts.GetCartWithItemsByToken(cart.AnonymousToken!, cancellationToken);
+            if (reloadedCart is null)
+                return Result<CartSummaryDTO>.Fail(ErrorCatalog.FromCode(ErrorCodes.Cart.NotActive));
+
+            var cartSummary = new CartSummaryDTO(
+                reloadedCart.Id,
+                reloadedCart.Items.ToCartItemListDTO(),
+                reloadedCart.GetTotalQuantity(),
+                reloadedCart.GetTotalPrice(),
+                reloadedCart.AnonymousToken);
+
             return Result<CartSummaryDTO>.Success(cartSummary);
         }
     }

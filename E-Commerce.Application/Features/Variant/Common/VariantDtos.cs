@@ -12,7 +12,12 @@ public sealed record VariantListItemDto(
     string? Color,
     MoneyDto? PriceOverride,
     bool IsActive);
-
+public sealed record CartVariantDto(
+    Guid Id ,
+    string Sku,
+    string? Size,
+    string? Color,
+    MoneyDto? PriceOverride);
 public sealed record VariantDetailDto(
     Guid Id,
     Guid ProductId,
@@ -46,6 +51,14 @@ internal static class VariantDtoMappings
             variant.Color,
             variant.PriceOverride is null ? null : MoneyDto.FromMoney(variant.PriceOverride),
             variant.IsActive);
+    public static CartVariantDto ToCartVariantDto(this E_Commerce.Domain.Entities.Variant variant) 
+        => new(
+            variant.Id,
+            variant.Sku,
+            variant.Size,
+            variant.Color,
+            variant.PriceOverride is null ? null : MoneyDto.FromMoney(variant.PriceOverride)
+           );
 }
 
 

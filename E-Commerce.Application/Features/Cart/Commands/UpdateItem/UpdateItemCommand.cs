@@ -8,5 +8,5 @@ using System.Threading.Tasks;
 
 namespace E_Commerce.Application.Features.Cart.Commands.RemoveItem
 {
-    public sealed record RemoveItemCommand (Guid cartItemId) : IRequest<Result>;
+    public record UpdateItemCommand(Guid cartItemId , int quantity) : IRequest<Result<CartSummaryDTO>>;
 }

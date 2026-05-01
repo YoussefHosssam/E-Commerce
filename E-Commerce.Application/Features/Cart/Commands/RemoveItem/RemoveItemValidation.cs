@@ -1,19 +1,21 @@
 ﻿using E_Commerce.Application.Extensions;
 using E_Commerce.Domain.Common.Errors;
 using FluentValidation;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace E_Commerce.Application.Features.Cart.Commands.RemoveItem;
-
-internal sealed class RemoveItemValidation : AbstractValidator<RemoveItemCommand>
+namespace E_Commerce.Application.Features.Cart.Commands.RemoveItem
 {
-    public RemoveItemValidation()
+    internal class RemoveItemValidation : AbstractValidator<RemoveItemCommand>
     {
-        RuleFor(x => x.variantId)
-            .NotEmpty()
-            .WithError(ErrorCodes.CartItem.VariantIdRequired);
-
-        RuleFor(x => x.quantity)
-            .GreaterThan(0)
-            .WithError(ErrorCodes.CartItem.QuantityInvalid);
+        public RemoveItemValidation()
+        {
+            RuleFor(i => i.cartItemId)
+                .NotEmpty()
+                .WithError(ErrorCodes.CartItem.CartItemIdRequired);
+        }
     }
 }

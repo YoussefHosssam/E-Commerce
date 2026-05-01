@@ -20,11 +20,11 @@ namespace E_Commerce.Persistence.Repositories
         }
         public async Task<Cart?> GetCartWithItemsByToken(string token, CancellationToken ctn)
         {
-            return await _cartDbSet.Include(c => c.Items).FirstOrDefaultAsync(x => x.AnonymousToken == token && x.Status == CartStatus.Active, ctn);
+            return await _cartDbSet.Include(c => c.Items).ThenInclude(ci => ci.Variant).FirstOrDefaultAsync(x => x.AnonymousToken == token && x.Status == CartStatus.Active, ctn);
         }
         public async Task<Cart?> GetCartWithItemsByUserId(Guid id, CancellationToken ctn)
         {
-            return await _cartDbSet.Include(c => c.Items).FirstOrDefaultAsync(x => x.UserId == id && x.Status == CartStatus.Active, ctn);
+            return await _cartDbSet.Include(c => c.Items).ThenInclude(ci => ci.Variant).FirstOrDefaultAsync(x => x.UserId == id && x.Status == CartStatus.Active, ctn);
         }
     }
 }

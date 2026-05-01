@@ -28,14 +28,13 @@ namespace E_Commerce.Persistence.Repositories
         public async Task<bool> IsQuantityValid (Guid variantId , int quantity , CancellationToken ctn)
         {
             var inventory = await _inventoryDbSet.AsNoTracking().FirstOrDefaultAsync(i => i.VariantId == variantId , ctn);
-            var existQuantity = inventory!.Available - inventory.Reserved;
-            return quantity >= existQuantity;
+            var existQuantity = inventory!.Available;
+            return existQuantity >= quantity;
         }
         public async Task<int> GetQuantityForVariant(Guid variantId, CancellationToken ctn)
         {
-            var inventory = await _inventoryDbSet.AsNoTracking().Select(i => new {i.VariantId , i.Available , i.Reserved}).FirstOrDefaultAsync(i => i.VariantId == variantId, ctn);
-            var existQuantity = inventory!.Available - inventory.Reserved;
-            return existQuantity;
+            var inventory = await _inventoryDbSet.AsNoTracking().Select(i => new {i.VariantId , i.OnHand , i.Reserved , i.Available}).FirstOrDefaultAsync(i => i.VariantId == variantId, ctn);
+            return inventory!.Available;
         }
     }
 }

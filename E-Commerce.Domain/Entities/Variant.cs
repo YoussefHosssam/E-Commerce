@@ -105,7 +105,6 @@ public sealed class Variant : BaseEntity
         if (priceOverride.Amount < 0)
             throw new DomainValidationException(ErrorCodes.Variant.PriceInvalid);
 
-        // ?? CurrencyCode ???? ????? ???? ????? ??
         if (string.IsNullOrWhiteSpace(priceOverride.Currency.Value))
             throw new DomainValidationException(ErrorCodes.Variant.CurrencyRequired);
     }

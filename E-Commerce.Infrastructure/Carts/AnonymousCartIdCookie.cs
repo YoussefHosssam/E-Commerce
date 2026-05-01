@@ -25,7 +25,7 @@ namespace E_Commerce.Infrastructure.Carts
         {
             var req = _ctx.HttpContext?.Request;
             if (req is null) return null;
-            return req.Headers.TryGetValue(_opt.CookieName, out var v) ? v.ToString() : null;
+            return req.Headers.TryGetValue(_opt.HeaderName, out var v) ? v.ToString() : null;
         }
     }
 }

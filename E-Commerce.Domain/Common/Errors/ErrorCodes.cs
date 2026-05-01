@@ -144,6 +144,7 @@ public static class ErrorCodes
     {
         public const string CartIdRequired = "CI_400_CART_ID_REQUIRED";
         public const string DeltaInvalid = "CI_400_DELTA_INVALID";
+        public const string CartItemIdRequired = "CI_400_CART_ITEM_ID_REQUIRED";
         public const string QuantityInvalid = "CI_400_QUANTITY_INVALID";
         public const string VariantIdRequired = "CI_400_VARIANT_ID_REQUIRED";
     }
