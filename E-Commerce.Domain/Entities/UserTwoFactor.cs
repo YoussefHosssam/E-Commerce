@@ -22,7 +22,7 @@ public sealed class UserTwoFactor : BaseEntity
     private UserTwoFactor(Guid userId)
     {
         if (userId == Guid.Empty)
-            throw new DomainValidationException(ErrorCodes.Domain.TwoFactor.UserIdRequired);
+            throw new DomainValidationException(TwoFactorErrors.UserIdRequired);
 
         UserId = userId;
         IsEnabled = false;
@@ -33,10 +33,10 @@ public sealed class UserTwoFactor : BaseEntity
     internal void Setup(string totpSecretEncrypted, DateTimeOffset now)
     {
         if (IsEnabled)
-            throw new DomainValidationException(ErrorCodes.Domain.TwoFactor.AlreadyEnabled);
+            throw new DomainValidationException(TwoFactorErrors.AlreadyEnabled);
 
         if (string.IsNullOrWhiteSpace(totpSecretEncrypted))
-            throw new DomainValidationException(ErrorCodes.Domain.TwoFactor.SecretRequired);
+            throw new DomainValidationException(TwoFactorErrors.SecretRequired);
         IsEnabled = true;
         EnabledAt = now;
         IsVerified = false;
@@ -46,7 +46,7 @@ public sealed class UserTwoFactor : BaseEntity
     internal void Verify()
     {
         if (IsVerified || !IsEnabled)
-            throw new DomainValidationException(ErrorCodes.Domain.TwoFactor.AlreadyVerified);
+            throw new DomainValidationException(TwoFactorErrors.AlreadyVerified);
         IsVerified = true;
         DisabledAt = null;
     }
@@ -54,7 +54,7 @@ public sealed class UserTwoFactor : BaseEntity
     internal void Disable(DateTimeOffset now)
     {
         if (!IsEnabled)
-            throw new DomainValidationException(ErrorCodes.Domain.TwoFactor.AlreadyDisabled);
+            throw new DomainValidationException(TwoFactorErrors.AlreadyDisabled);
 
         IsEnabled = false;
         DisabledAt = now;

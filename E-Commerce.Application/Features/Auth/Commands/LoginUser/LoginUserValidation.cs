@@ -11,14 +11,14 @@ namespace E_Commerce.Application.Features.Auth.Commands.LoginUser
             RuleLevelCascadeMode = CascadeMode.Stop;
 
             RuleFor(x => x.Email)
-                .NotEmpty().WithError(ErrorCodes.Auth.EmailRequired)
-                .EmailAddress().WithError(ErrorCodes.Auth.EmailInvalid)
-                .MaximumLength(256).WithError(ErrorCodes.Auth.EmailTooLong);
+                .NotEmpty().WithError(AuthErrors.EmailRequired)
+                .EmailAddress().WithError(AuthErrors.EmailInvalid)
+                .MaximumLength(256).WithError(AuthErrors.EmailTooLong);
 
             RuleFor(x => x.Password)
-                .NotEmpty().WithError(ErrorCodes.Auth.PasswordRequired)
-                .MinimumLength(8).WithError(ErrorCodes.Auth.PasswordTooShort)
-                .MaximumLength(128).WithError(ErrorCodes.Auth.PasswordTooLong);
+                .NotEmpty().WithError(AuthErrors.PasswordRequired)
+                .MinimumLength(8).WithError(AuthErrors.PasswordTooShort)
+                .MaximumLength(128).WithError(AuthErrors.PasswordTooLong);
         }
     }
 }

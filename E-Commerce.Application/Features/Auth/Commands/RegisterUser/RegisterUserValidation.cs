@@ -13,44 +13,44 @@ namespace E_Commerce.Application.Features.Auth.Commands.RegisterUser
             RuleLevelCascadeMode = CascadeMode.Stop;
 
             RuleFor(x => x.FirstName)
-                .NotEmpty().WithError(ErrorCodes.User.FirstNameRequired)
-                .Must(name => !string.IsNullOrWhiteSpace(name)).WithError(ErrorCodes.User.FirstNameRequired)
-                .Must(name => name == null || name.Trim().Length >= 2).WithError(ErrorCodes.User.FirstNameTooShort)
-                .Must(name => name == null || name.Trim().Length <= 100).WithError(ErrorCodes.User.FirstNameTooLong);
+                .NotEmpty().WithError(UserErrors.FirstNameRequired)
+                .Must(name => !string.IsNullOrWhiteSpace(name)).WithError(UserErrors.FirstNameRequired)
+                .Must(name => name == null || name.Trim().Length >= 2).WithError(UserErrors.FirstNameTooShort)
+                .Must(name => name == null || name.Trim().Length <= 100).WithError(UserErrors.FirstNameTooLong);
 
             RuleFor(x => x.LastName)
-                .NotEmpty().WithError(ErrorCodes.User.LastNameRequired)
-                .Must(name => !string.IsNullOrWhiteSpace(name)).WithError(ErrorCodes.User.LastNameRequired)
-                .Must(name => name == null || name.Trim().Length >= 2).WithError(ErrorCodes.User.LastNameTooShort)
-                .Must(name => name == null || name.Trim().Length <= 100).WithError(ErrorCodes.User.LastNameTooLong);
+                .NotEmpty().WithError(UserErrors.LastNameRequired)
+                .Must(name => !string.IsNullOrWhiteSpace(name)).WithError(UserErrors.LastNameRequired)
+                .Must(name => name == null || name.Trim().Length >= 2).WithError(UserErrors.LastNameTooShort)
+                .Must(name => name == null || name.Trim().Length <= 100).WithError(UserErrors.LastNameTooLong);
 
             RuleFor(x => x.Password)
-                .NotEmpty().WithError(ErrorCodes.Auth.PasswordRequired)
-                .MinimumLength(8).WithError(ErrorCodes.Auth.PasswordTooShort)
-                .MaximumLength(128).WithError(ErrorCodes.Auth.PasswordTooLong)
-                .Matches("[A-Z]").WithError(ErrorCodes.Auth.PasswordUppercaseMissing)
-                .Matches("[a-z]").WithError(ErrorCodes.Auth.PasswordLowercaseMissing)
-                .Matches("[0-9]").WithError(ErrorCodes.Auth.PasswordDigitMissing)
-                .Matches(@"[\W_]").WithError(ErrorCodes.Auth.PasswordSpecialCharacterMissing)
-                .Must(password => password == null || !password.Any(char.IsWhiteSpace)).WithError(ErrorCodes.Auth.PasswordWhitespaceInvalid);
+                .NotEmpty().WithError(AuthErrors.PasswordRequired)
+                .MinimumLength(8).WithError(AuthErrors.PasswordTooShort)
+                .MaximumLength(128).WithError(AuthErrors.PasswordTooLong)
+                .Matches("[A-Z]").WithError(AuthErrors.PasswordUppercaseMissing)
+                .Matches("[a-z]").WithError(AuthErrors.PasswordLowercaseMissing)
+                .Matches("[0-9]").WithError(AuthErrors.PasswordDigitMissing)
+                .Matches(@"[\W_]").WithError(AuthErrors.PasswordSpecialCharacterMissing)
+                .Must(password => password == null || !password.Any(char.IsWhiteSpace)).WithError(AuthErrors.PasswordWhitespaceInvalid);
 
             RuleFor(x => x.Email)
-                .NotEmpty().WithError(ErrorCodes.User.EmailRequired)
-                .EmailAddress().WithError(ErrorCodes.User.EmailInvalid)
-                .MaximumLength(256).WithError(ErrorCodes.User.EmailTooLong)
+                .NotEmpty().WithError(UserErrors.EmailRequired)
+                .EmailAddress().WithError(UserErrors.EmailInvalid)
+                .MaximumLength(256).WithError(UserErrors.EmailTooLong)
                 .MustAsync(async (email, cancellationToken) =>
                 {
                     if (string.IsNullOrWhiteSpace(email)) return true;
                     return !await userRepository.IsEmailExist(EmailAddress.Create(email), cancellationToken);
-                }).WithError(ErrorCodes.User.EmailAlreadyExists);
+                }).WithError(UserErrors.EmailAlreadyExists);
 
             When(x => !string.IsNullOrEmpty(x.PhoneNumber), () =>
             {
                 RuleFor(x => x.PhoneNumber)
-                   .NotEmpty().WithError(ErrorCodes.User.PhoneRequired)
-                   .Must(phone => !string.IsNullOrWhiteSpace(phone)).WithError(ErrorCodes.User.PhoneRequired)
-                   .Must(phone => phone == null || phone.Trim().Length <= 30).WithError(ErrorCodes.User.PhoneTooLong)
-                   .Matches(@"^\+?[0-9\s\-\(\)]+$").WithError(ErrorCodes.User.PhoneInvalid);
+                   .NotEmpty().WithError(UserErrors.PhoneRequired)
+                   .Must(phone => !string.IsNullOrWhiteSpace(phone)).WithError(UserErrors.PhoneRequired)
+                   .Must(phone => phone == null || phone.Trim().Length <= 30).WithError(UserErrors.PhoneTooLong)
+                   .Matches(@"^\+?[0-9\s\-\(\)]+$").WithError(UserErrors.PhoneInvalid);
             });
 
         }

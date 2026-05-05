@@ -10,11 +10,11 @@ namespace E_Commerce.Application.Features.Cart.Commands.AddItem
         {
             RuleFor(x => x.variantId)
                 .NotEmpty()
-                .WithError(ErrorCodes.CartItem.VariantIdRequired);
+                .WithError(CartItemErrors.VariantIdRequired);
 
             RuleFor(x => x.quantity)
                 .GreaterThan(0)
-                .WithError(ErrorCodes.CartItem.QuantityInvalid);
+                .WithError(CartItemErrors.QuantityInvalid);
         }
     }
 }

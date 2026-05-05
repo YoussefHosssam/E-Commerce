@@ -10,9 +10,9 @@ namespace E_Commerce.Application.Extensions
 {
     public static class ValidationExtension
     {
-        public static IRuleBuilderOptions<T , Tprop> WithError<T, Tprop> (this IRuleBuilderOptions<T, Tprop> opt , string code)
+        public static IRuleBuilderOptions<T , Tprop> WithError<T, Tprop> (this IRuleBuilderOptions<T, Tprop> opt , Error err)
         {
-            return opt.WithErrorCode(code).WithMessage(ErrorCatalog.FromCode(code).Message);
+            return opt.WithErrorCode(err.Code).WithMessage(err.Message);
         }
     }
 }

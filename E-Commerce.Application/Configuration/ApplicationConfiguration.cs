@@ -1,6 +1,6 @@
 ﻿using E_Commerce.Application.Behaviors;
+using E_Commerce.Application.Contracts.Services;
 using E_Commerce.Application.Services;
-using E_Commerce.Application.Services.Contracts;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,7 +26,8 @@ namespace E_Commerce.Application.Configuration
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             services.AddScoped(typeof(IVerificationEmailPreparationService), typeof(VerificationEmailPreparationService));
             services.AddScoped(typeof(IGenerateLoginTokens), typeof(GenerateLoginTokens));
-
+            services.AddScoped<IOrderService, OrderService>();
+            services.AddSingleton<OrderNumberGenerator>();
 
             return services;
         }

@@ -52,20 +52,20 @@ public sealed class StockMovement : BaseEntity
         DateTimeOffset now)
     {
         if (variantId == Guid.Empty)
-            throw new DomainValidationException(ErrorCodes.Domain.StockMovement.VariantIdRequired);
+            throw new DomainValidationException(StockMovementErrors.VariantIdRequired);
 
         if (quantityDelta == 0)
-            throw new DomainValidationException(ErrorCodes.Domain.StockMovement.QuantityDeltaInvalid);
+            throw new DomainValidationException(StockMovementErrors.QuantityDeltaInvalid);
 
         if (now == default)
-            throw new DomainValidationException(ErrorCodes.Domain.StockMovement.NowRequired);
+            throw new DomainValidationException(StockMovementErrors.NowRequired);
 
         reason = string.IsNullOrWhiteSpace(reason)
             ? null
             : reason.Trim();
 
         if (reason is not null && reason.Length > 250)
-            throw new DomainValidationException(ErrorCodes.Domain.StockMovement.ReasonTooLong);
+            throw new DomainValidationException(StockMovementErrors.ReasonTooLong);
 
         ValidateMovementTypeWithDelta(type, quantityDelta);
 
@@ -90,7 +90,7 @@ public sealed class StockMovement : BaseEntity
             case StockMovementType.Return:
             case StockMovementType.ReservationReleased:
                 if (quantityDelta < 0)
-                    throw new DomainValidationException(ErrorCodes.Domain.StockMovement.PositiveDeltaRequired);
+                    throw new DomainValidationException(StockMovementErrors.PositiveDeltaRequired);
                 break;
 
             case StockMovementType.StockOut:
@@ -98,14 +98,14 @@ public sealed class StockMovement : BaseEntity
             case StockMovementType.Damage:
             case StockMovementType.Reservation:
                 if (quantityDelta > 0)
-                    throw new DomainValidationException(ErrorCodes.Domain.StockMovement.NegativeDeltaRequired);
+                    throw new DomainValidationException(StockMovementErrors.NegativeDeltaRequired);
                 break;
 
             case StockMovementType.Adjustment:
                 break;
 
             default:
-                throw new DomainValidationException(ErrorCodes.Domain.StockMovement.TypeInvalid);
+                throw new DomainValidationException(StockMovementErrors.TypeInvalid);
         }
     }
 }

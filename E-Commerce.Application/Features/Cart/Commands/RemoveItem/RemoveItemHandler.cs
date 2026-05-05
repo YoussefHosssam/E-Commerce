@@ -27,9 +27,9 @@ namespace E_Commerce.Application.Features.Cart.Commands.RemoveItem
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;
             var cart = await ResolveCartAsync(cancellationToken);
-            if (cart is null) return Result.Fail(ErrorCatalog.FromCode(ErrorCodes.Cart.NotActive));
+            if (cart is null) return Result.Fail(CartErrors.NotActive);
             var cartItem = cart.Items.FirstOrDefault(ci => ci.Id == request.cartItemId);
-            if (cartItem is null) return Result.Fail(ErrorCatalog.FromCode(ErrorCodes.Cart.ItemNotFound));
+            if (cartItem is null) return Result.Fail(CartErrors.ItemNotFound);
             cart.RemoveItem(request.cartItemId , now);
             await _uow.SaveChangesAsync(cancellationToken);
             return Result.Success();

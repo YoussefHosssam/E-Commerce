@@ -10,18 +10,18 @@ public sealed class UpdateCategoryValidation : AbstractValidator<UpdateCategoryC
     {
         RuleFor(x => x.Id)
             .NotEmpty()
-            .WithError(ErrorCodes.Category.IdRequired);
+            .WithError(CategoryErrors.IdRequired);
 
         RuleFor(x => x.ParentId)
             .Must(x => !x.HasValue || x.Value != Guid.Empty)
-            .WithError(ErrorCodes.Category.ParentInvalid);
+            .WithError(CategoryErrors.ParentInvalid);
 
         RuleFor(x => x.Slug)
             .NotEmpty()
-            .WithError(ErrorCodes.Category.SlugRequired);
+            .WithError(CategoryErrors.SlugRequired);
 
         RuleFor(x => x.SortOrder)
             .GreaterThanOrEqualTo(0)
-            .WithError(ErrorCodes.Category.SortOrderInvalid);
+            .WithError(CategoryErrors.SortOrderInvalid);
     }
 }

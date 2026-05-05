@@ -12,12 +12,12 @@ public readonly record struct TokenHash : IEquatable<string>
     public static TokenHash Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new DomainValidationException(ErrorCodes.ValueObjects.TokenHashRequired);
+            throw new DomainValidationException(ValueObjectErrors.TokenHashRequired);
 
         value = value.Trim();
 
         if (value.Length < 20)
-            throw new DomainValidationException(ErrorCodes.ValueObjects.TokenHashInvalid);
+            throw new DomainValidationException(ValueObjectErrors.TokenHashInvalid);
 
         return new TokenHash(value);
     }

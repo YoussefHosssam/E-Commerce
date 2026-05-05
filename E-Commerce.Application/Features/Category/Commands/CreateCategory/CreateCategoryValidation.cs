@@ -10,14 +10,14 @@ public sealed class CreateCategoryValidation : AbstractValidator<CreateCategoryC
     {
         RuleFor(x => x.ParentId)
             .Must(x => !x.HasValue || x.Value != Guid.Empty)
-            .WithError(ErrorCodes.Category.ParentInvalid);
+            .WithError(CategoryErrors.ParentInvalid);
 
         RuleFor(x => x.Slug)
             .NotEmpty()
-            .WithError(ErrorCodes.Category.SlugRequired);
+            .WithError(CategoryErrors.SlugRequired);
 
         RuleFor(x => x.SortOrder)
             .GreaterThanOrEqualTo(0)
-            .WithError(ErrorCodes.Category.SortOrderInvalid);
+            .WithError(CategoryErrors.SortOrderInvalid);
     }
 }

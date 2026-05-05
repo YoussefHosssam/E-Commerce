@@ -15,7 +15,7 @@ namespace E_Commerce.Application.Features.Cart.Commands.RemoveItem
         {
             RuleFor(i => i.cartItemId)
                 .NotEmpty()
-                .WithError(ErrorCodes.CartItem.CartItemIdRequired);
+                .WithError(CartItemErrors.CartItemIdRequired);
         }
     }
 }

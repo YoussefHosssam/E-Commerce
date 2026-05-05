@@ -33,8 +33,7 @@ internal class UpdateStockMovementHandlder
 
         if (inventory is null)
         {
-            return Result.Fail(
-                ErrorCatalog.FromCode(ErrorCodes.Domain.Inventory.VariantIdRequired));
+            return Result.Fail(InventoryErrors.VariantIdRequired);
         }
 
         int delta = 0;
@@ -63,8 +62,7 @@ internal class UpdateStockMovementHandlder
                 break;
 
             default:
-                return Result.Fail(
-                    ErrorCatalog.FromCode(ErrorCodes.Domain.StockMovement.TypeInvalid));
+                return Result.Fail(StockMovementErrors.TypeInvalid);
         }
 
         var movement = StockMovement.Create(

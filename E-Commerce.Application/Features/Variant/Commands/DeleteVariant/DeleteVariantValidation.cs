@@ -8,7 +8,7 @@ public sealed class DeleteVariantValidation : AbstractValidator<DeleteVariantCom
 {
     public DeleteVariantValidation()
     {
-        RuleFor(x => x.ProductId).NotEmpty().WithError(ErrorCodes.Variant.ProductRequired);
-        RuleFor(x => x.VariantId).NotEmpty().WithError(ErrorCodes.Variant.VariantIdRequired);
+        RuleFor(x => x.ProductId).NotEmpty().WithError(VariantErrors.ProductRequired);
+        RuleFor(x => x.VariantId).NotEmpty().WithError(VariantErrors.VariantIdRequired);
     }
 }

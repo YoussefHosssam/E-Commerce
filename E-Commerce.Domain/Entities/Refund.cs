@@ -20,13 +20,13 @@ public class Refund : BaseEntity
     }
     public static Refund Create( Guid paymentId, decimal amount, string? reason)
     {
-        if (paymentId == Guid.Empty) throw new DomainValidationException(ErrorCodes.Domain.Refund.PaymentIdRequired);
-        if (amount <= 0) throw new DomainValidationException(ErrorCodes.Domain.Refund.AmountInvalid);
+        if (paymentId == Guid.Empty) throw new DomainValidationException(RefundErrors.PaymentIdRequired);
+        if (amount <= 0) throw new DomainValidationException(RefundErrors.AmountInvalid);
         return new Refund(paymentId, amount, reason);
     }
     public void SetProviderRefundId(string providerRefundId)
     {
-        if (string.IsNullOrEmpty(providerRefundId)) throw new DomainValidationException(ErrorCodes.Domain.Refund.ProviderRefundIdRequired);
+        if (string.IsNullOrEmpty(providerRefundId)) throw new DomainValidationException(RefundErrors.ProviderRefundIdRequired);
         ProviderRefundId = providerRefundId;
         Touch(DateTimeOffset.UtcNow);
     }
@@ -38,7 +38,7 @@ public class Refund : BaseEntity
     {
         if (Status is RefundStatus.Failed or RefundStatus.Succeeded)
         {
-            throw new DomainValidationException(ErrorCodes.Domain.Refund.StatusFinal);
+            throw new DomainValidationException(RefundErrors.StatusFinal);
         }
     }
     public void MarkAsFailed()

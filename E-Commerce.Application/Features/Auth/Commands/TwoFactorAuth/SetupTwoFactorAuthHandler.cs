@@ -28,19 +28,19 @@ namespace E_Commerce.Application.Features.Auth.Commands.TwoFactorAuth
         {
             if (!_userAccessor.UserId.HasValue)
             {
-                return Result<SetupTwoFactorAuthResponse>.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.InvalidCredentials));
+                return Result<SetupTwoFactorAuthResponse>.Fail(AuthErrors.InvalidCredentials);
             }
 
             User? existingUser = await _uow.Users.GetByIdWithLoadingDataAsync(_userAccessor.UserId.Value, cancellationToken);
             if (existingUser is null)
             {
-                return Result<SetupTwoFactorAuthResponse>.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.InvalidCredentials));
+                return Result<SetupTwoFactorAuthResponse>.Fail(AuthErrors.InvalidCredentials);
             }
 
             bool isCorrectPassword = _passwordHasherAdapter.Verify(existingUser.Credential.PasswordHash, request.Password);
             if (!isCorrectPassword)
             {
-                return Result<SetupTwoFactorAuthResponse>.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.PasswordInvalid));
+                return Result<SetupTwoFactorAuthResponse>.Fail(AuthErrors.PasswordInvalid);
             }
 
             (string manualKey, string encryptedSecretKey) = _totpHandler.GenerateSecretKey();

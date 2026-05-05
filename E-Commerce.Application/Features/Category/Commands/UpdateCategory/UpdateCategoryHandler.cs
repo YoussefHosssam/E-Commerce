@@ -5,16 +5,19 @@ using DomainCategory = E_Commerce.Domain.Entities.Category;
 using E_Commerce.Domain.ValueObjects;
 using MediatR;
 using E_Commerce.Domain.Common.Errors;
+using AutoMapper;
 
 namespace E_Commerce.Application.Features.Category.Commands;
 
 public sealed class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Result<CategoryDetailDto>>
 {
     private readonly IUnitOfWork _uow;
+    private readonly IMapper _mapper;
 
-    public UpdateCategoryHandler(IUnitOfWork uow)
+    public UpdateCategoryHandler(IUnitOfWork uow, IMapper mapper)
     {
         _uow = uow;
+        _mapper = mapper;
     }
 
     public async Task<Result<CategoryDetailDto>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
@@ -22,12 +25,12 @@ public sealed class UpdateCategoryHandler : IRequestHandler<UpdateCategoryComman
         var category = await _uow.Categories.GetByIdWithDetailsAsync(request.Id, true, cancellationToken);
         if (category is null)
         {
-            return Result<CategoryDetailDto>.Fail(ErrorCatalog.FromCode(ErrorCodes.Category.NotFound));
+            return Result<CategoryDetailDto>.Fail(CategoryErrors.NotFound);
         }
 
         if (request.ParentId == request.Id)
         {
-            return Result<CategoryDetailDto>.Fail(ErrorCatalog.FromCode(ErrorCodes.Category.ParentSelf));
+            return Result<CategoryDetailDto>.Fail(CategoryErrors.ParentSelf);
         }
 
         DomainCategory? parent = null;
@@ -36,19 +39,19 @@ public sealed class UpdateCategoryHandler : IRequestHandler<UpdateCategoryComman
             parent = await _uow.Categories.GetByIdAsync(request.ParentId.Value, cancellationToken);
             if (parent is null)
             {
-                return Result<CategoryDetailDto>.Fail(ErrorCatalog.FromCode(ErrorCodes.Category.ParentNotFound));
+                return Result<CategoryDetailDto>.Fail(CategoryErrors.ParentNotFound);
             }
 
             if (await _uow.Categories.IsDescendantAsync(category.Id, request.ParentId.Value, cancellationToken))
             {
-                return Result<CategoryDetailDto>.Fail(ErrorCatalog.FromCode(ErrorCodes.Category.ParentCycle));
+                return Result<CategoryDetailDto>.Fail(CategoryErrors.ParentCycle);
             }
         }
 
         var slug = Slug.Create(request.Slug);
         if (await _uow.Categories.SlugExistsAsync(slug, category.Id, cancellationToken))
         {
-            return Result<CategoryDetailDto>.Fail(ErrorCatalog.FromCode(ErrorCodes.Category.SlugDuplicate));
+            return Result<CategoryDetailDto>.Fail(CategoryErrors.SlugDuplicate);
         }
 
         category.ChangeSlug(slug);
@@ -66,7 +69,7 @@ public sealed class UpdateCategoryHandler : IRequestHandler<UpdateCategoryComman
 
         await _uow.SaveChangesAsync(cancellationToken);
         var updatedCategory = await _uow.Categories.GetByIdWithDetailsAsync(category.Id, false, cancellationToken) ?? category;
-        return Result<CategoryDetailDto>.Success(updatedCategory.ToDetailDto());
+        return Result<CategoryDetailDto>.Success(_mapper.Map<CategoryDetailDto>(updatedCategory));
     }
 }
 

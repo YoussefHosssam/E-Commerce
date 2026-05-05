@@ -14,10 +14,10 @@ namespace E_Commerce.Application.Features.Variant.Commands.UpdateVariant
     {
         public UpdateStockMovementValidation()
         {
-            RuleFor(x => x.VariantId).NotEmpty().WithError(ErrorCodes.StockMovement.VariantIdRequired);
-            RuleFor(x => x.Type).IsInEnum().WithError(ErrorCodes.StockMovement.TypeInvalid);
-            RuleFor(x => x.Reason).Length(0 , 500).WithError(ErrorCodes.StockMovement.TypeInvalid);
-            RuleFor(x => x.Quantity).NotEmpty().WithError(ErrorCodes.StockMovement.QuantityDeltaInvalid);
+            RuleFor(x => x.VariantId).NotEmpty().WithError(StockMovementErrors.VariantIdRequired);
+            RuleFor(x => x.Type).IsInEnum().WithError(StockMovementErrors.TypeInvalid);
+            RuleFor(x => x.Reason).Length(0 , 500).WithError(StockMovementErrors.TypeInvalid);
+            RuleFor(x => x.Quantity).NotEmpty().WithError(StockMovementErrors.QuantityDeltaInvalid);
         }
     }
 }

@@ -38,10 +38,10 @@ public sealed class UserOAuthAccount : BaseEntity
         DateTimeOffset now)
     {
         if (userId == Guid.Empty)
-            throw new DomainValidationException(ErrorCodes.Domain.OAuth.UserIdRequired);
+            throw new DomainValidationException(OAuthErrors.UserIdRequired);
 
         if (string.IsNullOrWhiteSpace(provider))
-            throw new DomainValidationException(ErrorCodes.Domain.OAuth.ProviderRequired);
+            throw new DomainValidationException(OAuthErrors.ProviderRequired);
 
         provider = provider.Trim().ToLowerInvariant();
 
@@ -50,24 +50,24 @@ public sealed class UserOAuthAccount : BaseEntity
         //     throw new DomainValidationException(ErrorCodes.Domain.OAuth.ProviderInvalid);
 
         if (provider.Length > 30)
-            throw new DomainValidationException(ErrorCodes.Domain.OAuth.ProviderTooLong);
+            throw new DomainValidationException(OAuthErrors.ProviderTooLong);
 
         if (string.IsNullOrWhiteSpace(providerUserId))
-            throw new DomainValidationException(ErrorCodes.Domain.OAuth.ProviderUserIdRequired);
+            throw new DomainValidationException(OAuthErrors.ProviderUserIdRequired);
 
         providerUserId = providerUserId.Trim();
         if (providerUserId.Length > 200)
-            throw new DomainValidationException(ErrorCodes.Domain.OAuth.ProviderUserIdTooLong);
+            throw new DomainValidationException(OAuthErrors.ProviderUserIdTooLong);
 
         if (email is not null)
         {
             email = email.Trim();
             if (email.Length > 254)
-                throw new DomainValidationException(ErrorCodes.Domain.OAuth.EmailTooLong);
+                throw new DomainValidationException(OAuthErrors.EmailTooLong);
         }
 
         if (now == default)
-            throw new DomainValidationException(ErrorCodes.Domain.OAuth.NowRequired);
+            throw new DomainValidationException(OAuthErrors.NowRequired);
 
         return new UserOAuthAccount(userId, provider, providerUserId, email, now);
     }

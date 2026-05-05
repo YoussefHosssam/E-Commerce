@@ -19,12 +19,12 @@ public sealed class DeleteProductHandler : IRequestHandler<DeleteProductCommand,
         var product = await _uow.Products.GetByIdWithDetailsAsync(request.Id, true, cancellationToken);
         if (product is null)
         {
-            return Result.Fail(ErrorCatalog.FromCode(ErrorCodes.Product.NotFound));
+            return Result.Fail(ProductErrors.NotFound);
         }
 
         if (product.Variants.Count > 0)
         {
-            return Result.Fail(ErrorCatalog.FromCode(ErrorCodes.Product.HasVariants));
+            return Result.Fail(ProductErrors.HasVariants);
         }
 
         await _uow.Products.DeleteAsync(request.Id, cancellationToken);

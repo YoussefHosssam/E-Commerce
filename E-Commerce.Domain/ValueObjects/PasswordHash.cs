@@ -14,7 +14,7 @@ public readonly record struct PasswordHash
     {
         if (string.IsNullOrEmpty(value))
         {
-            throw new DomainValidationException(ErrorCodes.ValueObjects.PasswordHashInvalid);
+            throw new DomainValidationException(ValueObjectErrors.PasswordHashInvalid);
         }
         return new PasswordHash(value);
     }

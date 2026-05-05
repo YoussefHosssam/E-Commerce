@@ -24,11 +24,11 @@ namespace E_Commerce.Domain.Entities
         public static UserCredential Create(Guid userId, PasswordHash passwordHash)
         {
             if (userId == Guid.Empty)
-                throw new DomainValidationException(ErrorCodes.Domain.UserCredential.UserIdInvalid);
+                throw new DomainValidationException(UserCredentialErrors.UserIdInvalid);
             if (string.IsNullOrWhiteSpace(passwordHash.Value))
-                throw new DomainValidationException(ErrorCodes.Domain.UserCredential.PasswordHashRequired);
+                throw new DomainValidationException(UserCredentialErrors.PasswordHashRequired);
             if (passwordHash.Value.Length < 20)
-                throw new DomainValidationException(ErrorCodes.Domain.UserCredential.PasswordHashInvalid);
+                throw new DomainValidationException(UserCredentialErrors.PasswordHashInvalid);
 
             return new UserCredential(userId, passwordHash);
         }

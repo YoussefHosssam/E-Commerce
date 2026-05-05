@@ -19,17 +19,17 @@ public sealed class DeleteVariantHandler : IRequestHandler<DeleteVariantCommand,
         var product = await _uow.Products.GetByIdWithDetailsAsync(request.ProductId, true, cancellationToken);
         if (product is null)
         {
-            return Result.Fail(ErrorCatalog.FromCode(ErrorCodes.Product.NotFound));
+            return Result.Fail(ProductErrors.NotFound);
         }
 
         if (!product.Variants.Any(x => x.Id == request.VariantId))
         {
-            return Result.Fail(ErrorCatalog.FromCode(ErrorCodes.Variant.NotFound));
+            return Result.Fail(VariantErrors.NotFound);
         }
 
         if (await _uow.Variants.IsVariantReferencedAsync(request.VariantId, cancellationToken))
         {
-            return Result.Fail(ErrorCatalog.FromCode(ErrorCodes.Variant.DeleteReferenced));
+            return Result.Fail(VariantErrors.DeleteReferenced);
         }
 
         product.RemoveVariant(request.VariantId, DateTimeOffset.UtcNow);

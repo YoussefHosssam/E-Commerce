@@ -48,33 +48,33 @@ public sealed class RefreshToken : BaseEntity
         string? ipAddress = null)
     {
         if (userId == Guid.Empty)
-            throw new DomainValidationException(ErrorCodes.Domain.Refresh.UserIdRequired);
+            throw new DomainValidationException(RefreshErrors.UserIdRequired);
 
         if (tokenHash.Equals(default(TokenHash)))
-            throw new DomainValidationException(ErrorCodes.Domain.Refresh.TokenHashRequired);
+            throw new DomainValidationException(RefreshErrors.TokenHashRequired);
 
         if (now == default)
-            throw new DomainValidationException(ErrorCodes.Domain.Refresh.NowRequired);
+            throw new DomainValidationException(RefreshErrors.NowRequired);
 
         if (expiresAt <= now)
-            throw new DomainValidationException(ErrorCodes.Domain.Refresh.ExpiresAtInvalid);
+            throw new DomainValidationException(RefreshErrors.ExpiresAtInvalid);
 
         if (deviceInfo is not null)
         {
             deviceInfo = deviceInfo.Trim();
             if (deviceInfo.Length > 300)
-                throw new DomainValidationException(ErrorCodes.Domain.Refresh.DeviceInfoTooLong);
+                throw new DomainValidationException(RefreshErrors.DeviceInfoTooLong);
         }
 
         if (ipAddress is not null)
         {
             ipAddress = ipAddress.Trim();
             if (ipAddress.Length > 45) // IPv6 max string
-                throw new DomainValidationException(ErrorCodes.Domain.Refresh.IpTooLong);
+                throw new DomainValidationException(RefreshErrors.IpTooLong);
 
             // optional light validation (accept IPv4/IPv6)
             if (!IPAddress.TryParse(ipAddress, out _))
-                throw new DomainValidationException(ErrorCodes.Domain.Refresh.IpInvalid);
+                throw new DomainValidationException(RefreshErrors.IpInvalid);
         }
 
         return new RefreshToken(userId, tokenHash, expiresAt, deviceInfo, ipAddress);
@@ -83,7 +83,7 @@ public sealed class RefreshToken : BaseEntity
     public void Revoke(DateTimeOffset now)
     {
         if (now == default)
-            throw new DomainValidationException(ErrorCodes.Domain.Refresh.NowRequired);
+            throw new DomainValidationException(RefreshErrors.NowRequired);
 
         if (IsRevoked)
             return; // idempotent (?? throw ?? ???)
@@ -97,10 +97,10 @@ public sealed class RefreshToken : BaseEntity
     public void Replace(TokenHash replacedByTokenHash, DateTimeOffset now)
     {
         if (replacedByTokenHash.Equals(default(TokenHash)))
-            throw new DomainValidationException(ErrorCodes.Domain.Refresh.ReplacedByRequired);
+            throw new DomainValidationException(RefreshErrors.ReplacedByRequired);
 
         if (replacedByTokenHash.Equals(TokenHash))
-            throw new DomainValidationException(ErrorCodes.Domain.Refresh.ReplacedBySame);
+            throw new DomainValidationException(RefreshErrors.ReplacedBySame);
 
         ReplacedByTokenHash = replacedByTokenHash;
         Revoke(now);

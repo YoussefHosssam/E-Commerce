@@ -27,13 +27,13 @@ public sealed class Inventory : BaseEntity
     public static Inventory Create(Guid variantId, int initialQuantity, DateTimeOffset now)
     {
         if (variantId == Guid.Empty)
-            throw new DomainValidationException(ErrorCodes.Domain.Inventory.VariantIdRequired);
+            throw new DomainValidationException(InventoryErrors.VariantIdRequired);
 
         if (initialQuantity < 0)
-            throw new DomainValidationException(ErrorCodes.Domain.Inventory.InitialQuantityInvalid);
+            throw new DomainValidationException(InventoryErrors.InitialQuantityInvalid);
 
         if (now == default)
-            throw new DomainValidationException(ErrorCodes.Domain.Inventory.NowRequired);
+            throw new DomainValidationException(InventoryErrors.NowRequired);
 
         return new Inventory(variantId, initialQuantity, now);
     }
@@ -43,7 +43,7 @@ public sealed class Inventory : BaseEntity
     public void AddStock(int quantity, DateTimeOffset now)
     {
         if (quantity <= 0)
-            throw new DomainValidationException(ErrorCodes.Domain.Inventory.QuantityInvalid);
+            throw new DomainValidationException(InventoryErrors.QuantityInvalid);
 
         OnHand += quantity;
         Touch(now);
@@ -52,10 +52,10 @@ public sealed class Inventory : BaseEntity
     public void Reserve(int quantity, DateTimeOffset now)
     {
         if (quantity <= 0)
-            throw new DomainValidationException(ErrorCodes.Domain.Inventory.QuantityInvalid);
+            throw new DomainValidationException(InventoryErrors.QuantityInvalid);
 
         if (Available < quantity)
-            throw new DomainValidationException(ErrorCodes.Domain.Inventory.InsufficientStock);
+            throw new DomainValidationException(InventoryErrors.InsufficientStock);
 
         Reserved += quantity;
         Touch(now);
@@ -64,10 +64,10 @@ public sealed class Inventory : BaseEntity
     public void ReleaseReservation(int quantity, DateTimeOffset now)
     {
         if (quantity <= 0)
-            throw new DomainValidationException(ErrorCodes.Domain.Inventory.QuantityInvalid);
+            throw new DomainValidationException(InventoryErrors.QuantityInvalid);
 
         if (Reserved < quantity)
-            throw new DomainValidationException(ErrorCodes.Domain.Inventory.ReservedQuantityInvalid);
+            throw new DomainValidationException(InventoryErrors.ReservedQuantityInvalid);
 
         Reserved -= quantity;
         Touch(now);
@@ -76,10 +76,10 @@ public sealed class Inventory : BaseEntity
     public void CommitReservation(int quantity, DateTimeOffset now)
     {
         if (quantity <= 0)
-            throw new DomainValidationException(ErrorCodes.Domain.Inventory.QuantityInvalid);
+            throw new DomainValidationException(InventoryErrors.QuantityInvalid);
 
         if (Reserved < quantity)
-            throw new DomainValidationException(ErrorCodes.Domain.Inventory.ReservedQuantityInvalid);
+            throw new DomainValidationException(InventoryErrors.ReservedQuantityInvalid);
 
         Reserved -= quantity;
         OnHand -= quantity;
@@ -90,10 +90,10 @@ public sealed class Inventory : BaseEntity
     public void AdjustStock(int newOnHand, DateTimeOffset now)
     {
         if (newOnHand < 0)
-            throw new DomainValidationException(ErrorCodes.Domain.Inventory.OnHandInvalid);
+            throw new DomainValidationException(InventoryErrors.OnHandInvalid);
 
         if (newOnHand < Reserved)
-            throw new DomainValidationException(ErrorCodes.Domain.Inventory.OnHandLessThanReserved);
+            throw new DomainValidationException(InventoryErrors.OnHandLessThanReserved);
 
         OnHand = newOnHand;
         Touch(now);
@@ -102,7 +102,7 @@ public sealed class Inventory : BaseEntity
     private void Touch(DateTimeOffset now)
     {
         if (now == default)
-            throw new DomainValidationException(ErrorCodes.Domain.Inventory.NowRequired);
+            throw new DomainValidationException(InventoryErrors.NowRequired);
 
         UpdatedAt = now;
     }

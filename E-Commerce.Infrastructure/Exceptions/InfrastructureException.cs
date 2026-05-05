@@ -9,7 +9,7 @@ namespace E_Commerce.Infrastructure.Exceptions
 {
     public class InfrastructureException : AppException
     {
-        public InfrastructureException(string? code) : base(ErrorCatalog.FromCode(code))
+        public InfrastructureException(Error err) : base(err)
         {
         }
     }

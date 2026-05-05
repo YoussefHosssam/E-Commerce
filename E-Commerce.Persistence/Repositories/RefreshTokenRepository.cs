@@ -15,16 +15,14 @@ namespace E_Commerce.Persistence.Repositories
 {
     internal class RefreshTokenRepository : GenericRepository<RefreshToken> , IRefreshTokenRepository
     {
-        private readonly EcommerceContext _ecommerceContext;
-        private readonly DbSet<RefreshToken> _dbSet;
+        private readonly DbSet<RefreshToken> _refreshTokens;
         public RefreshTokenRepository(EcommerceContext ecommerceContext) : base(ecommerceContext)
         {
-            _ecommerceContext = ecommerceContext;
-            _dbSet = _ecommerceContext.Set<RefreshToken>();
+            _refreshTokens = ecommerceContext.Set<RefreshToken>();
         }
         public async Task<RefreshToken?> GetByHashedTokenAsync(TokenHash hashedToken, CancellationToken cancellationToken)
         {
-            return await _dbSet.FirstOrDefaultAsync(t => t.TokenHash == hashedToken);
+            return await _refreshTokens.FirstOrDefaultAsync(t => t.TokenHash == hashedToken);
         }
     }
 }

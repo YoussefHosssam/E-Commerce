@@ -25,18 +25,18 @@ namespace E_Commerce.Application.Features.Auth.Commands.VerifyEmail
             AuthToken? savedRequestToken = await _uow.AuthTokens.GetSingleByPredicateAsync(at => at.TokenHash == hashedRequestToken && at.TokenType == TokenType.VerifyEmailToken, cancellationToken);
             if (savedRequestToken is null || savedRequestToken.IsTokenConsumed())
             {
-                return Result.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.InvalidToken));
+                return Result.Fail(AuthErrors.InvalidToken);
             }
 
             if (savedRequestToken.IsTokenExpired(DateTimeOffset.UtcNow))
             {
-                return Result.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.ExpiredToken));
+                return Result.Fail(AuthErrors.ExpiredToken);
             }
 
             User? user = await _uow.Users.GetByIdAsync(savedRequestToken.UserId, cancellationToken);
             if (user is null)
             {
-                return Result.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.InvalidToken));
+                return Result.Fail(AuthErrors.InvalidToken);
             }
 
             user.Verify();

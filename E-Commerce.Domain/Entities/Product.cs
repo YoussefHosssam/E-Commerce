@@ -59,24 +59,24 @@ public sealed class Product : BaseEntity
         ProductStatus status = ProductStatus.Draft)
     {
         if (categoryId == Guid.Empty)
-            throw new DomainValidationException(ErrorCodes.Product.CategoryRequired);
+            throw new DomainValidationException(ProductErrors.CategoryRequired);
 
         // ?? Slug VO ???? ??? IsEmpty ?? IsDefault ??????? ??? default check
         if (slug.Equals(default(Slug)))
-            throw new DomainValidationException(ErrorCodes.Product.SlugRequired);
+            throw new DomainValidationException(ProductErrors.SlugRequired);
 
         if (!Enum.IsDefined(typeof(ProductStatus), status))
-            throw new DomainValidationException(ErrorCodes.Product.StatusInvalid);
+            throw new DomainValidationException(ProductErrors.StatusInvalid);
 
         if (basePrice is null)
-            throw new DomainValidationException(ErrorCodes.Product.BasePriceRequired);
+            throw new DomainValidationException(ProductErrors.BasePriceRequired);
 
         // ?????? ?? Money ???? ???? ??????? ?? ????? check ???????
         if (basePrice.Amount < 0)
-            throw new DomainValidationException(ErrorCodes.Product.BasePriceInvalid);
+            throw new DomainValidationException(ProductErrors.BasePriceInvalid);
 
         if (string.IsNullOrWhiteSpace(basePrice.Currency.Value)) // ???? ??? CurrencyCode ????
-            throw new DomainValidationException(ErrorCodes.Product.CurrencyRequired);
+            throw new DomainValidationException(ProductErrors.CurrencyRequired);
 
         brand = NormalizeBrandOrNull(brand);
 
@@ -88,13 +88,13 @@ public sealed class Product : BaseEntity
     public void ChangeBasePrice(Money newBasePrice, DateTimeOffset now)
     {
         if (newBasePrice is null)
-            throw new DomainValidationException(ErrorCodes.Product.BasePriceRequired);
+            throw new DomainValidationException(ProductErrors.BasePriceRequired);
 
         if (newBasePrice.Amount < 0)
-            throw new DomainValidationException(ErrorCodes.Product.BasePriceInvalid);
+            throw new DomainValidationException(ProductErrors.BasePriceInvalid);
 
         if (string.IsNullOrWhiteSpace(newBasePrice.Currency.Value)) // ???? ??? CurrencyCode ????
-            throw new DomainValidationException(ErrorCodes.Product.CurrencyRequired);
+            throw new DomainValidationException(ProductErrors.CurrencyRequired);
 
         BasePrice = newBasePrice;
         Touch(now);
@@ -103,7 +103,7 @@ public sealed class Product : BaseEntity
     public void ChangeCategory(Guid categoryId, DateTimeOffset now)
     {
         if (categoryId == Guid.Empty)
-            throw new DomainValidationException(ErrorCodes.Product.CategoryRequired);
+            throw new DomainValidationException(ProductErrors.CategoryRequired);
 
         CategoryId = categoryId;
         Touch(now);
@@ -112,7 +112,7 @@ public sealed class Product : BaseEntity
     public void ChangeSlug(Slug slug, DateTimeOffset now)
     {
         if (slug.Equals(default(Slug)))
-            throw new DomainValidationException(ErrorCodes.Product.SlugRequired);
+            throw new DomainValidationException(ProductErrors.SlugRequired);
 
         Slug = slug;
         Touch(now);
@@ -121,7 +121,7 @@ public sealed class Product : BaseEntity
     public void ChangeStatus(ProductStatus status, DateTimeOffset now)
     {
         if (!Enum.IsDefined(typeof(ProductStatus), status))
-            throw new DomainValidationException(ErrorCodes.Product.StatusInvalid);
+            throw new DomainValidationException(ProductErrors.StatusInvalid);
 
         Status = status;
         Touch(now);
@@ -148,7 +148,7 @@ public sealed class Product : BaseEntity
     public void AddImage(ProductImage image, DateTimeOffset now)
     {
         if (image is null)
-            throw new DomainValidationException(ErrorCodes.Domain.Product.ImageRequired);
+            throw new DomainValidationException(ProductErrors.ImageRequired);
 
         _images.Add(image);
         Touch(now);
@@ -164,21 +164,21 @@ public sealed class Product : BaseEntity
         DateTimeOffset now)
     {
         if (string.IsNullOrWhiteSpace(sku))
-            throw new DomainValidationException(ErrorCodes.Domain.Product.VariantSkuRequired);
+            throw new DomainValidationException(ProductErrors.VariantSkuRequired);
 
         var normalizedSku = sku.Trim().ToUpperInvariant();
 
         if (_variants.Any(v => v.Sku == normalizedSku))
-            throw new DomainValidationException(ErrorCodes.Domain.Product.VariantSkuDuplicate);
+            throw new DomainValidationException(ProductErrors.VariantSkuDuplicate);
 
         if (priceOverride is not null)
         {
             if (priceOverride.Amount < 0)
-                throw new DomainValidationException(ErrorCodes.Domain.Product.VariantPriceOverrideInvalid);
+                throw new DomainValidationException(ProductErrors.VariantPriceOverrideInvalid);
 
             // important: ?????? variant override ????? ?????? ?? ??????
             if (!Equals(priceOverride.Currency, BasePrice.Currency))
-                throw new DomainValidationException(ErrorCodes.Domain.Product.VariantPriceOverrideCurrencyMismatch);
+                throw new DomainValidationException(ProductErrors.VariantPriceOverrideCurrencyMismatch);
         }
 
         // ?? ???? ????? Variant.Create signature ???? ?????? Money? ??? decimal?
@@ -199,20 +199,20 @@ public sealed class Product : BaseEntity
         DateTimeOffset now)
     {
         var variant = _variants.FirstOrDefault(v => v.Id == variantId)
-            ?? throw new DomainValidationException(ErrorCodes.Domain.Product.VariantNotFound);
+            ?? throw new DomainValidationException(ProductErrors.VariantNotFound);
 
         var normalizedSku = sku.Trim().ToUpperInvariant();
 
         if (_variants.Any(v => v.Id != variantId && v.Sku == normalizedSku))
-            throw new DomainValidationException(ErrorCodes.Domain.Product.VariantSkuDuplicate);
+            throw new DomainValidationException(ProductErrors.VariantSkuDuplicate);
 
         if (priceOverride is not null)
         {
             if (priceOverride.Amount < 0)
-                throw new DomainValidationException(ErrorCodes.Domain.Product.VariantPriceOverrideInvalid);
+                throw new DomainValidationException(ProductErrors.VariantPriceOverrideInvalid);
 
             if (!Equals(priceOverride.Currency, BasePrice.Currency))
-                throw new DomainValidationException(ErrorCodes.Domain.Product.VariantPriceOverrideCurrencyMismatch);
+                throw new DomainValidationException(ProductErrors.VariantPriceOverrideCurrencyMismatch);
         }
 
         variant.ChangeSku(normalizedSku);
@@ -231,7 +231,7 @@ public sealed class Product : BaseEntity
     public void RemoveVariant(Guid variantId, DateTimeOffset now)
     {
         var variant = _variants.FirstOrDefault(v => v.Id == variantId)
-            ?? throw new DomainValidationException(ErrorCodes.Domain.Product.VariantNotFound);
+            ?? throw new DomainValidationException(ProductErrors.VariantNotFound);
 
         _variants.Remove(variant);
         Touch(now);
@@ -240,7 +240,7 @@ public sealed class Product : BaseEntity
     private void Touch(DateTimeOffset now)
     {
         if (now == default)
-            throw new DomainValidationException(ErrorCodes.Domain.Product.NowRequired);
+            throw new DomainValidationException(ProductErrors.NowRequired);
 
         UpdatedAt = now;
     }
@@ -253,7 +253,7 @@ public sealed class Product : BaseEntity
         if (brand.Length == 0) return null;
 
         if (brand.Length > 80)
-            throw new DomainValidationException(ErrorCodes.Product.BrandTooLong);
+            throw new DomainValidationException(ProductErrors.BrandTooLong);
 
         return brand;
     }

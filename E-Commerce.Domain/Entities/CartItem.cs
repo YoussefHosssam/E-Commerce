@@ -32,16 +32,16 @@ public sealed class CartItem : BaseEntity
     public static CartItem Create(Guid cartId, Guid variantId, int quantity, DateTimeOffset now)
     {
         if (cartId == Guid.Empty)
-            throw new DomainValidationException(ErrorCodes.Domain.CartItem.CartIdRequired);
+            throw new DomainValidationException(CartItemErrors.CartIdRequired);
 
         if (variantId == Guid.Empty)
-            throw new DomainValidationException(ErrorCodes.Domain.CartItem.VariantIdRequired);
+            throw new DomainValidationException(CartItemErrors.VariantIdRequired);
 
         if (quantity <= 0)
-            throw new DomainValidationException(ErrorCodes.Domain.CartItem.QuantityInvalid);
+            throw new DomainValidationException(CartItemErrors.QuantityInvalid);
 
         if (now == default)
-            throw new DomainValidationException(ErrorCodes.Domain.CartItem.NowRequired);
+            throw new DomainValidationException(CartItemErrors.NowRequired);
 
         return new CartItem(cartId, variantId, quantity, now);
     }
@@ -49,7 +49,7 @@ public sealed class CartItem : BaseEntity
     public void IncreaseQuantity(int delta, DateTimeOffset now)
     {
         if (delta <= 0)
-            throw new DomainValidationException(ErrorCodes.Domain.CartItem.DeltaInvalid);
+            throw new DomainValidationException(CartItemErrors.DeltaInvalid);
 
         Quantity += delta;
         Touch(now);
@@ -58,7 +58,7 @@ public sealed class CartItem : BaseEntity
     public void SetQuantity(int quantity, DateTimeOffset now)
     {
         if (quantity <= 0)
-            throw new DomainValidationException(ErrorCodes.Domain.CartItem.QuantityInvalid);
+            throw new DomainValidationException(CartItemErrors.QuantityInvalid);
 
         Quantity = quantity;
         Touch(now);
@@ -73,11 +73,11 @@ public sealed class CartItem : BaseEntity
     public void DecreaseQuantity(int delta, DateTimeOffset now)
     {
         if (delta <= 0)
-            throw new DomainValidationException(ErrorCodes.Domain.CartItem.DeltaInvalid);
+            throw new DomainValidationException(CartItemErrors.DeltaInvalid);
 
         var newQty = Quantity - delta;
         if (newQty <= 0)
-            throw new DomainValidationException(ErrorCodes.Domain.CartItem.QuantityInvalid);
+            throw new DomainValidationException(CartItemErrors.QuantityInvalid);
 
         Quantity = newQty;
         Touch(now);
@@ -86,7 +86,7 @@ public sealed class CartItem : BaseEntity
     private void Touch(DateTimeOffset now)
     {
         if (now == default)
-            throw new DomainValidationException(ErrorCodes.Domain.CartItem.NowRequired);
+            throw new DomainValidationException(CartItemErrors.NowRequired);
 
         UpdatedAt = now;
     }

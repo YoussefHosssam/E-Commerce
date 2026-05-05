@@ -4,16 +4,19 @@ using E_Commerce.Application.Features.Variant.Common;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.ValueObjects;
 using MediatR;
+using AutoMapper;
 
 namespace E_Commerce.Application.Features.Variant.Commands.UpdateVariant;
 
 public sealed class UpdateVariantHandler : IRequestHandler<UpdateVariantCommand, Result<VariantDetailDto>>
 {
     private readonly IUnitOfWork _uow;
+    private readonly IMapper _mapper;
 
-    public UpdateVariantHandler(IUnitOfWork uow)
+    public UpdateVariantHandler(IUnitOfWork uow, IMapper mapper)
     {
         _uow = uow;
+        _mapper = mapper;
     }
 
     public async Task<Result<VariantDetailDto>> Handle(UpdateVariantCommand request, CancellationToken cancellationToken)
@@ -21,17 +24,17 @@ public sealed class UpdateVariantHandler : IRequestHandler<UpdateVariantCommand,
         var product = await _uow.Products.GetByIdWithDetailsAsync(request.ProductId, true, cancellationToken);
         if (product is null)
         {
-            return Result<VariantDetailDto>.Fail(ErrorCatalog.FromCode(ErrorCodes.Product.NotFound));
+            return Result<VariantDetailDto>.Fail(ProductErrors.NotFound);
         }
 
         if (!product.Variants.Any(x => x.Id == request.VariantId))
         {
-            return Result<VariantDetailDto>.Fail(ErrorCatalog.FromCode(ErrorCodes.Variant.NotFound));
+            return Result<VariantDetailDto>.Fail(VariantErrors.NotFound);
         }
 
         if (await _uow.Variants.SkuExistsAsync(request.Sku, request.VariantId, cancellationToken))
         {
-            return Result<VariantDetailDto>.Fail(ErrorCatalog.FromCode(ErrorCodes.Variant.SkuDuplicate));
+            return Result<VariantDetailDto>.Fail(VariantErrors.SkuDuplicate);
         }
 
         Money? priceOverride = null;
@@ -44,7 +47,7 @@ public sealed class UpdateVariantHandler : IRequestHandler<UpdateVariantCommand,
         await _uow.SaveChangesAsync(cancellationToken);
 
         var updatedVariant = await _uow.Variants.GetByIdWithDetailsAsync(request.VariantId, cancellationToken);
-        return Result<VariantDetailDto>.Success(updatedVariant!.ToDetailDto());
+        return Result<VariantDetailDto>.Success(_mapper.Map<VariantDetailDto>(updatedVariant!));
     }
 }
 

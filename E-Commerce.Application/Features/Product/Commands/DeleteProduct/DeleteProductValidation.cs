@@ -10,6 +10,6 @@ public sealed class DeleteProductValidation : AbstractValidator<DeleteProductCom
     {
         RuleFor(x => x.Id)
             .NotEmpty()
-            .WithError(ErrorCodes.Product.IdRequired);
+            .WithError(ProductErrors.IdRequired);
     }
 }

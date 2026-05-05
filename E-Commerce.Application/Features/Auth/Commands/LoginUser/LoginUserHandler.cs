@@ -4,7 +4,7 @@ using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
 using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Jwt;
 using E_Commerce.Application.Contracts.Infrastrucuture.Auth.RefreshTokens;
 using E_Commerce.Application.Contracts.Infrastrucuture.Cart;
-using E_Commerce.Application.Services.Contracts;
+using E_Commerce.Application.Contracts.Services;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.ValueObjects;
@@ -38,10 +38,10 @@ namespace E_Commerce.Application.Features.Auth.Commands.LoginUser
         public async Task<Result<LoginUserResponse>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
         {
             User? existUser = await _uow.Users.GetUserByEmailAsync(EmailAddress.Create(request.Email), cancellationToken);
-            if (existUser == null) return Result<LoginUserResponse>.Fail(ErrorCatalog.FromCode(ErrorCodes.User.NotFound));
+            if (existUser == null) return Result<LoginUserResponse>.Fail(UserErrors.NotFound);
             PasswordHash existHashedPassword = existUser.Credential.PasswordHash;
             bool isCorrectPassword = _passwordHasherAdapter.Verify(existHashedPassword, request.Password);
-            if (!isCorrectPassword) return Result<LoginUserResponse>.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.InvalidCredentials));
+            if (!isCorrectPassword) return Result<LoginUserResponse>.Fail(AuthErrors.InvalidCredentials);
             if (existUser.IsTwoFactorAuthEnabled)
             {
                 return await HandleLoginWithEnabled2fa(existUser, cancellationToken);

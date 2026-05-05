@@ -23,7 +23,7 @@ public class TwoFactorRecoveryCode : BaseEntity
     public void MarkAsUsed(DateTimeOffset now)
     {
         if (UsedAt is not null)
-            throw new DomainValidationException(ErrorCodes.Domain.TwoFactor.RecoveryUsed);
+            throw new DomainValidationException(TwoFactorErrors.RecoveryUsed);
 
         UsedAt = now;
     }

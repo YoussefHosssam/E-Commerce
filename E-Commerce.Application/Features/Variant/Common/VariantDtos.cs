@@ -27,39 +27,3 @@ public sealed record VariantDetailDto(
     string? Color,
     MoneyDto? PriceOverride,
     bool IsActive);
-
-internal static class VariantDtoMappings
-{
-    public static VariantListItemDto ToListItemDto(this E_Commerce.Domain.Entities.Variant variant)
-        => new(
-            variant.Id,
-            variant.ProductId,
-            variant.Product.Slug.Value,
-            variant.Sku,
-            variant.Size,
-            variant.Color,
-            variant.PriceOverride is null ? null : MoneyDto.FromMoney(variant.PriceOverride),
-            variant.IsActive);
-
-    public static VariantDetailDto ToDetailDto(this E_Commerce.Domain.Entities.Variant variant)
-        => new(
-            variant.Id,
-            variant.ProductId,
-            variant.Product.Slug.Value,
-            variant.Sku,
-            variant.Size,
-            variant.Color,
-            variant.PriceOverride is null ? null : MoneyDto.FromMoney(variant.PriceOverride),
-            variant.IsActive);
-    public static CartVariantDto ToCartVariantDto(this E_Commerce.Domain.Entities.Variant variant) 
-        => new(
-            variant.Id,
-            variant.Sku,
-            variant.Size,
-            variant.Color,
-            variant.PriceOverride is null ? null : MoneyDto.FromMoney(variant.PriceOverride)
-           );
-}
-
-
-

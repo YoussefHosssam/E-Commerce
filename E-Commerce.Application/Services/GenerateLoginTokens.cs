@@ -1,6 +1,6 @@
 ﻿using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Jwt;
 using E_Commerce.Application.Contracts.Infrastrucuture.Auth.RefreshTokens;
-using E_Commerce.Application.Services.Contracts;
+using E_Commerce.Application.Contracts.Services;
 using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.ValueObjects;
 using System;

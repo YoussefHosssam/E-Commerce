@@ -8,10 +8,10 @@ public sealed class CreateProductValidation : AbstractValidator<CreateProductCom
 {
     public CreateProductValidation()
     {
-        RuleFor(x => x.CategoryId).NotEmpty().WithError(ErrorCodes.Product.CategoryRequired);
-        RuleFor(x => x.Slug).NotEmpty().WithError(ErrorCodes.Product.SlugRequired);
-        RuleFor(x => x.BasePriceAmount).GreaterThanOrEqualTo(0).WithError(ErrorCodes.Product.BasePriceInvalid);
-        RuleFor(x => x.BasePriceCurrency).NotEmpty().Length(3).WithError(ErrorCodes.Product.CurrencyInvalid);
-        RuleFor(x => x.Status).IsInEnum().WithError(ErrorCodes.Product.StatusInvalid);
+        RuleFor(x => x.CategoryId).NotEmpty().WithError(ProductErrors.CategoryRequired);
+        RuleFor(x => x.Slug).NotEmpty().WithError(ProductErrors.SlugRequired);
+        RuleFor(x => x.BasePriceAmount).GreaterThanOrEqualTo(0).WithError(ProductErrors.BasePriceInvalid);
+        RuleFor(x => x.BasePriceCurrency).NotEmpty().Length(3).WithError(ProductErrors.CurrencyInvalid);
+        RuleFor(x => x.Status).IsInEnum().WithError(ProductErrors.StatusInvalid);
     }
 }

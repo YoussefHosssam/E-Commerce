@@ -4,10 +4,10 @@ using E_Commerce.Application.Common.Entities;
 using E_Commerce.Application.Contracts.Infrastructure.BackgroundJobs;
 using E_Commerce.Application.Contracts.Infrastructure.Common;
 using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
-using E_Commerce.Application.Services.Contracts;
 using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.ValueObjects;
 using MediatR;
+using E_Commerce.Application.Contracts.Services;
 
 namespace E_Commerce.Application.Features.Auth.Commands.RegisterUser
 {

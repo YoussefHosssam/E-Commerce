@@ -4,5 +4,6 @@
     Abandoned = 1,    
     Converted = 2,    
     Expired = 3,      
-    Merged = 4      
+    Merged = 4,
+    CheckedOut
 }

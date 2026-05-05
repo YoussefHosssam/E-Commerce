@@ -9,11 +9,14 @@ public interface IUnitOfWork
     IVariantRepository Variants { get; }
     IUserRepository Users { get; }
     ICartRepository Carts { get; }
+    IOrderRepository Orders { get; }
+    IPaymentRepository Payments { get; }
+
     IGenericRepository<CartItem> CartItems { get; }
     IGenericRepository<UserTwoFactor> User2fa { get; }
     IGenericRepository<UserCredential> UserCredentials { get; }
     IInventoryRepository Inventories { get; }
-    IGenericRepository<StockMovement> StockMovements { get; }
+    IStockMovementRepository StockMovements { get; }
     IRefreshTokenRepository RefreshTokens { get; }
     IGenericRepository<EmailMessage> EmailMessages { get; }
     IGenericRepository<TwoFactorRecoveryCode> TwoFactorRecoveryCodes { get; }

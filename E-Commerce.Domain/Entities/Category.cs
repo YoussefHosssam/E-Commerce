@@ -34,13 +34,13 @@ public sealed class Category : BaseEntity
     public static Category Create(Guid? parentId, Slug slug, int sortOrder = 0)
     {
         if (parentId.HasValue && parentId.Value == Guid.Empty)
-            throw new DomainValidationException(ErrorCodes.Category.ParentInvalid);
+            throw new DomainValidationException(CategoryErrors.ParentInvalid);
 
         if (slug.Equals(default(Slug)))
-            throw new DomainValidationException(ErrorCodes.Category.SlugRequired);
+            throw new DomainValidationException(CategoryErrors.SlugRequired);
 
         if (sortOrder < 0)
-            throw new DomainValidationException(ErrorCodes.Category.SortOrderInvalid);
+            throw new DomainValidationException(CategoryErrors.SortOrderInvalid);
 
         return new Category(parentId, slug, sortOrder);
     }
@@ -50,7 +50,7 @@ public sealed class Category : BaseEntity
     public void ChangeSlug(Slug slug)
     {
         if (slug.Equals(default(Slug)))
-            throw new DomainValidationException(ErrorCodes.Category.SlugRequired);
+            throw new DomainValidationException(CategoryErrors.SlugRequired);
 
         // uniqueness globally is DB/application responsibility
         Slug = slug;
@@ -59,7 +59,7 @@ public sealed class Category : BaseEntity
     public void SetSortOrder(int sortOrder)
     {
         if (sortOrder < 0)
-            throw new DomainValidationException(ErrorCodes.Category.SortOrderInvalid);
+            throw new DomainValidationException(CategoryErrors.SortOrderInvalid);
 
         SortOrder = sortOrder;
     }
@@ -86,14 +86,14 @@ public sealed class Category : BaseEntity
     public void AddChild(Category child)
     {
         if (child is null)
-            throw new DomainValidationException(ErrorCodes.Category.ChildRequired);
+            throw new DomainValidationException(CategoryErrors.ChildRequired);
 
         if (child.Id == this.Id)
-            throw new DomainValidationException(ErrorCodes.Domain.Category.ChildSelf);
+            throw new DomainValidationException(CategoryErrors.ChildSelf);
 
         // prevent duplicate child
         if (_children.Any(c => c.Id == child.Id))
-            throw new DomainValidationException(ErrorCodes.Category.ChildDuplicate);
+            throw new DomainValidationException(CategoryErrors.ChildDuplicate);
 
         // set parent link (domain owns the relationship)
         child.SetParent(this);
@@ -105,7 +105,7 @@ public sealed class Category : BaseEntity
     {
         var idx = _children.FindIndex(c => c.Id == childId);
         if (idx < 0)
-            throw new DomainValidationException(ErrorCodes.Domain.Category.ChildNotFound);
+            throw new DomainValidationException(CategoryErrors.ChildNotFound);
 
         _children[idx].ClearParent();
         _children.RemoveAt(idx);
@@ -114,10 +114,10 @@ public sealed class Category : BaseEntity
     private void SetParent(Category parent)
     {
         if (parent is null)
-            throw new DomainValidationException(ErrorCodes.Domain.Category.ParentRequired);
+            throw new DomainValidationException(CategoryErrors.ParentRequired);
 
         if (parent.Id == this.Id)
-            throw new DomainValidationException(ErrorCodes.Category.ParentSelf);
+            throw new DomainValidationException(CategoryErrors.ParentSelf);
 
         Parent = parent;
         ParentId = parent.Id;

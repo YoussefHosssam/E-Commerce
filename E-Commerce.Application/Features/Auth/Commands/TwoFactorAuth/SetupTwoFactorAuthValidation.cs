@@ -9,9 +9,9 @@ namespace E_Commerce.Application.Features.Auth.Commands.TwoFactorAuth
         public SetupTwoFactorAuthValidation()
         {
             RuleFor(x => x.Password)
-                .NotEmpty().WithError(ErrorCodes.Auth.PasswordRequired)
-                .MinimumLength(8).WithError(ErrorCodes.Auth.PasswordTooShort)
-                .MaximumLength(128).WithError(ErrorCodes.Auth.PasswordTooLong);
+                .NotEmpty().WithError(AuthErrors.PasswordRequired)
+                .MinimumLength(8).WithError(AuthErrors.PasswordTooShort)
+                .MaximumLength(128).WithError(AuthErrors.PasswordTooLong);
         }
     }
 }

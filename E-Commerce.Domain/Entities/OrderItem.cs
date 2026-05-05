@@ -57,41 +57,41 @@ public sealed class OrderItem : BaseEntity
         int quantity)
     {
         if (orderId == Guid.Empty)
-            throw new DomainValidationException(ErrorCodes.Domain.OrderItem.OrderIdRequired);
+            throw new DomainValidationException(OrderItemErrors.OrderIdRequired);
 
         if (variantId == Guid.Empty)
-            throw new DomainValidationException(ErrorCodes.Domain.OrderItem.VariantIdRequired);
+            throw new DomainValidationException(OrderItemErrors.VariantIdRequired);
 
         if (string.IsNullOrWhiteSpace(sku))
-            throw new DomainValidationException(ErrorCodes.Domain.OrderItem.SkuRequired);
+            throw new DomainValidationException(OrderItemErrors.SkuRequired);
 
         sku = sku.Trim().ToUpperInvariant();
         if (sku.Length > 64)
-            throw new DomainValidationException(ErrorCodes.Domain.OrderItem.SkuTooLong);
+            throw new DomainValidationException(OrderItemErrors.SkuTooLong);
 
         if (string.IsNullOrWhiteSpace(productTitleSnapshot))
-            throw new DomainValidationException(ErrorCodes.Domain.OrderItem.TitleRequired);
+            throw new DomainValidationException(OrderItemErrors.TitleRequired);
 
         productTitleSnapshot = productTitleSnapshot.Trim();
         if (productTitleSnapshot.Length > 200)
-            throw new DomainValidationException(ErrorCodes.Domain.OrderItem.TitleTooLong);
+            throw new DomainValidationException(OrderItemErrors.TitleTooLong);
 
         if (variantSnapshotJson.Equals(default(JsonText)))
-            throw new DomainValidationException(ErrorCodes.Domain.OrderItem.VariantSnapshotRequired);
+            throw new DomainValidationException(OrderItemErrors.VariantSnapshotRequired);
 
         if (unitPrice < 0)
-            throw new DomainValidationException(ErrorCodes.Domain.OrderItem.UnitPriceInvalid);
+            throw new DomainValidationException(OrderItemErrors.UnitPriceInvalid);
 
         if (currency.Equals(default(CurrencyCode)))
-            throw new DomainValidationException(ErrorCodes.Domain.OrderItem.CurrencyInvalid);
+            throw new DomainValidationException(OrderItemErrors.CurrencyInvalid);
 
         if (quantity <= 0)
-            throw new DomainValidationException(ErrorCodes.Domain.OrderItem.QuantityInvalid);
+            throw new DomainValidationException(OrderItemErrors.QuantityInvalid);
 
         // safeguard: line total overflow-ish (???????)
         var lineTotal = unitPrice * quantity;
         if (lineTotal < 0)
-            throw new DomainValidationException(ErrorCodes.Domain.OrderItem.LineTotalInvalid);
+            throw new DomainValidationException(OrderItemErrors.LineTotalInvalid);
 
         return new OrderItem(orderId, variantId, sku, productTitleSnapshot, variantSnapshotJson, unitPrice, currency, quantity);
     }
@@ -99,7 +99,7 @@ public sealed class OrderItem : BaseEntity
     public void ChangeQuantity(int quantity)
     {
         if (quantity <= 0)
-            throw new DomainValidationException(ErrorCodes.Domain.OrderItem.QuantityInvalid);
+            throw new DomainValidationException(OrderItemErrors.QuantityInvalid);
 
         Quantity = quantity;
         LineTotal = UnitPrice * Quantity;
@@ -108,7 +108,7 @@ public sealed class OrderItem : BaseEntity
     public void ChangeUnitPrice(decimal unitPrice)
     {
         if (unitPrice < 0)
-            throw new DomainValidationException(ErrorCodes.Domain.OrderItem.UnitPriceInvalid);
+            throw new DomainValidationException(OrderItemErrors.UnitPriceInvalid);
 
         UnitPrice = unitPrice;
         LineTotal = UnitPrice * Quantity;

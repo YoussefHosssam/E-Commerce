@@ -1,9 +1,11 @@
-﻿using E_Commerce.Application.Common.Result;
+using E_Commerce.Application.Common.Result;
 using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
 using E_Commerce.Application.Contracts.Infrastrucuture.Cart;
 using E_Commerce.Domain.Common.Errors;
 using MediatR;
+using AutoMapper;
 using CartEntity = E_Commerce.Domain.Entities.Cart;
+using E_Commerce.Application.Features.Cart.Common;
 
 namespace E_Commerce.Application.Features.Cart.Commands.RemoveItem;
 
@@ -12,15 +14,18 @@ internal sealed class UpdateItemHandler : IRequestHandler<UpdateItemCommand, Res
     private readonly IUnitOfWork _uow;
     private readonly ICartSessionService _cartSessionService;
     private readonly IUserAccessor _userAccessor;
+    private readonly IMapper _mapper;
 
     public UpdateItemHandler(
         IUnitOfWork uow,
         ICartSessionService cartSessionService,
-        IUserAccessor userAccessor)
+        IUserAccessor userAccessor,
+        IMapper mapper)
     {
         _uow = uow;
         _cartSessionService = cartSessionService;
         _userAccessor = userAccessor;
+        _mapper = mapper;
     }
 
     public async Task<Result<CartSummaryDTO>> Handle(
@@ -32,14 +37,12 @@ internal sealed class UpdateItemHandler : IRequestHandler<UpdateItemCommand, Res
         var cart = await ResolveCartAsync(cancellationToken);
 
         if (cart is null)
-            return Result<CartSummaryDTO>.Fail(
-                ErrorCatalog.FromCode(ErrorCodes.Cart.NotActive));
+            return Result<CartSummaryDTO>.Fail(CartErrors.NotActive);
 
         var item = cart.Items.FirstOrDefault(x => x.Id == request.cartItemId);
 
         if (item is null)
-            return Result<CartSummaryDTO>.Fail(
-                ErrorCatalog.FromCode(ErrorCodes.Cart.ItemNotFound));
+            return Result<CartSummaryDTO>.Fail(CartErrors.ItemNotFound);
 
         if (request.quantity == 0)
         {
@@ -53,12 +56,7 @@ internal sealed class UpdateItemHandler : IRequestHandler<UpdateItemCommand, Res
 
         await _uow.SaveChangesAsync(cancellationToken);
 
-        var cartSummary = new CartSummaryDTO(
-            cart.Id,
-            cart.Items.ToCartItemListDTO(),
-            cart.GetTotalQuantity(),
-            cart.GetTotalPrice(),
-            cart.AnonymousToken);
+        var cartSummary = _mapper.Map<CartSummaryDTO>(cart);
 
         return Result<CartSummaryDTO>.Success(cartSummary);
     }

@@ -18,12 +18,12 @@ public readonly record struct EmailAddress
     public static EmailAddress Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new DomainValidationException(ErrorCodes.ValueObjects.EmailRequired);
+            throw new DomainValidationException(ValueObjectErrors.EmailRequired);
 
         var normalized = value.Trim().ToLowerInvariant();
 
         if (!Rx.IsMatch(normalized))
-            throw new DomainValidationException(ErrorCodes.ValueObjects.EmailInvalid);
+            throw new DomainValidationException(ValueObjectErrors.EmailInvalid);
 
         return new EmailAddress(normalized);
     }

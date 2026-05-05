@@ -29,15 +29,15 @@ public sealed class Cart : BaseEntity
     public static Cart CreateAnonymous(string anonymousToken, DateTimeOffset now)
     {
         if (string.IsNullOrWhiteSpace(anonymousToken))
-            throw new DomainValidationException(ErrorCodes.Domain.Cart.AnonymousTokenRequired);
+            throw new DomainValidationException(CartErrors.AnonymousTokenRequired);
 
         anonymousToken = anonymousToken.Trim();
 
         if (anonymousToken.Length > 128)
-            throw new DomainValidationException(ErrorCodes.Domain.Cart.AnonymousTokenTooLong);
+            throw new DomainValidationException(CartErrors.AnonymousTokenTooLong);
 
         if (now == default)
-            throw new DomainValidationException(ErrorCodes.Domain.Cart.NowRequired);
+            throw new DomainValidationException(CartErrors.NowRequired);
 
         return new Cart(userId: null, anonymousToken: anonymousToken, now: now);
     }
@@ -45,10 +45,10 @@ public sealed class Cart : BaseEntity
     public static Cart CreateForUser(Guid userId, DateTimeOffset now)
     {
         if (userId == Guid.Empty)
-            throw new DomainValidationException(ErrorCodes.Domain.Cart.UserIdRequired);
+            throw new DomainValidationException(CartErrors.UserIdRequired);
 
         if (now == default)
-            throw new DomainValidationException(ErrorCodes.Domain.Cart.NowRequired);
+            throw new DomainValidationException(CartErrors.NowRequired);
 
         return new Cart(userId: userId, anonymousToken: null, now: now);
     }
@@ -60,7 +60,7 @@ public sealed class Cart : BaseEntity
         EnsureActive();
 
         if (userId == Guid.Empty)
-            throw new DomainValidationException(ErrorCodes.Domain.Cart.UserIdRequired);
+            throw new DomainValidationException(CartErrors.UserIdRequired);
 
         UserId = userId;
         AnonymousToken = null;
@@ -70,7 +70,7 @@ public sealed class Cart : BaseEntity
     public void SetStatus(CartStatus status, DateTimeOffset now)
     {
         if (!Enum.IsDefined(typeof(CartStatus), status))
-            throw new DomainValidationException(ErrorCodes.Domain.Cart.StatusInvalid);
+            throw new DomainValidationException(CartErrors.StatusInvalid);
 
         Status = status;
         Touch(now);
@@ -81,11 +81,11 @@ public sealed class Cart : BaseEntity
         EnsureActive();
 
         if (item is null)
-            throw new DomainValidationException(ErrorCodes.Domain.Cart.ItemRequired);
+            throw new DomainValidationException(CartErrors.ItemRequired);
 
         // rule: item must belong to this cart
         if (item.CartId != this.Id)
-            throw new DomainValidationException(ErrorCodes.Domain.Cart.ItemMismatch);
+            throw new DomainValidationException(CartErrors.ItemMismatch);
 
         // rule: merge same variant into one line (???????)
         var existing = _items.FirstOrDefault(x => x.VariantId == item.VariantId);
@@ -103,7 +103,7 @@ public sealed class Cart : BaseEntity
 
         var idx = _items.FindIndex(i => i.Id == cartItemId);
         if (idx < 0)
-            throw new DomainValidationException(ErrorCodes.Domain.Cart.ItemNotFound);
+            throw new DomainValidationException(CartErrors.ItemNotFound);
 
         _items.RemoveAt(idx);
         Touch(now);
@@ -119,7 +119,7 @@ public sealed class Cart : BaseEntity
     private void EnsureActive()
     {
         if (Status != CartStatus.Active)
-            throw new DomainValidationException(ErrorCodes.Domain.Cart.NotActive);
+            throw new DomainValidationException(CartErrors.NotActive);
     }
 
     public int GetTotalQuantity()
@@ -133,7 +133,7 @@ public sealed class Cart : BaseEntity
     public void Touch(DateTimeOffset now)
     {
         if (now == default)
-            throw new DomainValidationException(ErrorCodes.Domain.Cart.NowRequired);
+            throw new DomainValidationException(CartErrors.NowRequired);
 
         UpdatedAt = now;
     }

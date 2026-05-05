@@ -5,16 +5,19 @@ using DomainCategory = E_Commerce.Domain.Entities.Category;
 using E_Commerce.Domain.ValueObjects;
 using MediatR;
 using E_Commerce.Domain.Common.Errors;
+using AutoMapper;
 
 namespace E_Commerce.Application.Features.Category.Commands;
 
 public sealed class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Result<CategoryDetailDto>>
 {
     private readonly IUnitOfWork _uow;
+    private readonly IMapper _mapper;
 
-    public CreateCategoryHandler(IUnitOfWork uow)
+    public CreateCategoryHandler(IUnitOfWork uow, IMapper mapper)
     {
         _uow = uow;
+        _mapper = mapper;
     }
 
     public async Task<Result<CategoryDetailDto>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
@@ -26,14 +29,14 @@ public sealed class CreateCategoryHandler : IRequestHandler<CreateCategoryComman
             parent = await _uow.Categories.GetByIdAsync(request.ParentId.Value, cancellationToken);
             if (parent is null)
             {
-                return Result<CategoryDetailDto>.Fail(ErrorCatalog.FromCode(ErrorCodes.Category.ParentNotFound));
+                return Result<CategoryDetailDto>.Fail(CategoryErrors.ParentNotFound);
             }
         }
 
         var slug = Slug.Create(request.Slug);
         if (await _uow.Categories.SlugExistsAsync(slug, null, cancellationToken))
         {
-            return Result<CategoryDetailDto>.Fail(ErrorCatalog.FromCode(ErrorCodes.Category.SlugDuplicate));
+            return Result<CategoryDetailDto>.Fail(CategoryErrors.SlugDuplicate);
         }
 
         var category = DomainCategory.Create(request.ParentId, slug, request.SortOrder);
@@ -46,7 +49,7 @@ public sealed class CreateCategoryHandler : IRequestHandler<CreateCategoryComman
         await _uow.SaveChangesAsync(cancellationToken);
 
         var createdCategory = await _uow.Categories.GetByIdWithDetailsAsync(category.Id, false, cancellationToken) ?? category;
-        return Result<CategoryDetailDto>.Success(createdCategory.ToDetailDto());
+        return Result<CategoryDetailDto>.Success(_mapper.Map<CategoryDetailDto>(createdCategory));
     }
 }
 

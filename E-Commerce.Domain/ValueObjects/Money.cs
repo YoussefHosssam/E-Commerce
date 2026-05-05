@@ -13,7 +13,7 @@ public sealed class Money
     private Money(decimal amount, CurrencyCode currency)
     {
         if (amount < 0)
-            throw new DomainValidationException(ErrorCodes.ValueObjects.MoneyAmountInvalid);
+            throw new DomainValidationException(ValueObjectErrors.MoneyAmountInvalid);
 
         Amount = amount;
         Currency = currency;
@@ -24,7 +24,7 @@ public sealed class Money
     public Money Add(Money other)
     {
         if (Currency != other.Currency)
-            throw new DomainValidationException(ErrorCodes.ValueObjects.CurrencyInvalid);
+            throw new DomainValidationException(ValueObjectErrors.CurrencyInvalid);
 
         return new Money(Amount + other.Amount, Currency);
     }

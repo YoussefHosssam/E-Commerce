@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace E_Commerce.Domain.Common.Errors
+namespace E_Commerce.Application.Features.Order.Commands.CancelOrder
 {
-    public static class DomainErrors
+    internal class CancelOrderValidation
     {
     }
 }

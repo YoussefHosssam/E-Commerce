@@ -7,6 +7,7 @@ using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.Enums;
 using E_Commerce.Domain.ValueObjects;
 using MediatR;
+using AutoMapper;
 
 namespace E_Commerce.Application.Features.Variant.Commands.CreateVariant;
 
@@ -14,11 +15,13 @@ public sealed class CreateVariantHandler : IRequestHandler<CreateVariantCommand,
 {
     private readonly IUnitOfWork _uow;
     private readonly IUserAccessor _userAccessor;
+    private readonly IMapper _mapper;
 
-    public CreateVariantHandler(IUnitOfWork uow, IUserAccessor userAccessor)
+    public CreateVariantHandler(IUnitOfWork uow, IUserAccessor userAccessor, IMapper mapper)
     {
         _uow = uow;
         _userAccessor = userAccessor;
+        _mapper = mapper;
     }
 
     public async Task<Result<VariantDetailDto>> Handle(CreateVariantCommand request, CancellationToken cancellationToken)
@@ -27,12 +30,12 @@ public sealed class CreateVariantHandler : IRequestHandler<CreateVariantCommand,
         var product = await _uow.Products.GetByIdWithDetailsAsync(request.ProductId, true, cancellationToken);
         if (product is null)
         {
-            return Result<VariantDetailDto>.Fail(ErrorCatalog.FromCode(ErrorCodes.Product.NotFound));
+            return Result<VariantDetailDto>.Fail(ProductErrors.NotFound);
         }
 
         if (await _uow.Variants.SkuExistsAsync(request.Sku, null, cancellationToken))
         {
-            return Result<VariantDetailDto>.Fail(ErrorCatalog.FromCode(ErrorCodes.Variant.SkuDuplicate));
+            return Result<VariantDetailDto>.Fail(VariantErrors.SkuDuplicate);
         }
 
         Money? priceOverride = null;
@@ -50,7 +53,7 @@ public sealed class CreateVariantHandler : IRequestHandler<CreateVariantCommand,
         await CreateStockMovementForNewVariant(variant.Id, request.stock, cancellationToken , now);
         await _uow.SaveChangesAsync(cancellationToken);
         var createdVariant = await _uow.Variants.GetByIdWithDetailsAsync(variant.Id, cancellationToken);
-        return Result<VariantDetailDto>.Success((createdVariant ?? variant).ToDetailDto());
+        return Result<VariantDetailDto>.Success(_mapper.Map<VariantDetailDto>(createdVariant ?? variant));
     }
 
     private async Task CreateStockMovementForNewVariant(Guid variantId, int stock, CancellationToken cancellationToken , DateTimeOffset now)

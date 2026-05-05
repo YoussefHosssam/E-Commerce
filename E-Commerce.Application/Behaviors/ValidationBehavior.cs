@@ -35,7 +35,7 @@ namespace E_Commerce.Application.Behaviors
 
                 if (failure is not null)
                 {
-                    var error = ErrorCatalog.FromCode(failure.ErrorCode, failure.ErrorMessage);
+                    var error = new Error(failure.ErrorCode, failure.ErrorMessage , ErrorType.Validation);
                     return ResultFailureFactory.CreateFailure<TResponse>(error);
                 }
             }

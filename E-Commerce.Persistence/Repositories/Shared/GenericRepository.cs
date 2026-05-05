@@ -52,5 +52,10 @@ namespace E_Commerce.Persistence.Repositories.Shared
             var entity = await _set.FirstOrDefaultAsync(predicate, ctn);
             return entity;
         }
+
+        public async Task CreateRangeAsync(IEnumerable<Tobject> entities, CancellationToken ct)
+        {
+            await _set.AddRangeAsync(entities, ct);
+        }
     }
 }

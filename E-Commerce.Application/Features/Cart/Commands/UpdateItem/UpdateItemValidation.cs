@@ -10,10 +10,10 @@ internal sealed class UpdateItemValidation : AbstractValidator<UpdateItemCommand
     {
         RuleFor(x => x.cartItemId)
             .NotEmpty()
-            .WithError(ErrorCodes.CartItem.VariantIdRequired);
+            .WithError(CartItemErrors.VariantIdRequired);
 
         RuleFor(x => x.quantity)
             .GreaterThan(0)
-            .WithError(ErrorCodes.CartItem.QuantityInvalid);
+            .WithError(CartItemErrors.QuantityInvalid);
     }
 }

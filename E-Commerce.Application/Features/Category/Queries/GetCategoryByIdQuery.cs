@@ -1,10 +1,11 @@
-﻿using E_Commerce.Application.Common.Result;
+using E_Commerce.Application.Common.Result;
 using E_Commerce.Application.Contracts.Persistence.Shared;
 using E_Commerce.Application.Extensions;
 using E_Commerce.Application.Features.Category.Common;
 using E_Commerce.Domain.Common.Errors;
 using FluentValidation;
 using MediatR;
+using AutoMapper;
 
 namespace E_Commerce.Application.Features.Category.Queries;
 
@@ -16,17 +17,19 @@ public sealed class GetCategoryByIdValidation : AbstractValidator<GetCategoryByI
     {
         RuleFor(x => x.Id)
             .NotEmpty()
-            .WithError(ErrorCodes.Category.IdRequired);
+            .WithError(CategoryErrors.IdRequired);
     }
 }
 
 public sealed class GetCategoryByIdHandler : IRequestHandler<GetCategoryByIdQuery, Result<CategoryDetailDto>>
 {
     private readonly IUnitOfWork _uow;
+    private readonly IMapper _mapper;
 
-    public GetCategoryByIdHandler(IUnitOfWork uow)
+    public GetCategoryByIdHandler(IUnitOfWork uow, IMapper mapper)
     {
         _uow = uow;
+        _mapper = mapper;
     }
 
     public async Task<Result<CategoryDetailDto>> Handle(GetCategoryByIdQuery request, CancellationToken cancellationToken)
@@ -34,9 +37,9 @@ public sealed class GetCategoryByIdHandler : IRequestHandler<GetCategoryByIdQuer
         var category = await _uow.Categories.GetByIdWithDetailsAsync(request.Id, false, cancellationToken);
         if (category is null)
         {
-            return Result<CategoryDetailDto>.Fail(ErrorCatalog.FromCode(ErrorCodes.Category.NotFound));
+            return Result<CategoryDetailDto>.Fail(CategoryErrors.NotFound);
         }
 
-        return Result<CategoryDetailDto>.Success(category.ToDetailDto());
+        return Result<CategoryDetailDto>.Success(_mapper.Map<CategoryDetailDto>(category));
     }
 }

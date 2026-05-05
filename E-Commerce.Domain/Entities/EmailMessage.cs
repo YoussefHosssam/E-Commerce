@@ -57,18 +57,18 @@ namespace E_Commerce.Domain.Entities
             string bodyHtml)
         {
             if (!Enum.IsDefined(typeof(MessageType), messageType))
-                throw new DomainValidationException(ErrorCodes.Domain.EmailMessage.TypeInvalid);
+                throw new DomainValidationException(EmailMessageErrors.TypeInvalid);
 
-            subject = NormalizeRequired(subject, 300, ErrorCodes.Domain.EmailMessage.SubjectRequired, ErrorCodes.Domain.EmailMessage.SubjectTooLong, "Subject");
-            bodyHtml = NormalizeRequired(bodyHtml, 20000, ErrorCodes.Domain.EmailMessage.BodyRequired, ErrorCodes.Domain.EmailMessage.BodyTooLong, "BodyHtml");
+            subject = NormalizeRequired(subject, 300, EmailMessageErrors.SubjectRequired, EmailMessageErrors.SubjectTooLong, "Subject");
+            bodyHtml = NormalizeRequired(bodyHtml, 20000, EmailMessageErrors.BodyRequired, EmailMessageErrors.BodyTooLong, "BodyHtml");
 
             return new EmailMessage(userId, relatedTokenId, messageType,recipient , subject, bodyHtml);
         }
 
         public void MarkAsProcessing(string providerName)
         {
-            providerName = NormalizeOptional(providerName, 100, ErrorCodes.Domain.EmailMessage.ProviderTooLong, "ProviderName")
-                           ?? throw new DomainValidationException(ErrorCodes.Domain.EmailMessage.ProviderRequired);
+            providerName = NormalizeOptional(providerName, 100, EmailMessageErrors.ProviderTooLong, "ProviderName")
+                           ?? throw new DomainValidationException(EmailMessageErrors.ProviderRequired);
 
             ProviderName = providerName;
             Status = EmailStatus.Processing;
@@ -79,8 +79,8 @@ namespace E_Commerce.Domain.Entities
 
         public void MarkAsSent(string providerName)
         {
-            providerName = NormalizeOptional(providerName, 100, ErrorCodes.Domain.EmailMessage.ProviderTooLong, "ProviderName")
-                           ?? throw new DomainValidationException(ErrorCodes.Domain.EmailMessage.ProviderRequired);
+            providerName = NormalizeOptional(providerName, 100, EmailMessageErrors.ProviderTooLong, "ProviderName")
+                           ?? throw new DomainValidationException(EmailMessageErrors.ProviderRequired);
 
             ProviderName = providerName;
             Status = EmailStatus.Sent;
@@ -96,7 +96,7 @@ namespace E_Commerce.Domain.Entities
 
         public void MarkAsFailed(string error)
         {
-            error = NormalizeRequired(error, 4000, ErrorCodes.Domain.EmailMessage.ErrorRequired, ErrorCodes.Domain.EmailMessage.ErrorTooLong, "LastError");
+            error = NormalizeRequired(error, 4000, EmailMessageErrors.ErrorRequired, EmailMessageErrors.ErrorTooLong, "LastError");
 
             Status = EmailStatus.Failed;
             LastAttemptAt = DateTimeOffset.UtcNow;
@@ -112,17 +112,17 @@ namespace E_Commerce.Domain.Entities
         private static string NormalizeRequired(
             string value,
             int maxLength,
-            string requiredCode,
-            string tooLongCode,
+            Error requiredError,
+            Error tooLongError,
             string fieldName)
         {
             if (string.IsNullOrWhiteSpace(value))
-                throw new DomainValidationException(requiredCode);
+                throw new DomainValidationException(requiredError);
 
             value = value.Trim();
 
             if (value.Length > maxLength)
-                throw new DomainValidationException(tooLongCode);
+                throw new DomainValidationException(tooLongError);
 
             return value;
         }
@@ -130,7 +130,7 @@ namespace E_Commerce.Domain.Entities
         private static string? NormalizeOptional(
             string? value,
             int maxLength,
-            string tooLongCode,
+            Error tooLongError,
             string fieldName)
         {
             if (value is null)
@@ -142,7 +142,7 @@ namespace E_Commerce.Domain.Entities
                 return null;
 
             if (value.Length > maxLength)
-                throw new DomainValidationException(tooLongCode);
+                throw new DomainValidationException(tooLongError);
 
             return value;
         }

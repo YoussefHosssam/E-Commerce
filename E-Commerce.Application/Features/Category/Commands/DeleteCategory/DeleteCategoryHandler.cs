@@ -19,17 +19,17 @@ public sealed class DeleteCategoryHandler : IRequestHandler<DeleteCategoryComman
         var category = await _uow.Categories.GetByIdAsync(request.Id, cancellationToken);
         if (category is null)
         {
-            return Result.Fail(ErrorCatalog.FromCode(ErrorCodes.Category.NotFound));
+            return Result.Fail(CategoryErrors.NotFound);
         }
 
         if (await _uow.Categories.HasChildrenAsync(request.Id, cancellationToken))
         {
-            return Result.Fail(ErrorCatalog.FromCode(ErrorCodes.Category.DeleteHasChildren));
+            return Result.Fail(CategoryErrors.DeleteHasChildren);
         }
 
         if (await _uow.Categories.HasProductsAsync(request.Id, cancellationToken))
         {
-            return Result.Fail(ErrorCatalog.FromCode(ErrorCodes.Category.DeleteHasProducts));
+            return Result.Fail(CategoryErrors.DeleteHasProducts);
         }
 
         await _uow.Categories.DeleteAsync(request.Id, cancellationToken);

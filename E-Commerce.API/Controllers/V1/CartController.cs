@@ -1,9 +1,9 @@
 ﻿using Asp.Versioning;
 using E_Commerce.API.Common.Responses;
 using E_Commerce.API.Contracts.Requests.CartRequests;
-using E_Commerce.Application.Features.Cart.Commands;
 using E_Commerce.Application.Features.Cart.Commands.AddItem;
 using E_Commerce.Application.Features.Cart.Commands.RemoveItem;
+using E_Commerce.Application.Features.Cart.Common;
 using E_Commerce.Application.Features.Cart.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -65,4 +65,5 @@ public sealed class CartController : ControllerBase
         => this.FromResult(
             await _sender.Send(new RemoveItemCommand(cartItemId), ct),
             "Item removed from cart successfully.");
+
 }

@@ -2,8 +2,8 @@
 using E_Commerce.Application.Contracts.Infrastructure.Common;
 using E_Commerce.Application.Contracts.Infrastructure.Emails;
 using E_Commerce.Application.Contracts.Infrastructure.Emails.Models;
+using E_Commerce.Application.Contracts.Services;
 using E_Commerce.Application.Extensions;
-using E_Commerce.Application.Services.Contracts;
 using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.Enums;
 using E_Commerce.Domain.ValueObjects;

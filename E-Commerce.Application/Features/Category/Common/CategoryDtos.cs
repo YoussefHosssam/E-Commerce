@@ -22,33 +22,3 @@ public sealed record CategoryDetailDto(
     bool IsActive,
     int ProductsCount,
     IReadOnlyCollection<CategoryChildDto> Children);
-
-internal static class CategoryDtoMappings
-{
-    public static CategoryListItemDto ToListItemDto(this E_Commerce.Domain.Entities.Category category)
-        => new(
-            category.Id,
-            category.ParentId,
-            category.Slug.Value,
-            category.SortOrder,
-            category.IsActive,
-            category.Children.Count,
-            category.Products.Count);
-
-    public static CategoryDetailDto ToDetailDto(this E_Commerce.Domain.Entities.Category category)
-        => new(
-            category.Id,
-            category.ParentId,
-            category.Parent?.Slug.Value,
-            category.Slug.Value,
-            category.SortOrder,
-            category.IsActive,
-            category.Products.Count,
-            category.Children
-                .OrderBy(x => x.SortOrder)
-                .ThenBy(x => x.Slug.Value)
-                .Select(x => new CategoryChildDto(x.Id, x.Slug.Value, x.SortOrder, x.IsActive))
-                .ToArray());
-}
-
-

@@ -10,7 +10,7 @@ namespace E_Commerce.Application.Features.Auth.Commands.VerifyEmail
         {
             RuleFor(v => v.token)
                 .NotEmpty()
-                .WithError(ErrorCodes.Auth.TokenRequired);
+                .WithError(AuthErrors.TokenRequired);
         }
     }
 }

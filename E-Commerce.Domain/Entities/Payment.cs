@@ -51,23 +51,23 @@ public sealed class Payment : BaseEntity
         DateTimeOffset now)
     {
         if (orderId == Guid.Empty)
-            throw new DomainValidationException(ErrorCodes.Domain.Payment.OrderIdRequired);
+            throw new DomainValidationException(PaymentErrors.OrderIdRequired);
 
         if (string.IsNullOrWhiteSpace(provider))
-            throw new DomainValidationException(ErrorCodes.Domain.Payment.ProviderRequired);
+            throw new DomainValidationException(PaymentErrors.ProviderRequired);
 
         provider = provider.Trim().ToLowerInvariant();
         if (provider.Length > 30)
-            throw new DomainValidationException(ErrorCodes.Domain.Payment.ProviderTooLong);
+            throw new DomainValidationException(PaymentErrors.ProviderTooLong);
 
         if (amount <= 0)
-            throw new DomainValidationException(ErrorCodes.Domain.Payment.AmountInvalid);
+            throw new DomainValidationException(PaymentErrors.AmountInvalid);
 
         if (currency.Equals(default(CurrencyCode)))
-            throw new DomainValidationException(ErrorCodes.Domain.Payment.CurrencyRequired);
+            throw new DomainValidationException(PaymentErrors.CurrencyRequired);
 
         if (now == default)
-            throw new DomainValidationException(ErrorCodes.Domain.Payment.NowRequired);
+            throw new DomainValidationException(PaymentErrors.NowRequired);
 
         rawPayloadJson ??= JsonText.Create("{}");
 
@@ -79,11 +79,11 @@ public sealed class Payment : BaseEntity
     public void AttachProviderPaymentId(string providerPaymentId, DateTimeOffset now)
     {
         if (string.IsNullOrWhiteSpace(providerPaymentId))
-            throw new DomainValidationException(ErrorCodes.Domain.Payment.ProviderPaymentIdRequired);
+            throw new DomainValidationException(PaymentErrors.ProviderPaymentIdRequired);
 
         providerPaymentId = providerPaymentId.Trim();
         if (providerPaymentId.Length > 120)
-            throw new DomainValidationException(ErrorCodes.Domain.Payment.ProviderPaymentIdTooLong);
+            throw new DomainValidationException(PaymentErrors.ProviderPaymentIdTooLong);
 
         ProviderPaymentId = providerPaymentId;
         Touch(now);
@@ -93,7 +93,7 @@ public sealed class Payment : BaseEntity
     {
         EnsureNotFinal();
         if (Status != PaymentStatus.Initiated)
-            throw new DomainValidationException(ErrorCodes.Domain.Payment.StatusInvalidTransition);
+            throw new DomainValidationException(PaymentErrors.StatusInvalidTransition);
 
         Status = PaymentStatus.Authorized;
         Touch(now);
@@ -103,7 +103,7 @@ public sealed class Payment : BaseEntity
     {
         EnsureNotFinal();
         if (Status is not (PaymentStatus.Initiated or PaymentStatus.Authorized))
-            throw new DomainValidationException(ErrorCodes.Domain.Payment.StatusInvalidTransition);
+            throw new DomainValidationException(PaymentErrors.StatusInvalidTransition);
 
         Status = PaymentStatus.Captured;
         Touch(now);
@@ -124,7 +124,7 @@ public sealed class Payment : BaseEntity
     public Refund RequestRefund(JsonText? rawPayloadJson, DateTimeOffset now , string? reason = "")
     {
         if (Status != PaymentStatus.Captured)
-            throw new DomainValidationException(ErrorCodes.Domain.Payment.RefundNotCaptured);
+            throw new DomainValidationException(PaymentErrors.RefundNotCaptured);
         var refund = Refund.Create(Id , Amount , reason);
         _refunds.Add(refund);
         Touch(now);
@@ -141,13 +141,13 @@ public sealed class Payment : BaseEntity
     private void EnsureNotFinal()
     {
         if (Status is PaymentStatus.Failed or PaymentStatus.Refunded)
-            throw new DomainValidationException(ErrorCodes.Domain.Payment.StatusFinal);
+            throw new DomainValidationException(PaymentErrors.StatusFinal);
     }
 
     private void Touch(DateTimeOffset now)
     {
         if (now == default)
-            throw new DomainValidationException(ErrorCodes.Domain.Payment.NowRequired);
+            throw new DomainValidationException(PaymentErrors.NowRequired);
 
         UpdatedAt = now;
     }

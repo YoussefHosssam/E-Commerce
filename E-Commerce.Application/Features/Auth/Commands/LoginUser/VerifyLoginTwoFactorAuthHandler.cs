@@ -1,7 +1,7 @@
 using E_Commerce.Application.Common.Result;
 using E_Commerce.Application.Contracts.Infrastructure.TotpTwoFactorAuth;
 using E_Commerce.Application.Contracts.Infrastrucuture.Cart;
-using E_Commerce.Application.Services.Contracts;
+using E_Commerce.Application.Contracts.Services;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
 using MediatR;
@@ -28,18 +28,18 @@ namespace E_Commerce.Application.Features.Auth.Commands.LoginUser
             TwoFactorLoginChallenge? loginChallenge = await _uow.TwoFactorLoginChallenges.GetSingleByPredicateAsync(c => c.ChallengeId == request.ChallengeId, cancellationToken);
             if (loginChallenge is null || loginChallenge.IsExpired(DateTimeOffset.UtcNow) || loginChallenge.IsVerified)
             {
-                return Result<FinalizeLoginResponse>.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.TwoFactorInvalid));
+                return Result<FinalizeLoginResponse>.Fail(AuthErrors.TwoFactorInvalid);
             }
 
             User? existUser = await _uow.Users.GetByIdWithLoadingDataAsync(loginChallenge.UserId, cancellationToken);
             if (existUser?.TwoFactorAuth is null || string.IsNullOrWhiteSpace(existUser.TwoFactorAuth.TotpSecretEncrypted))
             {
-                return Result<FinalizeLoginResponse>.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.TwoFactorInvalid));
+                return Result<FinalizeLoginResponse>.Fail(AuthErrors.TwoFactorInvalid);
             }
 
             if (!_totpHandler.VerifyCode(existUser.TwoFactorAuth.TotpSecretEncrypted, request.OtpCode))
             {
-                return Result<FinalizeLoginResponse>.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.TwoFactorInvalid));
+                return Result<FinalizeLoginResponse>.Fail(AuthErrors.TwoFactorInvalid);
             }
 
             loginChallenge.MarkVerified(DateTimeOffset.UtcNow);

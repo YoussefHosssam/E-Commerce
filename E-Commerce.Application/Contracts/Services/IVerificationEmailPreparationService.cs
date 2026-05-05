@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace E_Commerce.Application.Services.Contracts
+namespace E_Commerce.Application.Contracts.Services
 {
     public interface IVerificationEmailPreparationService
     {

@@ -67,33 +67,33 @@ public sealed class Order : BaseEntity
         DateTimeOffset now)
     {
         if (userId == Guid.Empty)
-            throw new DomainValidationException(ErrorCodes.Domain.Order.UserIdRequired);
+            throw new DomainValidationException(OrderErrors.UserIdRequired);
 
         if (string.IsNullOrWhiteSpace(orderNumber))
-            throw new DomainValidationException(ErrorCodes.Domain.Order.NumberRequired);
+            throw new DomainValidationException(OrderErrors.NumberRequired);
 
         orderNumber = orderNumber.Trim();
 
         if (orderNumber.Length > 40)
-            throw new DomainValidationException(ErrorCodes.Domain.Order.NumberTooLong);
+            throw new DomainValidationException(OrderErrors.NumberTooLong);
 
         if (currency.Equals(default(CurrencyCode)))
-            throw new DomainValidationException(ErrorCodes.Domain.Order.CurrencyRequired);
+            throw new DomainValidationException(OrderErrors.CurrencyRequired);
 
         if (shippingAddress.Equals(default(JsonText)))
-            throw new DomainValidationException(ErrorCodes.Domain.Order.ShippingAddressRequired);
+            throw new DomainValidationException(OrderErrors.ShippingAddress.Required);
 
         billingAddress ??= shippingAddress;
 
         if (now == default)
-            throw new DomainValidationException(ErrorCodes.Domain.Order.NowRequired);
+            throw new DomainValidationException(OrderErrors.NowRequired);
 
         if (notes is not null)
         {
             notes = notes.Trim();
             if (notes.Length == 0) notes = null;
             if (notes is not null && notes.Length > 500)
-                throw new DomainValidationException(ErrorCodes.Domain.Order.NotesTooLong);
+                throw new DomainValidationException(OrderErrors.NotesTooLong);
         }
 
         return new Order(userId, orderNumber, currency, shippingAddress, billingAddress.Value, notes, now);
@@ -106,11 +106,11 @@ public sealed class Order : BaseEntity
         EnsureEditable();
 
         if (item is null)
-            throw new DomainValidationException(ErrorCodes.Domain.Order.ItemRequired);
+            throw new DomainValidationException(OrderErrors.ItemRequired);
 
         // rule: currency must match
         if (!item.Currency.Equals(Currency))
-            throw new DomainValidationException(ErrorCodes.Domain.Order.ItemCurrencyMismatch);
+            throw new DomainValidationException(OrderErrors.ItemCurrencyMismatch);
 
         _items.Add(item);
         RecalculateTotals();
@@ -123,7 +123,7 @@ public sealed class Order : BaseEntity
 
         var idx = _items.FindIndex(i => i.Id == orderItemId);
         if (idx < 0)
-            throw new DomainValidationException(ErrorCodes.Domain.Order.ItemNotFound);
+            throw new DomainValidationException(OrderErrors.ItemNotFound);
 
         _items.RemoveAt(idx);
         RecalculateTotals();
@@ -135,7 +135,7 @@ public sealed class Order : BaseEntity
         EnsureEditable();
 
         if (fee < 0)
-            throw new DomainValidationException(ErrorCodes.Domain.Order.ShippingFeeInvalid);
+            throw new DomainValidationException(OrderErrors.ShippingFeeInvalid);
 
         ShippingFee = fee;
         RecalculateTotals();
@@ -147,7 +147,7 @@ public sealed class Order : BaseEntity
         EnsureEditable();
 
         if (discountTotal < 0)
-            throw new DomainValidationException(ErrorCodes.Domain.Order.DiscountInvalid);
+            throw new DomainValidationException(OrderErrors.DiscountInvalid);
 
         DiscountTotal = discountTotal;
         RecalculateTotals();
@@ -159,7 +159,7 @@ public sealed class Order : BaseEntity
         EnsureEditable();
 
         if (taxTotal < 0)
-            throw new DomainValidationException(ErrorCodes.Domain.Order.TaxInvalid);
+            throw new DomainValidationException(OrderErrors.TaxInvalid);
 
         TaxTotal = taxTotal;
         RecalculateTotals();
@@ -170,8 +170,8 @@ public sealed class Order : BaseEntity
     {
         EnsureEditable();
 
-        ShippingAddressJson = shipping.Equals(default(JsonText)) ? throw new DomainValidationException(ErrorCodes.Domain.Order.ShippingAddressRequired) : shipping;
-        BillingAddressJson = billing.Equals(default(JsonText)) ? throw new DomainValidationException(ErrorCodes.Domain.Order.BillingAddressRequired) : billing;
+        ShippingAddressJson = shipping.Equals(default(JsonText)) ? throw new DomainValidationException(OrderErrors.ShippingAddress.Required) : shipping;
+        BillingAddressJson = billing.Equals(default(JsonText)) ? throw new DomainValidationException(OrderErrors.BillingAddress.Required) : billing;
 
         Touch(now);
     }
@@ -179,10 +179,10 @@ public sealed class Order : BaseEntity
     public void AddPayment(Payment payment, DateTimeOffset now)
     {
         if (payment is null)
-            throw new DomainValidationException(ErrorCodes.Domain.Order.PaymentRequired);
+            throw new DomainValidationException(OrderErrors.PaymentRequired);
 
         if (payment.OrderId != this.Id)
-            throw new DomainValidationException(ErrorCodes.Domain.Order.PaymentMismatch);
+            throw new DomainValidationException(OrderErrors.PaymentMismatch);
 
         // Optional rule: prevent adding payments after cancellation/refund etc. (??? enums ????)
         _payments.Add(payment);
@@ -193,7 +193,7 @@ public sealed class Order : BaseEntity
     {
         // Usually paid after captured payment(s) cover GrandTotal (Application layer checks)
         if (Status != OrderStatus.Pending)
-            throw new DomainValidationException(ErrorCodes.Domain.Order.StatusInvalidTransition);
+            throw new DomainValidationException(OrderErrors.StatusInvalidTransition);
 
         Status = OrderStatus.Paid;
         Touch(now);
@@ -201,9 +201,8 @@ public sealed class Order : BaseEntity
 
     public void Cancel(string? reason, DateTimeOffset now)
     {
-        // cancel rules ??? ????? (????? ??? ????? ???)
         if (Status is OrderStatus.Shipped or OrderStatus.Delivered)
-            throw new DomainValidationException(ErrorCodes.Domain.Order.CancelNotAllowed);
+            throw new DomainValidationException(OrderErrors.CancelNotAllowed);
 
         Status = OrderStatus.Cancelled;
 
@@ -211,7 +210,7 @@ public sealed class Order : BaseEntity
         {
             reason = reason.Trim();
             if (reason.Length > 300)
-                throw new DomainValidationException(ErrorCodes.Domain.Order.CancelReasonTooLong);
+                throw new DomainValidationException(OrderErrors.CancelReasonTooLong);
             Notes = string.IsNullOrWhiteSpace(reason) ? Notes : reason;
         }
 
@@ -220,9 +219,8 @@ public sealed class Order : BaseEntity
 
     private void EnsureEditable()
     {
-        // ????? ??????? ??? enum ?????
         if (Status is not OrderStatus.Pending)
-            throw new DomainValidationException(ErrorCodes.Domain.Order.NotEditable);
+            throw new DomainValidationException(OrderErrors.NotEditable);
     }
 
     private void RecalculateTotals()
@@ -233,7 +231,7 @@ public sealed class Order : BaseEntity
         var total = Subtotal + ShippingFee + TaxTotal - DiscountTotal;
 
         if (total < 0)
-            throw new DomainValidationException(ErrorCodes.Domain.Order.TotalInvalid);
+            throw new DomainValidationException(OrderErrors.TotalInvalid);
 
         GrandTotal = total;
     }
@@ -241,7 +239,7 @@ public sealed class Order : BaseEntity
     private void Touch(DateTimeOffset now)
     {
         if (now == default)
-            throw new DomainValidationException(ErrorCodes.Domain.Order.NowRequired);
+            throw new DomainValidationException(OrderErrors.NowRequired);
 
         UpdatedAt = now;
     }

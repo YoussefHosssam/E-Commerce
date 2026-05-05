@@ -14,4 +14,10 @@ public static class VariantErrors
     public static readonly Error PriceRequired = new(ErrorCodes.Variant.PriceRequired, "Price override amount and currency must be provided together.", ErrorType.Validation);
     public static readonly Error CurrencyRequired = new(ErrorCodes.Variant.CurrencyRequired, "Currency is required.", ErrorType.Validation);
     public static readonly Error CurrencyInvalid = new(ErrorCodes.Variant.CurrencyInvalid, "Currency code must be a 3-letter ISO code.", ErrorType.Validation);
+    public static readonly Error SkuDuplicate = new(ErrorCodes.Variant.SkuDuplicate, "Sku already exists.", ErrorType.Validation);
+    public static readonly Error ColorTooLong = new(ErrorCodes.Variant.ColorTooLong, "Variant color is too long.", ErrorType.Validation);
+    public static readonly Error ImageRequired = new(ErrorCodes.Variant.ImageRequired, "Variant image is required.", ErrorType.Validation);
+    public static readonly Error InventoryRequired = new(ErrorCodes.Variant.InventoryRequired, "Variant inventory is required.", ErrorType.Validation);
+    public static readonly Error SizeTooLong = new(ErrorCodes.Variant.SizeTooLong, "Variant size is too long.", ErrorType.Validation);
+
 }

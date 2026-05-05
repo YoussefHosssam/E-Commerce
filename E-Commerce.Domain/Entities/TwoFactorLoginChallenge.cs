@@ -38,7 +38,7 @@ public class TwoFactorLoginChallenge : BaseEntity
     public void MarkVerified(DateTimeOffset now)
     {
         if (IsExpired(now))
-            throw new DomainValidationException(ErrorCodes.Domain.TwoFactor.ChallengeExpired);
+            throw new DomainValidationException(TwoFactorErrors.ChallengeExpired);
 
         VerifiedAt = now;
     }
@@ -46,12 +46,12 @@ public class TwoFactorLoginChallenge : BaseEntity
     public void IncrementAttempts(DateTimeOffset now)
     {
         if (IsExpired(now))
-            throw new DomainValidationException(ErrorCodes.Domain.TwoFactor.ChallengeExpired);
+            throw new DomainValidationException(TwoFactorErrors.ChallengeExpired);
 
         AttemptCount++;
 
         if (AttemptCount >= MaxAttempts)
-            throw new DomainValidationException(ErrorCodes.Domain.TwoFactor.ChallengeMaxAttempts);
+            throw new DomainValidationException(TwoFactorErrors.ChallengeMaxAttempts);
     }
 
     public bool IsExpired(DateTimeOffset now)

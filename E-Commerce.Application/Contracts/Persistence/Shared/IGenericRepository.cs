@@ -10,10 +10,12 @@ namespace E_Commerce.Application.Contracts.Persistence.Shared
 {
     public interface IGenericRepository<Tobject> where Tobject : BaseEntity 
     {
-        public Task<IReadOnlyCollection<Tobject>?> GetAllAsync(CancellationToken ctn);
-        public Task<Tobject?> GetByIdAsync(Guid id, CancellationToken ctn);
-        public Task<Tobject> CreateAsync(Tobject Object, CancellationToken ctn);
-        public Task DeleteAsync(Guid id, CancellationToken ctn);
-        public Task<Tobject?> GetSingleByPredicateAsync(Expression<Func<Tobject, bool>> predicate, CancellationToken ctn);
+        Task<IReadOnlyCollection<Tobject>?> GetAllAsync(CancellationToken ctn);
+        Task<Tobject?> GetByIdAsync(Guid id, CancellationToken ctn);
+        Task<Tobject> CreateAsync(Tobject Object, CancellationToken ctn);
+        Task DeleteAsync(Guid id, CancellationToken ctn);
+        Task<Tobject?> GetSingleByPredicateAsync(Expression<Func<Tobject, bool>> predicate, CancellationToken ctn);
+        Task CreateRangeAsync(IEnumerable<Tobject> entities, CancellationToken ct);
+
     }
 }

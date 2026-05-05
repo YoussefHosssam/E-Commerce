@@ -17,12 +17,12 @@ public readonly record struct CurrencyCode
     public static CurrencyCode Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new DomainValidationException(ErrorCodes.ValueObjects.CurrencyRequired);
+            throw new DomainValidationException(ValueObjectErrors.CurrencyRequired);
 
         var normalized = value.Trim().ToUpperInvariant();
 
         if (!Rx.IsMatch(normalized))
-            throw new DomainValidationException(ErrorCodes.ValueObjects.CurrencyInvalid);
+            throw new DomainValidationException(ValueObjectErrors.CurrencyInvalid);
 
         return new CurrencyCode(normalized);
     }

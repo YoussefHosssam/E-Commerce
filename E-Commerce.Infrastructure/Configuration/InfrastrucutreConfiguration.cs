@@ -29,6 +29,8 @@ using System.Threading.Tasks;
 using Hangfire;
 using E_Commerce.Application.Contracts.Infrastructure.TotpTwoFactorAuth;
 using E_Commerce.Infrastructure.TotpTwoFactorAuth;
+using E_Commerce.Application.Contracts.Services;
+using E_Commerce.Infrastructure.Payment;
 
 namespace E_Commerce.Infrastructure.Configuration
 {
@@ -59,6 +61,7 @@ namespace E_Commerce.Infrastructure.Configuration
             services.AddScoped<ICartSessionService, CartSessionService>();
             services.AddScoped<ICartMergeService, CartMergeService>();
             services.AddScoped<ITotpHandler, TotpHandler>();
+            services.AddScoped<IPaymentService, PaymbobPaymentService>();
 
 
             services.AddTransient<ITokenGenerator, TokenGenerator>();

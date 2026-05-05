@@ -9,9 +9,9 @@ namespace E_Commerce.Application.Features.Auth.Commands.VerifyEmail
         public ResendEmailValidation()
         {
             RuleFor(x => x.Email)
-                .NotEmpty().WithError(ErrorCodes.User.EmailRequired)
-                .EmailAddress().WithError(ErrorCodes.User.EmailInvalid)
-                .MaximumLength(256).WithError(ErrorCodes.User.EmailTooLong);
+                .NotEmpty().WithError(UserErrors.EmailRequired)
+                .EmailAddress().WithError(UserErrors.EmailInvalid)
+                .MaximumLength(256).WithError(UserErrors.EmailTooLong);
         }
     }
 }

@@ -28,6 +28,10 @@ public static class PersistenceConfiguration
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IInventoryRepository, InventoryRepository>();
         services.AddScoped<ICartRepository, CartRepository>();
+        services.AddScoped<IStockMovementRepository, StockMovementRepository>();
+        services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<IPaymentRepository, PaymentRepository>();
+
         return services;
     }
 }

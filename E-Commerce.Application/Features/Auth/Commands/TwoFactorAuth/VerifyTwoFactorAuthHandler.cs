@@ -24,24 +24,24 @@ namespace E_Commerce.Application.Features.Auth.Commands.TwoFactorAuth
         {
             if (!_userAccessor.UserId.HasValue)
             {
-                return Result.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.InvalidCredentials));
+                return Result.Fail(AuthErrors.InvalidCredentials);
             }
 
             User? existingUser = await _uow.Users.GetByIdWithLoadingDataAsync(_userAccessor.UserId.Value, cancellationToken);
             if (existingUser is null)
             {
-                return Result.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.InvalidCredentials));
+                return Result.Fail(AuthErrors.InvalidCredentials);
             }
 
             if (existingUser.TwoFactorAuth is null)
             {
-                return Result.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.TwoFactorSetupRequired));
+                return Result.Fail(AuthErrors.TwoFactorSetupRequired);
             }
 
             var encryptedSecretKey = existingUser.TwoFactorAuth.TotpSecretEncrypted;
             if (string.IsNullOrWhiteSpace(encryptedSecretKey) || !_totpHandler.VerifyCode(encryptedSecretKey, request.OtpCode))
             {
-                return Result.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.TwoFactorInvalid));
+                return Result.Fail(AuthErrors.TwoFactorInvalid);
             }
 
             existingUser.EnableTwoFactor(DateTimeOffset.UtcNow);

@@ -10,7 +10,6 @@ public readonly record struct JsonText
         if (string.IsNullOrWhiteSpace(value))
             value = "{}";
 
-        // Optional: حاول تتحقق إنه JSON valid (System.Text.Json) - ده ممكن يبقى heavy
         return new JsonText(value.Trim());
     }
 

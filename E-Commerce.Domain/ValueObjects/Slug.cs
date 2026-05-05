@@ -17,7 +17,7 @@ public readonly record struct Slug
     public static Slug Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new DomainValidationException(ErrorCodes.ValueObjects.SlugRequired);
+            throw new DomainValidationException(ValueObjectErrors.SlugRequired);
 
         var normalized = value.Trim().ToLowerInvariant();
 
@@ -25,10 +25,10 @@ public readonly record struct Slug
         normalized = Regex.Replace(normalized, @"\s+", "-");
 
         if (normalized.Length > 150)
-            throw new DomainValidationException(ErrorCodes.ValueObjects.SlugInvalid);
+            throw new DomainValidationException(ValueObjectErrors.SlugInvalid);
 
         if (!Rx.IsMatch(normalized))
-            throw new DomainValidationException(ErrorCodes.ValueObjects.SlugInvalid);
+            throw new DomainValidationException(ValueObjectErrors.SlugInvalid);
 
         return new Slug(normalized);
     }

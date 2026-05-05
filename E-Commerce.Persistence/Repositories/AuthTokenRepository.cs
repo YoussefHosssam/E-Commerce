@@ -14,16 +14,14 @@ namespace E_Commerce.Persistence.Repositories
 {
     public class AuthTokenRepository : GenericRepository<AuthToken>, IAuthTokenRepository
     {
-        private readonly EcommerceContext _ecommerceContext;
-        private readonly DbSet<AuthToken> _authTokenSet;
+        private readonly DbSet<AuthToken> _authTokens;
         public AuthTokenRepository(EcommerceContext ecommerceContext) : base(ecommerceContext)
         {
-            _ecommerceContext = ecommerceContext;
-            _authTokenSet = ecommerceContext.Set<AuthToken>();
+            _authTokens = ecommerceContext.Set<AuthToken>();
         }
         public async Task<AuthToken?> GetLastRelatedToken(Guid userId, TokenType tokenType, CancellationToken ctn)
         {
-            AuthToken? lastRelatedAuthToken = await _authTokenSet.OrderBy(at => at.CreatedAt).LastOrDefaultAsync( at => at.UserId == userId && at.TokenType == tokenType , ctn);
+            AuthToken? lastRelatedAuthToken = await _authTokens.OrderBy(at => at.CreatedAt).LastOrDefaultAsync( at => at.UserId == userId && at.TokenType == tokenType , ctn);
             return lastRelatedAuthToken;
         }
     }

@@ -4,8 +4,8 @@ namespace E_Commerce.Domain.Exceptions;
 
 public sealed class DomainValidationException : AppException
 {
-    public DomainValidationException(string code)
-        : base(ErrorCatalog.FromCode(code))
+    public DomainValidationException(Error error)
+        : base(error)
     {
     }
 }

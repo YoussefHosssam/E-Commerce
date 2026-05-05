@@ -19,9 +19,9 @@ public class VariantImage : BaseEntity
     private VariantImage(){  }
     public static VariantImage Create(Guid variantId, string url, bool isPrimary, int sortOrder)
     {
-        if (variantId == Guid.Empty) throw new DomainValidationException(ErrorCodes.Domain.VariantImage.VariantIdEmpty);
-        if (string.IsNullOrEmpty(url)) throw new DomainValidationException(ErrorCodes.Domain.VariantImage.UrlEmpty);
-        if (sortOrder <= 0) throw new DomainValidationException(ErrorCodes.Domain.VariantImage.SortOrderInvalid);
+        if (variantId == Guid.Empty) throw new DomainValidationException(VariantImageErrors.VariantIdEmpty);
+        if (string.IsNullOrEmpty(url)) throw new DomainValidationException(VariantImageErrors.UrlEmpty);
+        if (sortOrder <= 0) throw new DomainValidationException(VariantImageErrors.SortOrderInvalid);
         return new(variantId, url, isPrimary, sortOrder);
     }
 }

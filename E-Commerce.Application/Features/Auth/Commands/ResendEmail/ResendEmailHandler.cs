@@ -3,7 +3,7 @@ using E_Commerce.Application.Common.Result;
 using E_Commerce.Application.Contracts.Infrastructure.BackgroundJobs;
 using E_Commerce.Application.Contracts.Infrastructure.Common;
 using E_Commerce.Application.Contracts.Persistence;
-using E_Commerce.Application.Services.Contracts;
+using E_Commerce.Application.Contracts.Services;
 using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.Enums;
 using E_Commerce.Domain.ValueObjects;

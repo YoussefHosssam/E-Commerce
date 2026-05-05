@@ -1,6 +1,6 @@
 using E_Commerce.Application.Common.Result;
 using E_Commerce.Application.Contracts.Infrastructure.Common;
-using E_Commerce.Application.Services.Contracts;
+using E_Commerce.Application.Contracts.Services;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.ValueObjects;
@@ -27,19 +27,19 @@ namespace E_Commerce.Application.Features.Auth.Commands.RefreshUserToken
             RefreshToken? storedToken = await _uow.RefreshTokens.GetByHashedTokenAsync(hashedToken, cancellationToken);
             if (storedToken is null)
             {
-                return Result<RefreshTokensResponse>.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.InvalidToken));
+                return Result<RefreshTokensResponse>.Fail(AuthErrors.InvalidToken);
             }
 
             DateTimeOffset now = DateTimeOffset.UtcNow;
             if (storedToken.IsExpired(now) || storedToken.IsRevoked)
             {
-                return Result<RefreshTokensResponse>.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.InvalidToken));
+                return Result<RefreshTokensResponse>.Fail(AuthErrors.InvalidToken);
             }
 
             User? existingUser = await _uow.Users.GetByIdAsync(storedToken.UserId, cancellationToken);
             if (existingUser is null)
             {
-                return Result<RefreshTokensResponse>.Fail(ErrorCatalog.FromCode(ErrorCodes.Auth.InvalidToken));
+                return Result<RefreshTokensResponse>.Fail(AuthErrors.InvalidToken);
             }
 
             (string accessToken, RefreshToken newStoredRefreshToken, string rawRefreshToken) = await _generateLoginTokens.GenerateTokensAsync(existingUser, cancellationToken);

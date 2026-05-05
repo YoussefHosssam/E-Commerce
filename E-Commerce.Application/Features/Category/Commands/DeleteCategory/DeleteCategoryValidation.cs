@@ -10,6 +10,6 @@ public sealed class DeleteCategoryValidation : AbstractValidator<DeleteCategoryC
     {
         RuleFor(x => x.Id)
             .NotEmpty()
-            .WithError(ErrorCodes.Category.IdRequired);
+            .WithError(CategoryErrors.IdRequired);
     }
 }

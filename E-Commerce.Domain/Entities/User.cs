@@ -80,19 +80,19 @@ public class User : BaseEntity
     {
         var emailAddress = EmailAddress.Create(email);
 
-        firstName = NormalizeName(firstName, ErrorCodes.User.FirstNameRequired);
-        lastName = NormalizeName(lastName, ErrorCodes.User.LastNameRequired);
+        firstName = NormalizeName(firstName, UserErrors.FirstNameRequired);
+        lastName = NormalizeName(lastName, UserErrors.LastNameRequired);
 
         if (phoneNumber is not null)
         {
             phoneNumber = phoneNumber.Trim();
             if (phoneNumber.Length > 30)
-                throw new DomainValidationException(ErrorCodes.User.PhoneInvalid);
+                throw new DomainValidationException(UserErrors.PhoneInvalid);
         }
 
         // ?? ???? roles ????? ?? enum ??? ????? ??????? ?? ???? ???? undefined
         if (!Enum.IsDefined(typeof(UserRole), role))
-            throw new DomainValidationException(ErrorCodes.User.RoleInvalid);
+            throw new DomainValidationException(UserErrors.RoleInvalid);
         User user = new User(emailAddress, firstName, lastName, phoneNumber, role);
         user.Credential = UserCredential.Create(user.Id , password);
         return user;
@@ -100,8 +100,8 @@ public class User : BaseEntity
 
     public void ChangeName(string firstName, string lastName)
     {
-        firstName = NormalizeName(firstName, ErrorCodes.User.FirstNameRequired);
-        lastName = NormalizeName(lastName, ErrorCodes.User.LastNameRequired);
+        firstName = NormalizeName(firstName, UserErrors.FirstNameRequired);
+        lastName = NormalizeName(lastName, UserErrors.LastNameRequired);
 
         FirstName = firstName;
         LastName = lastName;
@@ -115,7 +115,7 @@ public class User : BaseEntity
         {
             phoneNumber = phoneNumber.Trim();
             if (phoneNumber.Length > 30)
-                throw new DomainValidationException(ErrorCodes.User.PhoneInvalid);
+                throw new DomainValidationException(UserErrors.PhoneInvalid);
         }
 
         Phone = phoneNumber;
@@ -137,15 +137,15 @@ public class User : BaseEntity
         Touch();
     }
 
-    private static string NormalizeName(string value, string code)
+    private static string NormalizeName(string value, Error error)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new DomainValidationException(code);
+            throw new DomainValidationException(error);
 
         value = value.Trim();
 
         if (value.Length > 100)
-            throw new DomainValidationException(ErrorCodes.User.NameTooLong);
+            throw new DomainValidationException(UserErrors.NameTooLong);
 
         return value;
     }
@@ -169,7 +169,7 @@ public class User : BaseEntity
     public void DisableTwoFactor(DateTimeOffset now)
     {
         if (TwoFactorAuth is null)
-            throw new DomainValidationException(ErrorCodes.Domain.TwoFactor.NotSetup);
+            throw new DomainValidationException(TwoFactorErrors.NotSetup);
 
         TwoFactorAuth.Disable(now);
         IsTwoFactorAuthEnabled = false;
@@ -179,7 +179,7 @@ public class User : BaseEntity
     public void GenerateRecoveryCodes(IEnumerable<string> hashedCodes, DateTimeOffset now)
     {
         if (!IsTwoFactorAuthEnabled)
-            throw new DomainValidationException(ErrorCodes.Domain.TwoFactor.NotEnabled);
+            throw new DomainValidationException(TwoFactorErrors.NotEnabled);
 
         _recoveryCodes.Clear();
 
@@ -196,7 +196,7 @@ public class User : BaseEntity
             !x.IsUsed && verifyHash(x.CodeHash, providedCode));
 
         if (code is null)
-            throw new DomainValidationException(ErrorCodes.Domain.TwoFactor.RecoveryInvalid);
+            throw new DomainValidationException(TwoFactorErrors.RecoveryInvalid);
 
         code.MarkAsUsed(now);
         Touch(now);
@@ -211,11 +211,11 @@ public class User : BaseEntity
         var normalizedProvider = provider?.Trim().ToLowerInvariant();
 
         if (_oauthAccounts.Any(x => x.Provider == normalizedProvider))
-            throw new DomainValidationException(ErrorCodes.Domain.OAuth.AlreadyLinked);
+            throw new DomainValidationException(OAuthErrors.AlreadyLinked);
 
         // rule: ?? ???? ??? providerUserId ??? ??? (???? ??? ??????)
         if (_oauthAccounts.Any(x => x.Provider == normalizedProvider && x.ProviderUserId == providerUserId.Trim()))
-            throw new DomainValidationException(ErrorCodes.Domain.OAuth.Duplicate);
+            throw new DomainValidationException(OAuthErrors.Duplicate);
 
         var account = UserOAuthAccount.Create(this.Id, provider, providerUserId, email, now);
         _oauthAccounts.Add(account);
@@ -229,7 +229,7 @@ public class User : BaseEntity
 
         var idx = _oauthAccounts.FindIndex(x => x.Provider == provider);
         if (idx < 0)
-            throw new DomainValidationException(ErrorCodes.Domain.OAuth.NotLinked);
+            throw new DomainValidationException(OAuthErrors.NotLinked);
 
         _oauthAccounts.RemoveAt(idx);
         Touch(now);

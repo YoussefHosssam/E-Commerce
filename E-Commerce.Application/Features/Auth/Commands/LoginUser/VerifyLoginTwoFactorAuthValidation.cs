@@ -9,11 +9,11 @@ namespace E_Commerce.Application.Features.Auth.Commands.LoginUser
         public VerifyLoginTwoFactorAuthValidation()
         {
             RuleFor(x => x.ChallengeId)
-                .NotEmpty().WithError(ErrorCodes.Auth.InvalidRequest);
+                .NotEmpty().WithError(AuthErrors.InvalidRequest);
 
             RuleFor(x => x.OtpCode)
-                .NotEmpty().WithError(ErrorCodes.Auth.InvalidRequest)
-                .Matches(@"^\d{6}$").WithError(ErrorCodes.Auth.InvalidRequest);
+                .NotEmpty().WithError(AuthErrors.InvalidRequest)
+                .Matches(@"^\d{6}$").WithError(AuthErrors.InvalidRequest);
         }
     }
 }

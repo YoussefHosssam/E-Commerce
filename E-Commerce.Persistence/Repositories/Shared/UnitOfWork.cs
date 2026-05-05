@@ -16,10 +16,12 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
     public ICategoryRepository Categories { get; }
     public IVariantRepository Variants { get; }
     public IUserRepository Users { get; }
+    public IOrderRepository Orders { get; }
+    public IPaymentRepository Payments { get; }
     public IRefreshTokenRepository RefreshTokens { get; }
     public IGenericRepository<EmailMessage> EmailMessages { get; }
     public IInventoryRepository Inventories { get; }
-    public IGenericRepository<StockMovement> StockMovements { get; }
+    public IStockMovementRepository StockMovements { get; }
     public IGenericRepository<UserTwoFactor> User2fa { get; }
     public ICartRepository Carts { get; }
     public IGenericRepository<CartItem> CartItems { get; }
@@ -46,7 +48,9 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
         IGenericRepository<TwoFactorRecoveryCode> twoFactorRecoveryCodes,
         IGenericRepository<TwoFactorLoginChallenge> twoFactorLoginChallenges,
         IInventoryRepository inventories,
-        IGenericRepository<StockMovement> stockMovements)
+        IStockMovementRepository stockMovements,
+        IOrderRepository orders,
+        IPaymentRepository payments)
     {
         _context = context;
         Products = productRepository;
@@ -65,6 +69,8 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
         Carts = carts;
         CartItems = cartItems;
         StockMovements = stockMovements;
+        Orders = orders;
+        Payments = payments;
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct)

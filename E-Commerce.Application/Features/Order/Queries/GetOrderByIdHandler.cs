@@ -1,13 +1,12 @@
-﻿using AutoMapper;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace E_Commerce.Application.Mapping
+namespace E_Commerce.Application.Features.Order.Queries
 {
-    internal class CartProfile : Profile
+    internal class GetOrderByIdHandler
     {
     }
 }

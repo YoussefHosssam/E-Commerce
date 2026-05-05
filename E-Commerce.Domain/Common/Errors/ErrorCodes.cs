@@ -28,6 +28,9 @@ public static class ErrorCodes
         public const string SortOrderInvalid = "CAT_400_SORTORDER_INVALID";
         public const string ChildRequired = "CAT_400_CHILD_REQUIRED";
         public const string ChildDuplicate = "CAT_409_CHILD_DUPLICATE";
+        public const string ChildNotFound = "CAT_404_CHILD_NOT_FOUND";
+        public const string ChildSelf = "CAT_409_CHILD_SELF";
+        public const string ParentRequired = "CAT_400_PARENT_REQUIRED";
     }
 
     public static class Product
@@ -45,6 +48,13 @@ public static class ErrorCodes
         public const string CurrencyRequired = "PRD_400_CURRENCY_REQUIRED";
         public const string CurrencyInvalid = "PRD_400_CURRENCY_INVALID";
         public const string BrandTooLong = "PRD_400_BRAND_TOO_LONG";
+        public const string ImageRequired = "PRD_400_IMAGE_REQUIRED";
+        public const string NowRequired = "PRD_400_NOW_REQUIRED";
+        public const string VariantNotFound = "PRD_404_VARIANT_NOT_FOUND";
+        public const string VariantPriceOverrideCurrencyMismatch = "PRD_409_VARIANT_PRICE_OVERRIDE_CURRENCY_MISMATCH";
+        public const string VariantPriceOverrideInvalid = "PRD_400_VARIANT_PRICE_OVERRIDE_INVALID";
+        public const string VariantSkuDuplicate = "PRD_409_VARIANT_SKU_DUPLICATE";
+        public const string VariantSkuRequired = "PRD_400_VARIANT_SKU_REQUIRED";
     }
 
     public static class Variant
@@ -61,6 +71,10 @@ public static class ErrorCodes
         public const string PriceRequired = "VAR_400_PRICE_REQUIRED";
         public const string CurrencyRequired = "VAR_400_CURRENCY_REQUIRED";
         public const string CurrencyInvalid = "VAR_400_CURRENCY_INVALID";
+        public const string ColorTooLong = "VAR_400_COLOR_TOO_LONG";
+        public const string ImageRequired = "VAR_400_IMAGE_REQUIRED";
+        public const string InventoryRequired = "VAR_400_INVENTORY_REQUIRED";
+        public const string SizeTooLong = "VAR_400_SIZE_TOO_LONG";
     }
 
     public static class User
@@ -129,6 +143,11 @@ public static class ErrorCodes
         public const string VariantIdRequired = "SM_400_VARIANT_ID_REQUIRED";
         public const string ReasonTooLong = "SM_400_REASON_TOO_LONG";
         public const string QuantityDeltaInvalid = "SM_400_QUANTITY_DELTA_INVALID";
+        public const string PositiveDeltaRequired = "SM_400_POSITIVE_DELTA_REQUIRED";
+        public const string NegativeDeltaRequired = "SM_400_NEGATIVE_DELTA_REQUIRED";
+        public const string NowRequired = "SM_400_NOW_REQUIRED";
+        public const string RefIdInvalid = "SM_400_REF_ID_INVALID";
+        public const string ActorUserIdInvalid = "SM_400_ACTOR_USER_ID_INVALID";
 
     }
     public static class Cart
@@ -138,6 +157,12 @@ public static class ErrorCodes
         public const string ItemNotFound = "CART_404_ITEM_NOT_FOUND";
         public const string ItemRequired = "CART_400_ITEM_REQUIRED";
         public const string NotActive = "CART_409_NOT_ACTIVE";
+        public const string AnonymousTokenTooLong = "CART_400_ANONYMOUS_TOKEN_TOO_LONG";
+        public const string NowRequired = "CART_400_NOW_REQUIRED";
+        public const string StatusInvalid = "CART_400_STATUS_INVALID";
+        public const string UserIdRequired = "CART_400_USER_ID_REQUIRED";
+        public const string ItemsLimitExceeded = "CRT_409_ITEMS_LIMIT_EXCEEDED";
+
     }
 
     public static class CartItem
@@ -147,221 +172,167 @@ public static class ErrorCodes
         public const string CartItemIdRequired = "CI_400_CART_ITEM_ID_REQUIRED";
         public const string QuantityInvalid = "CI_400_QUANTITY_INVALID";
         public const string VariantIdRequired = "CI_400_VARIANT_ID_REQUIRED";
+        public const string NowRequired = "CI_400_NOW_REQUIRED";
+    }
+    public static class Checkout
+    {
+        public const string EmptyCart = "CHK_400_CART_EMPTY";
+        public const string InActiveProduct = "CHK_409_PRODUCT_INACTIVE";
+        public const string UnfoundInventory = "CHK_404_INVENTORY_NOT_FOUND";
+        public const string VariantOutOfStock = "CHK_409_OUT_OF_STOCK";
+        public const string QuantityInvalid = "CHK_400_INVALID_QUANTITY";
     }
 
-    public static class Domain
+    public static class Inventory
     {
-        public static class Inventory
-        {
-            public const string VariantIdRequired = "INV_400_VARIANT_ID_REQUIRED";
-            public const string InitialQuantityInvalid = "INV_400_INITIAL_QUANTITY_INVALID";
-            public const string QuantityInvalid = "INV_400_QUANTITY_INVALID";
-            public const string InsufficientStock = "INV_409_INSUFFICIENT_STOCK";
-            public const string ReservedQuantityInvalid = "INV_400_RESERVED_QUANTITY_INVALID";
-            public const string OnHandInvalid = "INV_400_ON_HAND_INVALID";
-            public const string OnHandLessThanReserved = "INV_409_ON_HAND_LESS_THAN_RESERVED";
-            public const string NowRequired = "INV_400_NOW_REQUIRED";
-        }
-        public static class StockMovement
-        {
-            public const string VariantIdRequired = "SM_400_VARIANT_ID_REQUIRED";
-            public const string QuantityDeltaInvalid = "SM_400_QUANTITY_DELTA_INVALID";
-            public const string TypeInvalid = "SM_400_TYPE_INVALID";
-            public const string PositiveDeltaRequired = "SM_400_POSITIVE_DELTA_REQUIRED";
-            public const string NegativeDeltaRequired = "SM_400_NEGATIVE_DELTA_REQUIRED";
-            public const string ReasonTooLong = "SM_400_REASON_TOO_LONG";
-            public const string NowRequired = "SM_400_NOW_REQUIRED";
-            public const string RefIdInvalid = "SM_400_REF_ID_INVALID";
-            public const string ActorUserIdInvalid = "SM_400_ACTOR_USER_ID_INVALID";
-        }
-        public static class TwoFactor
-        {
-            public const string AlreadyDisabled = "TF_409_ALREADY_DISABLED";
-            public const string AlreadyEnabled = "TF_409_ALREADY_ENABLED";
-            public const string AlreadyVerified = "TF_409_ALREADY_VERIFIED";
-            public const string ChallengeExpired = "TF_400_CHALLENGE_EXPIRED";
-            public const string ChallengeMaxAttempts = "TF_400_CHALLENGE_MAX_ATTEMPTS";
-            public const string NotEnabled = "TF_404_NOT_ENABLED";
-            public const string NotSetup = "TF_404_NOT_SETUP";
-            public const string RecoveryInvalid = "TF_400_RECOVERY_INVALID";
-            public const string RecoveryUsed = "TF_409_RECOVERY_USED";
-            public const string SecretRequired = "TF_400_SECRET_REQUIRED";
-            public const string UserIdRequired = "TF_400_USER_ID_REQUIRED";
-        }
+        public const string VariantIdRequired = "INV_400_VARIANT_ID_REQUIRED";
+        public const string InitialQuantityInvalid = "INV_400_INITIAL_QUANTITY_INVALID";
+        public const string QuantityInvalid = "INV_400_QUANTITY_INVALID";
+        public const string InsufficientStock = "INV_409_INSUFFICIENT_STOCK";
+        public const string ReservedQuantityInvalid = "INV_400_RESERVED_QUANTITY_INVALID";
+        public const string OnHandInvalid = "INV_400_ON_HAND_INVALID";
+        public const string OnHandLessThanReserved = "INV_409_ON_HAND_LESS_THAN_RESERVED";
+        public const string NowRequired = "INV_400_NOW_REQUIRED";
+    }
+    public static class TwoFactor
+    {
+        public const string AlreadyDisabled = "TF_409_ALREADY_DISABLED";
+        public const string AlreadyEnabled = "TF_409_ALREADY_ENABLED";
+        public const string AlreadyVerified = "TF_409_ALREADY_VERIFIED";
+        public const string ChallengeExpired = "TF_400_CHALLENGE_EXPIRED";
+        public const string ChallengeMaxAttempts = "TF_400_CHALLENGE_MAX_ATTEMPTS";
+        public const string NotEnabled = "TF_404_NOT_ENABLED";
+        public const string NotSetup = "TF_404_NOT_SETUP";
+        public const string RecoveryInvalid = "TF_400_RECOVERY_INVALID";
+        public const string RecoveryUsed = "TF_409_RECOVERY_USED";
+        public const string SecretRequired = "TF_400_SECRET_REQUIRED";
+        public const string UserIdRequired = "TF_400_USER_ID_REQUIRED";
+    }
 
-        public static class AuthToken
-        {
-            public const string ExpiresAtRequired = "AT_400_EXPIRES_AT_REQUIRED";
-            public const string TokenHashRequired = "AT_400_TOKEN_HASH_REQUIRED";
-            public const string TokenTypeRequired = "AT_400_TOKEN_TYPE_REQUIRED";
-            public const string UserIdRequired = "AT_400_USER_ID_REQUIRED";
-        }
+    public static class AuthToken
+    {
+        public const string ExpiresAtRequired = "AT_400_EXPIRES_AT_REQUIRED";
+        public const string TokenHashRequired = "AT_400_TOKEN_HASH_REQUIRED";
+        public const string TokenTypeRequired = "AT_400_TOKEN_TYPE_REQUIRED";
+        public const string UserIdRequired = "AT_400_USER_ID_REQUIRED";
+    }
 
-        public static class Cart
-        {
-            public const string AnonymousTokenRequired = "CART_400_ANONYMOUS_TOKEN_REQUIRED";
-            public const string AnonymousTokenTooLong = "CART_400_ANONYMOUS_TOKEN_TOO_LONG";
-            public const string ItemMismatch = "CART_409_ITEM_MISMATCH";
-            public const string ItemNotFound = "CART_404_ITEM_NOT_FOUND";
-            public const string ItemRequired = "CART_400_ITEM_REQUIRED";
-            public const string NotActive = "CART_409_NOT_ACTIVE";
-            public const string NowRequired = "CART_400_NOW_REQUIRED";
-            public const string StatusInvalid = "CART_400_STATUS_INVALID";
-            public const string UserIdRequired = "CART_400_USER_ID_REQUIRED";
-        }
+    public static class EmailMessage
+    {
+        public const string BodyRequired = "EM_400_BODY_REQUIRED";
+        public const string BodyTooLong = "EM_400_BODY_TOO_LONG";
+        public const string ErrorRequired = "EM_400_ERROR_REQUIRED";
+        public const string ErrorTooLong = "EM_400_ERROR_TOO_LONG";
+        public const string ProviderRequired = "EM_400_PROVIDER_REQUIRED";
+        public const string ProviderTooLong = "EM_400_PROVIDER_TOO_LONG";
+        public const string SubjectRequired = "EM_400_SUBJECT_REQUIRED";
+        public const string SubjectTooLong = "EM_400_SUBJECT_TOO_LONG";
+        public const string TypeInvalid = "EM_400_TYPE_INVALID";
+    }
 
-        public static class CartItem
-        {
-            public const string CartIdRequired = "CI_400_CART_ID_REQUIRED";
-            public const string DeltaInvalid = "CI_400_DELTA_INVALID";
-            public const string NowRequired = "CI_400_NOW_REQUIRED";
-            public const string QuantityInvalid = "CI_400_QUANTITY_INVALID";
-            public const string VariantIdRequired = "CI_400_VARIANT_ID_REQUIRED";
-        }
+    public static class OAuth
+    {
+        public const string AlreadyLinked = "OA_409_ALREADY_LINKED";
+        public const string Duplicate = "OA_409_DUPLICATE";
+        public const string EmailTooLong = "OA_400_EMAIL_TOO_LONG";
+        public const string NotLinked = "OA_404_NOT_LINKED";
+        public const string NowRequired = "OA_400_NOW_REQUIRED";
+        public const string ProviderInvalid = "OA_400_PROVIDER_INVALID";
+        public const string ProviderRequired = "OA_400_PROVIDER_REQUIRED";
+        public const string ProviderTooLong = "OA_400_PROVIDER_TOO_LONG";
+        public const string ProviderUserIdRequired = "OA_400_PROVIDER_USER_ID_REQUIRED";
+        public const string ProviderUserIdTooLong = "OA_400_PROVIDER_USER_ID_TOO_LONG";
+        public const string UserIdRequired = "OA_400_USER_ID_REQUIRED";
+    }
 
-        public static class Category
-        {
-            public const string ChildNotFound = "CAT_404_CHILD_NOT_FOUND";
-            public const string ChildSelf = "CAT_409_CHILD_SELF";
-            public const string ParentRequired = "CAT_400_PARENT_REQUIRED";
-        }
+    public static class Order
+    {
+        public const string BillingAddressRequired = "ORD_400_BILLING_ADDRESS_REQUIRED";
+        public const string CancelNotAllowed = "ORD_409_CANCEL_NOT_ALLOWED";
+        public const string CancelReasonTooLong = "ORD_400_CANCEL_REASON_TOO_LONG";
+        public const string CurrencyRequired = "ORD_400_CURRENCY_REQUIRED";
+        public const string DiscountInvalid = "ORD_400_DISCOUNT_INVALID";
+        public const string ItemCurrencyMismatch = "ORD_409_ITEM_CURRENCY_MISMATCH";
+        public const string ItemNotFound = "ORD_404_ITEM_NOT_FOUND";
+        public const string ItemRequired = "ORD_400_ITEM_REQUIRED";
+        public const string NotEditable = "ORD_409_NOT_EDITABLE";
+        public const string NotesTooLong = "ORD_400_NOTES_TOO_LONG";
+        public const string NowRequired = "ORD_400_NOW_REQUIRED";
+        public const string NumberRequired = "ORD_400_NUMBER_REQUIRED";
+        public const string NumberTooLong = "ORD_400_NUMBER_TOO_LONG";
+        public const string PaymentMismatch = "ORD_409_PAYMENT_MISMATCH";
+        public const string PaymentRequired = "ORD_400_PAYMENT_REQUIRED";
+        public const string ShippingAddressRequired = "ORD_400_SHIPPING_ADDRESS_REQUIRED";
+        public const string ShippingFeeInvalid = "ORD_400_SHIPPING_FEE_INVALID";
+        public const string StatusInvalidTransition = "ORD_409_STATUS_INVALID_TRANSITION";
+        public const string TaxInvalid = "ORD_400_TAX_INVALID";
+        public const string TotalInvalid = "ORD_400_TOTAL_INVALID";
+        public const string UserIdRequired = "ORD_400_USER_ID_REQUIRED";
+    }
 
-        public static class EmailMessage
-        {
-            public const string BodyRequired = "EM_400_BODY_REQUIRED";
-            public const string BodyTooLong = "EM_400_BODY_TOO_LONG";
-            public const string ErrorRequired = "EM_400_ERROR_REQUIRED";
-            public const string ErrorTooLong = "EM_400_ERROR_TOO_LONG";
-            public const string ProviderRequired = "EM_400_PROVIDER_REQUIRED";
-            public const string ProviderTooLong = "EM_400_PROVIDER_TOO_LONG";
-            public const string SubjectRequired = "EM_400_SUBJECT_REQUIRED";
-            public const string SubjectTooLong = "EM_400_SUBJECT_TOO_LONG";
-            public const string TypeInvalid = "EM_400_TYPE_INVALID";
-        }
+    public static class OrderItem
+    {
+        public const string CurrencyInvalid = "OI_400_CURRENCY_INVALID";
+        public const string LineTotalInvalid = "OI_400_LINE_TOTAL_INVALID";
+        public const string OrderIdRequired = "OI_400_ORDER_ID_REQUIRED";
+        public const string QuantityInvalid = "OI_400_QUANTITY_INVALID";
+        public const string SkuRequired = "OI_400_SKU_REQUIRED";
+        public const string SkuTooLong = "OI_400_SKU_TOO_LONG";
+        public const string TitleRequired = "OI_400_TITLE_REQUIRED";
+        public const string TitleTooLong = "OI_400_TITLE_TOO_LONG";
+        public const string UnitPriceInvalid = "OI_400_UNIT_PRICE_INVALID";
+        public const string VariantIdRequired = "OI_400_VARIANT_ID_REQUIRED";
+        public const string VariantSnapshotRequired = "OI_400_VARIANT_SNAPSHOT_REQUIRED";
+    }
 
-        public static class OAuth
-        {
-            public const string AlreadyLinked = "OA_409_ALREADY_LINKED";
-            public const string Duplicate = "OA_409_DUPLICATE";
-            public const string EmailTooLong = "OA_400_EMAIL_TOO_LONG";
-            public const string NotLinked = "OA_404_NOT_LINKED";
-            public const string NowRequired = "OA_400_NOW_REQUIRED";
-            public const string ProviderInvalid = "OA_400_PROVIDER_INVALID";
-            public const string ProviderRequired = "OA_400_PROVIDER_REQUIRED";
-            public const string ProviderTooLong = "OA_400_PROVIDER_TOO_LONG";
-            public const string ProviderUserIdRequired = "OA_400_PROVIDER_USER_ID_REQUIRED";
-            public const string ProviderUserIdTooLong = "OA_400_PROVIDER_USER_ID_TOO_LONG";
-            public const string UserIdRequired = "OA_400_USER_ID_REQUIRED";
-        }
+    public static class Payment
+    {
+        public const string AmountInvalid = "PAY_400_AMOUNT_INVALID";
+        public const string CurrencyRequired = "PAY_400_CURRENCY_REQUIRED";
+        public const string NowRequired = "PAY_400_NOW_REQUIRED";
+        public const string OrderIdRequired = "PAY_400_ORDER_ID_REQUIRED";
+        public const string ProviderRequired = "PAY_400_PROVIDER_REQUIRED";
+        public const string ProviderTooLong = "PAY_400_PROVIDER_TOO_LONG";
+        public const string ProviderPaymentIdRequired = "PAY_400_PROVIDER_PAYMENT_ID_REQUIRED";
+        public const string ProviderPaymentIdTooLong = "PAY_400_PROVIDER_PAYMENT_ID_TOO_LONG";
+        public const string RefundNotCaptured = "PAY_409_REFUND_NOT_CAPTURED";
+        public const string StatusFinal = "PAY_409_STATUS_FINAL";
+        public const string StatusInvalidTransition = "PAY_409_STATUS_INVALID_TRANSITION";
+    }
 
-        public static class Order
-        {
-            public const string BillingAddressRequired = "ORD_400_BILLING_ADDRESS_REQUIRED";
-            public const string CancelNotAllowed = "ORD_409_CANCEL_NOT_ALLOWED";
-            public const string CancelReasonTooLong = "ORD_400_CANCEL_REASON_TOO_LONG";
-            public const string CurrencyRequired = "ORD_400_CURRENCY_REQUIRED";
-            public const string DiscountInvalid = "ORD_400_DISCOUNT_INVALID";
-            public const string ItemCurrencyMismatch = "ORD_409_ITEM_CURRENCY_MISMATCH";
-            public const string ItemNotFound = "ORD_404_ITEM_NOT_FOUND";
-            public const string ItemRequired = "ORD_400_ITEM_REQUIRED";
-            public const string NotEditable = "ORD_409_NOT_EDITABLE";
-            public const string NotesTooLong = "ORD_400_NOTES_TOO_LONG";
-            public const string NowRequired = "ORD_400_NOW_REQUIRED";
-            public const string NumberRequired = "ORD_400_NUMBER_REQUIRED";
-            public const string NumberTooLong = "ORD_400_NUMBER_TOO_LONG";
-            public const string PaymentMismatch = "ORD_409_PAYMENT_MISMATCH";
-            public const string PaymentRequired = "ORD_400_PAYMENT_REQUIRED";
-            public const string ShippingAddressRequired = "ORD_400_SHIPPING_ADDRESS_REQUIRED";
-            public const string ShippingFeeInvalid = "ORD_400_SHIPPING_FEE_INVALID";
-            public const string StatusInvalidTransition = "ORD_409_STATUS_INVALID_TRANSITION";
-            public const string TaxInvalid = "ORD_400_TAX_INVALID";
-            public const string TotalInvalid = "ORD_400_TOTAL_INVALID";
-            public const string UserIdRequired = "ORD_400_USER_ID_REQUIRED";
-        }
+    public static class Refresh
+    {
+        public const string DeviceInfoTooLong = "REF_400_DEVICE_INFO_TOO_LONG";
+        public const string ExpiresAtInvalid = "REF_400_EXPIRES_AT_INVALID";
+        public const string IpInvalid = "REF_400_IP_INVALID";
+        public const string IpTooLong = "REF_400_IP_TOO_LONG";
+        public const string NowRequired = "REF_400_NOW_REQUIRED";
+        public const string ReplacedByRequired = "REF_400_REPLACED_BY_REQUIRED";
+        public const string ReplacedBySame = "REF_409_REPLACED_BY_SAME";
+        public const string TokenHashRequired = "REF_400_TOKEN_HASH_REQUIRED";
+        public const string UserIdRequired = "REF_400_USER_ID_REQUIRED";
+    }
 
-        public static class OrderItem
-        {
-            public const string CurrencyInvalid = "OI_400_CURRENCY_INVALID";
-            public const string LineTotalInvalid = "OI_400_LINE_TOTAL_INVALID";
-            public const string OrderIdRequired = "OI_400_ORDER_ID_REQUIRED";
-            public const string QuantityInvalid = "OI_400_QUANTITY_INVALID";
-            public const string SkuRequired = "OI_400_SKU_REQUIRED";
-            public const string SkuTooLong = "OI_400_SKU_TOO_LONG";
-            public const string TitleRequired = "OI_400_TITLE_REQUIRED";
-            public const string TitleTooLong = "OI_400_TITLE_TOO_LONG";
-            public const string UnitPriceInvalid = "OI_400_UNIT_PRICE_INVALID";
-            public const string VariantIdRequired = "OI_400_VARIANT_ID_REQUIRED";
-            public const string VariantSnapshotRequired = "OI_400_VARIANT_SNAPSHOT_REQUIRED";
-        }
+    public static class Refund
+    {
+        public const string AmountInvalid = "RFD_400_AMOUNT_INVALID";
+        public const string PaymentIdRequired = "RFD_400_PAYMENT_ID_REQUIRED";
+        public const string ProviderRefundIdRequired = "RFD_400_PROVIDER_REFUND_ID_REQUIRED";
+        public const string StatusFinal = "RFD_409_STATUS_FINAL";
+    }
 
-        public static class Payment
-        {
-            public const string AmountInvalid = "PAY_400_AMOUNT_INVALID";
-            public const string CurrencyRequired = "PAY_400_CURRENCY_REQUIRED";
-            public const string NowRequired = "PAY_400_NOW_REQUIRED";
-            public const string OrderIdRequired = "PAY_400_ORDER_ID_REQUIRED";
-            public const string ProviderRequired = "PAY_400_PROVIDER_REQUIRED";
-            public const string ProviderTooLong = "PAY_400_PROVIDER_TOO_LONG";
-            public const string ProviderPaymentIdRequired = "PAY_400_PROVIDER_PAYMENT_ID_REQUIRED";
-            public const string ProviderPaymentIdTooLong = "PAY_400_PROVIDER_PAYMENT_ID_TOO_LONG";
-            public const string RefundNotCaptured = "PAY_409_REFUND_NOT_CAPTURED";
-            public const string StatusFinal = "PAY_409_STATUS_FINAL";
-            public const string StatusInvalidTransition = "PAY_409_STATUS_INVALID_TRANSITION";
-        }
+    public static class UserCredential
+    {
+        public const string PasswordHashInvalid = "UC_400_PASSWORD_HASH_INVALID";
+        public const string PasswordHashRequired = "UC_400_PASSWORD_HASH_REQUIRED";
+        public const string UserIdInvalid = "UC_400_USER_ID_INVALID";
+    }
 
-        public static class Product
-        {
-            public const string ImageRequired = "PRD_400_IMAGE_REQUIRED";
-            public const string NowRequired = "PRD_400_NOW_REQUIRED";
-            public const string VariantNotFound = "PRD_404_VARIANT_NOT_FOUND";
-            public const string VariantPriceOverrideCurrencyMismatch = "PRD_409_VARIANT_PRICE_OVERRIDE_CURRENCY_MISMATCH";
-            public const string VariantPriceOverrideInvalid = "PRD_400_VARIANT_PRICE_OVERRIDE_INVALID";
-            public const string VariantSkuDuplicate = "PRD_409_VARIANT_SKU_DUPLICATE";
-            public const string VariantSkuRequired = "PRD_400_VARIANT_SKU_REQUIRED";
-        }
-
-        public static class Refresh
-        {
-            public const string DeviceInfoTooLong = "REF_400_DEVICE_INFO_TOO_LONG";
-            public const string ExpiresAtInvalid = "REF_400_EXPIRES_AT_INVALID";
-            public const string IpInvalid = "REF_400_IP_INVALID";
-            public const string IpTooLong = "REF_400_IP_TOO_LONG";
-            public const string NowRequired = "REF_400_NOW_REQUIRED";
-            public const string ReplacedByRequired = "REF_400_REPLACED_BY_REQUIRED";
-            public const string ReplacedBySame = "REF_409_REPLACED_BY_SAME";
-            public const string TokenHashRequired = "REF_400_TOKEN_HASH_REQUIRED";
-            public const string UserIdRequired = "REF_400_USER_ID_REQUIRED";
-        }
-
-        public static class Refund
-        {
-            public const string AmountInvalid = "RFD_400_AMOUNT_INVALID";
-            public const string PaymentIdRequired = "RFD_400_PAYMENT_ID_REQUIRED";
-            public const string ProviderRefundIdRequired = "RFD_400_PROVIDER_REFUND_ID_REQUIRED";
-            public const string StatusFinal = "RFD_409_STATUS_FINAL";
-        }
-
-        public static class UserCredential
-        {
-            public const string PasswordHashInvalid = "UC_400_PASSWORD_HASH_INVALID";
-            public const string PasswordHashRequired = "UC_400_PASSWORD_HASH_REQUIRED";
-            public const string UserIdInvalid = "UC_400_USER_ID_INVALID";
-        }
-
-        public static class Variant
-        {
-            public const string ColorTooLong = "VAR_400_COLOR_TOO_LONG";
-            public const string ImageRequired = "VAR_400_IMAGE_REQUIRED";
-            public const string InventoryRequired = "VAR_400_INVENTORY_REQUIRED";
-            public const string SizeTooLong = "VAR_400_SIZE_TOO_LONG";
-        }
-
-        public static class VariantImage
-        {
-            public const string SortOrderInvalid = "VI_400_SORT_ORDER_INVALID";
-            public const string UrlEmpty = "VI_400_URL_EMPTY";
-            public const string VariantIdEmpty = "VI_400_VARIANT_ID_EMPTY";
-        }
+    public static class VariantImage
+    {
+        public const string SortOrderInvalid = "VI_400_SORT_ORDER_INVALID";
+        public const string UrlEmpty = "VI_400_URL_EMPTY";
+        public const string VariantIdEmpty = "VI_400_VARIANT_ID_EMPTY";
     }
 
     public static class Infrastructure

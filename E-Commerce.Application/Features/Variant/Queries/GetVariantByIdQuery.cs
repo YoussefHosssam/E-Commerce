@@ -1,10 +1,11 @@
-﻿using E_Commerce.Application.Common.Result;
+using E_Commerce.Application.Common.Result;
 using E_Commerce.Application.Contracts.Persistence.Shared;
 using E_Commerce.Application.Extensions;
 using E_Commerce.Application.Features.Variant.Common;
 using E_Commerce.Domain.Common.Errors;
 using FluentValidation;
 using MediatR;
+using AutoMapper;
 
 namespace E_Commerce.Application.Features.Variant.Queries;
 
@@ -14,18 +15,20 @@ public sealed class GetVariantByIdValidation : AbstractValidator<GetVariantByIdQ
 {
     public GetVariantByIdValidation()
     {
-        RuleFor(x => x.ProductId).NotEmpty().WithError(ErrorCodes.Variant.ProductRequired);
-        RuleFor(x => x.VariantId).NotEmpty().WithError(ErrorCodes.Variant.VariantIdRequired);
+        RuleFor(x => x.ProductId).NotEmpty().WithError(VariantErrors.ProductRequired);
+        RuleFor(x => x.VariantId).NotEmpty().WithError(VariantErrors.VariantIdRequired);
     }
 }
 
 public sealed class GetVariantByIdHandler : IRequestHandler<GetVariantByIdQuery, Result<VariantDetailDto>>
 {
     private readonly IUnitOfWork _uow;
+    private readonly IMapper _mapper;
 
-    public GetVariantByIdHandler(IUnitOfWork uow)
+    public GetVariantByIdHandler(IUnitOfWork uow, IMapper mapper)
     {
         _uow = uow;
+        _mapper = mapper;
     }
 
     public async Task<Result<VariantDetailDto>> Handle(GetVariantByIdQuery request, CancellationToken cancellationToken)
@@ -33,9 +36,9 @@ public sealed class GetVariantByIdHandler : IRequestHandler<GetVariantByIdQuery,
         var variant = await _uow.Variants.GetByIdWithDetailsAsync(request.VariantId, cancellationToken);
         if (variant is null || variant.ProductId != request.ProductId)
         {
-            return Result<VariantDetailDto>.Fail(ErrorCatalog.FromCode(ErrorCodes.Variant.NotFound));
+            return Result<VariantDetailDto>.Fail(VariantErrors.NotFound);
         }
 
-        return Result<VariantDetailDto>.Success(variant.ToDetailDto());
+        return Result<VariantDetailDto>.Success(_mapper.Map<VariantDetailDto>(variant));
     }
 }

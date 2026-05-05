@@ -52,7 +52,7 @@ internal sealed class EmailSender : IEmailSender
         }
         catch (Exception)
         {
-            throw new InfrastructureException(ErrorCodes.Infrastructure.PersistenceFailure);
+            throw new InfrastructureException(InfrastructureErrors.PersistenceFailure);
         }
     }
 }

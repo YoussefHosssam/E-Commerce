@@ -50,12 +50,12 @@ public sealed class Variant : BaseEntity
         Money? priceOverride)
     {
         if (productId == Guid.Empty)
-            throw new DomainValidationException(ErrorCodes.Variant.ProductRequired);
+            throw new DomainValidationException(VariantErrors.ProductRequired);
 
         sku = NormalizeSku(sku);
 
-        size = NormalizeOptional(size, 30, ErrorCodes.Domain.Variant.SizeTooLong, "Size is too long.");
-        color = NormalizeOptional(color, 30, ErrorCodes.Domain.Variant.ColorTooLong, "Color is too long.");
+        size = NormalizeOptional(size, 30, VariantErrors.SizeTooLong);
+        color = NormalizeOptional(color, 30, VariantErrors.ColorTooLong);
 
         ValidatePriceOverride(priceOverride);
 
@@ -64,14 +64,13 @@ public sealed class Variant : BaseEntity
 
     public void ChangeSku(string sku)
     {
-        // ??????: uniqueness ??????? ????? ?? DB/Application (query)
         Sku = NormalizeSku(sku);
     }
 
     public void ChangeAttributes(string? size, string? color)
     {
-        Size = NormalizeOptional(size, 30, ErrorCodes.Domain.Variant.SizeTooLong, "Size is too long.");
-        Color = NormalizeOptional(color, 30, ErrorCodes.Domain.Variant.ColorTooLong, "Color is too long.");
+        Size = NormalizeOptional(size, 30, VariantErrors.SizeTooLong);
+        Color = NormalizeOptional(color, 30, VariantErrors.ColorTooLong);
     }
 
     public void SetPriceOverride(Money? priceOverride)
@@ -88,14 +87,14 @@ public sealed class Variant : BaseEntity
     public void AddImage(VariantImage image)
     {
         if (image is null)
-            throw new DomainValidationException(ErrorCodes.Domain.Variant.ImageRequired);
+            throw new DomainValidationException(VariantErrors.ImageRequired);
 
         _images.Add(image);
     }
 
     public void SetInventory(Inventory inventory)
     {
-        Inventory = inventory ?? throw new DomainValidationException(ErrorCodes.Domain.Variant.InventoryRequired);
+        Inventory = inventory ?? throw new DomainValidationException(VariantErrors.InventoryRequired);
     }
 
     private static void ValidatePriceOverride(Money? priceOverride)
@@ -103,26 +102,26 @@ public sealed class Variant : BaseEntity
         if (priceOverride is null) return;
 
         if (priceOverride.Amount < 0)
-            throw new DomainValidationException(ErrorCodes.Variant.PriceInvalid);
+            throw new DomainValidationException(VariantErrors.PriceInvalid);
 
         if (string.IsNullOrWhiteSpace(priceOverride.Currency.Value))
-            throw new DomainValidationException(ErrorCodes.Variant.CurrencyRequired);
+            throw new DomainValidationException(VariantErrors.CurrencyRequired);
     }
 
     private static string NormalizeSku(string sku)
     {
         if (string.IsNullOrWhiteSpace(sku))
-            throw new DomainValidationException(ErrorCodes.Variant.SkuRequired);
+            throw new DomainValidationException(VariantErrors.SkuRequired);
 
         sku = sku.Trim().ToUpperInvariant();
 
         if (sku.Length > 64)
-            throw new DomainValidationException(ErrorCodes.Variant.SkuTooLong);
+            throw new DomainValidationException(VariantErrors.SkuTooLong);
 
         return sku;
     }
 
-    private static string? NormalizeOptional(string? value, int maxLen, string code, string message)
+    private static string? NormalizeOptional(string? value, int maxLen,Error error)
     {
         if (value is null) return null;
 
@@ -130,7 +129,7 @@ public sealed class Variant : BaseEntity
         if (value.Length == 0) return null;
 
         if (value.Length > maxLen)
-            throw new DomainValidationException(code);
+            throw new DomainValidationException(error);
 
         return value;
     }

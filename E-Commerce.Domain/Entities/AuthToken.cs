@@ -30,13 +30,13 @@ namespace E_Commerce.Domain.Entities
         public static AuthToken Create(Guid userId, TokenType tokenType , TokenHash tokenHash, DateTimeOffset expiresAt)
         {
             if (userId == Guid.Empty)
-                throw new DomainValidationException(ErrorCodes.Domain.AuthToken.UserIdRequired);
+                throw new DomainValidationException(AuthTokenErrors.UserIdRequired);
             if (string.IsNullOrEmpty(tokenHash.Value))
-                throw new DomainValidationException(ErrorCodes.Domain.AuthToken.TokenHashRequired);
+                throw new DomainValidationException(AuthTokenErrors.TokenHashRequired);
             if (expiresAt <= DateTimeOffset.UtcNow)
-                throw new DomainValidationException(ErrorCodes.Domain.AuthToken.ExpiresAtRequired);
+                throw new DomainValidationException(AuthTokenErrors.ExpiresAtRequired);
             if (!Enum.IsDefined(typeof(TokenType) , tokenType))
-                throw new DomainValidationException(ErrorCodes.Domain.AuthToken.TokenTypeRequired);
+                throw new DomainValidationException(AuthTokenErrors.TokenTypeRequired);
             return new AuthToken(userId , tokenType, tokenHash, expiresAt);
         }
         public void Consume()
