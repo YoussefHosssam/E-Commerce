@@ -75,36 +75,150 @@ public static class OrderErrors
     public static class ShippingAddress
     {
         public static readonly Error Required =
-            new(ErrorCodes.Order.ShippingAddressRequired, "Shipping address is required.", ErrorType.Validation);
+            new(
+                ErrorCodes.Order.ShippingAddress.Required,
+                "Shipping address is required.",
+                ErrorType.Validation);
 
-        public static readonly Error FullNameRequired =
-            new(ErrorCodes.Order.ShippingAddressRequired, "Shipping full name is required.", ErrorType.Validation);
+        public static readonly Error FirstNameRequired =
+            new(
+                ErrorCodes.Order.ShippingAddress.FirstNameRequired,
+                "Shipping first name is required.",
+                ErrorType.Validation);
+
+        public static readonly Error LastNameRequired =
+            new(
+                ErrorCodes.Order.ShippingAddress.LastNameRequired,
+                "Shipping last name is required.",
+                ErrorType.Validation);
+
+        public static readonly Error EmailRequired =
+            new(
+                ErrorCodes.Order.ShippingAddress.EmailRequired,
+                "Shipping email is required.",
+                ErrorType.Validation);
+
+        public static readonly Error EmailInvalid =
+            new(
+                ErrorCodes.Order.ShippingAddress.EmailInvalid,
+                "Shipping email is invalid.",
+                ErrorType.Validation);
 
         public static readonly Error PhoneRequired =
-            new(ErrorCodes.Order.ShippingAddressRequired, "Shipping phone number is required.", ErrorType.Validation);
+            new(
+                ErrorCodes.Order.ShippingAddress.PhoneRequired,
+                "Shipping phone number is required.",
+                ErrorType.Validation);
 
-        public static readonly Error CityRequired =
-            new(ErrorCodes.Order.ShippingAddressRequired, "Shipping city is required.", ErrorType.Validation);
+        public static readonly Error FirstNameTooLong =
+            new(
+                ErrorCodes.Order.ShippingAddress.FirstNameTooLong,
+                "Shipping first name exceeds the allowed length.",
+                ErrorType.Validation);
 
-        public static readonly Error AddressLine1Required =
-            new(ErrorCodes.Order.ShippingAddressRequired, "Shipping address line is required.", ErrorType.Validation);
+        public static readonly Error LastNameTooLong =
+            new(
+                ErrorCodes.Order.ShippingAddress.LastNameTooLong,
+                "Shipping last name exceeds the allowed length.",
+                ErrorType.Validation);
+
+        public static readonly Error EmailTooLong =
+            new(
+                ErrorCodes.Order.ShippingAddress.EmailTooLong,
+                "Shipping email exceeds the allowed length.",
+                ErrorType.Validation);
+
+        public static readonly Error PhoneTooLong =
+            new(
+                ErrorCodes.Order.ShippingAddress.PhoneTooLong,
+                "Shipping phone number exceeds the allowed length.",
+                ErrorType.Validation);
+
+        public static readonly Error CityTooLong =
+            new(
+                ErrorCodes.Order.ShippingAddress.CityTooLong,
+                "Shipping city exceeds the allowed length.",
+                ErrorType.Validation);
+
+        public static readonly Error AddressLineTooLong =
+            new(
+                ErrorCodes.Order.ShippingAddress.AddressLineTooLong,
+                "Shipping address line exceeds the allowed length.",
+                ErrorType.Validation);
     }
 
     public static class BillingAddress
     {
         public static readonly Error Required =
-            new(ErrorCodes.Order.BillingAddressRequired, "Billing address is required.", ErrorType.Validation);
+            new(
+                ErrorCodes.Order.BillingAddress.Required,
+                "Billing address is required.",
+                ErrorType.Validation);
 
-        public static readonly Error FullNameRequired =
-            new(ErrorCodes.Order.BillingAddressRequired, "Billing full name is required.", ErrorType.Validation);
+        public static readonly Error FirstNameRequired =
+            new(
+                ErrorCodes.Order.BillingAddress.FirstNameRequired,
+                "Billing first name is required.",
+                ErrorType.Validation);
+
+        public static readonly Error LastNameRequired =
+            new(
+                ErrorCodes.Order.BillingAddress.LastNameRequired,
+                "Billing last name is required.",
+                ErrorType.Validation);
+
+        public static readonly Error EmailRequired =
+            new(
+                ErrorCodes.Order.BillingAddress.EmailRequired,
+                "Billing email is required.",
+                ErrorType.Validation);
+
+        public static readonly Error EmailInvalid =
+            new(
+                ErrorCodes.Order.BillingAddress.EmailInvalid,
+                "Billing email is invalid.",
+                ErrorType.Validation);
 
         public static readonly Error PhoneRequired =
-            new(ErrorCodes.Order.BillingAddressRequired, "Billing phone number is required.", ErrorType.Validation);
+            new(
+                ErrorCodes.Order.BillingAddress.PhoneRequired,
+                "Billing phone number is required.",
+                ErrorType.Validation);
 
-        public static readonly Error CityRequired =
-            new(ErrorCodes.Order.BillingAddressRequired, "Billing city is required.", ErrorType.Validation);
+        public static readonly Error FirstNameTooLong =
+            new(
+                ErrorCodes.Order.BillingAddress.FirstNameTooLong,
+                "Billing first name exceeds the allowed length.",
+                ErrorType.Validation);
 
-        public static readonly Error AddressLine1Required =
-            new(ErrorCodes.Order.BillingAddressRequired, "Billing address line is required.", ErrorType.Validation);
+        public static readonly Error LastNameTooLong =
+            new(
+                ErrorCodes.Order.BillingAddress.LastNameTooLong,
+                "Billing last name exceeds the allowed length.",
+                ErrorType.Validation);
+
+        public static readonly Error EmailTooLong =
+            new(
+                ErrorCodes.Order.BillingAddress.EmailTooLong,
+                "Billing email exceeds the allowed length.",
+                ErrorType.Validation);
+
+        public static readonly Error PhoneTooLong =
+            new(
+                ErrorCodes.Order.BillingAddress.PhoneTooLong,
+                "Billing phone number exceeds the allowed length.",
+                ErrorType.Validation);
+
+        public static readonly Error CityTooLong =
+            new(
+                ErrorCodes.Order.BillingAddress.CityTooLong,
+                "Billing city exceeds the allowed length.",
+                ErrorType.Validation);
+
+        public static readonly Error AddressLineTooLong =
+            new(
+                ErrorCodes.Order.BillingAddress.AddressLineTooLong,
+                "Billing address line exceeds the allowed length.",
+                ErrorType.Validation);
     }
 }

@@ -32,7 +32,27 @@ public static class ErrorCodes
         public const string ChildSelf = "CAT_409_CHILD_SELF";
         public const string ParentRequired = "CAT_400_PARENT_REQUIRED";
     }
-
+    public static class PaymentAttempt
+    {
+        public const string OrderIdRequired = "PA_400_ORDER_ID_REQUIRED";
+        public const string ProviderRequired = "PA_400_PROVIDER_REQUIRED";
+        public const string ProviderTooLong = "PA_400_PROVIDER_TOO_LONG";
+        public const string AmountInvalid = "PA_400_AMOUNT_INVALID";
+        public const string CurrencyRequired = "PA_400_CURRENCY_REQUIRED";
+        public const string IdempotencyKeyRequired = "PA_400_IDEMPOTENCY_KEY_REQUIRED";
+        public const string IdempotencyKeyTooLong = "PA_400_IDEMPOTENCY_KEY_TOO_LONG";
+        public const string RequestHashTooLong = "PA_400_REQUEST_HASH_TOO_LONG";
+        public const string ExpiresAtInvalid = "PA_400_EXPIRES_AT_INVALID";
+        public const string ProviderSessionIdRequired = "PA_400_PROVIDER_SESSION_ID_REQUIRED";
+        public const string ProviderSessionIdTooLong = "PA_400_PROVIDER_SESSION_ID_TOO_LONG";
+        public const string ProviderPaymentIdRequired = "PA_400_PROVIDER_PAYMENT_ID_REQUIRED";
+        public const string ProviderPaymentIdTooLong = "PA_400_PROVIDER_PAYMENT_ID_TOO_LONG";
+        public const string PaymentUrlRequired = "PA_400_PAYMENT_URL_REQUIRED";
+        public const string PaymentUrlTooLong = "PA_400_PAYMENT_URL_TOO_LONG";
+        public const string NotExpiredYet = "PA_400_NOT_EXPIRED_YET";
+        public const string StatusFinal = "PA_400_STATUS_FINAL";
+        public const string NowRequired = "PA_400_NOW_REQUIRED";
+    }
     public static class Product
     {
         public const string NotFound = "PRD_404";
@@ -56,7 +76,23 @@ public static class ErrorCodes
         public const string VariantSkuDuplicate = "PRD_409_VARIANT_SKU_DUPLICATE";
         public const string VariantSkuRequired = "PRD_400_VARIANT_SKU_REQUIRED";
     }
-
+    public static class Idempotency
+    {
+        public const string OperationRequired = "IDEM_400_OPERATION_REQUIRED";
+        public const string OperationTooLong = "IDEM_400_OPERATION_TOO_LONG";
+        public const string IdempotencyKeyRequired = "IDEM_400_KEY_REQUIRED";
+        public const string IdempotencyKeyTooLong = "IDEM_400_KEY_TOO_LONG";
+        public const string RequestHashRequired = "IDEM_400_REQUEST_HASH_REQUIRED";
+        public const string RequestHashTooLong = "IDEM_400_REQUEST_HASH_TOO_LONG";
+        public const string ExpiresAtInvalid = "IDEM_400_EXPIRES_AT_INVALID";
+        public const string StatusInvalidTransition = "IDEM_409_STATUS_INVALID_TRANSITION";
+        public const string ResponseStatusCodeInvalid = "IDEM_400_RESPONSE_STATUS_CODE_INVALID";
+        public const string ContentTypeTooLong = "IDEM_400_CONTENT_TYPE_TOO_LONG";
+        public const string ResourceIdTooLong = "IDEM_400_RESOURCE_ID_TOO_LONG";
+        public const string FailureReasonRequired = "IDEM_400_FAILURE_REASON_REQUIRED";
+        public const string FailureReasonTooLong = "IDEM_400_FAILURE_REASON_TOO_LONG";
+        public const string NowRequired = "IDEM_400_NOW_REQUIRED";
+    }
     public static class Variant
     {
         public const string NotFound = "VAR_404";
@@ -268,6 +304,41 @@ public static class ErrorCodes
         public const string TaxInvalid = "ORD_400_TAX_INVALID";
         public const string TotalInvalid = "ORD_400_TOTAL_INVALID";
         public const string UserIdRequired = "ORD_400_USER_ID_REQUIRED";
+        public static class ShippingAddress
+        {
+            public const string Required = "ORD_400_SHIPPING_ADDRESS_REQUIRED";
+
+            public const string FirstNameRequired = "ORD_400_SHIPPING_FIRST_NAME_REQUIRED";
+            public const string LastNameRequired = "ORD_400_SHIPPING_LAST_NAME_REQUIRED";
+            public const string EmailRequired = "ORD_400_SHIPPING_EMAIL_REQUIRED";
+            public const string EmailInvalid = "ORD_400_SHIPPING_EMAIL_INVALID";
+            public const string PhoneRequired = "ORD_400_SHIPPING_PHONE_REQUIRED";
+
+            public const string FirstNameTooLong = "ORD_400_SHIPPING_FIRST_NAME_TOO_LONG";
+            public const string LastNameTooLong = "ORD_400_SHIPPING_LAST_NAME_TOO_LONG";
+            public const string EmailTooLong = "ORD_400_SHIPPING_EMAIL_TOO_LONG";
+            public const string PhoneTooLong = "ORD_400_SHIPPING_PHONE_TOO_LONG";
+            public const string CityTooLong = "ORD_400_SHIPPING_CITY_TOO_LONG";
+            public const string AddressLineTooLong = "ORD_400_SHIPPING_ADDRESS_LINE_TOO_LONG";
+        }
+
+        public static class BillingAddress
+        {
+            public const string Required = "ORD_400_BILLING_ADDRESS_REQUIRED";
+
+            public const string FirstNameRequired = "ORD_400_BILLING_FIRST_NAME_REQUIRED";
+            public const string LastNameRequired = "ORD_400_BILLING_LAST_NAME_REQUIRED";
+            public const string EmailRequired = "ORD_400_BILLING_EMAIL_REQUIRED";
+            public const string EmailInvalid = "ORD_400_BILLING_EMAIL_INVALID";
+            public const string PhoneRequired = "ORD_400_BILLING_PHONE_REQUIRED";
+
+            public const string FirstNameTooLong = "ORD_400_BILLING_FIRST_NAME_TOO_LONG";
+            public const string LastNameTooLong = "ORD_400_BILLING_LAST_NAME_TOO_LONG";
+            public const string EmailTooLong = "ORD_400_BILLING_EMAIL_TOO_LONG";
+            public const string PhoneTooLong = "ORD_400_BILLING_PHONE_TOO_LONG";
+            public const string CityTooLong = "ORD_400_BILLING_CITY_TOO_LONG";
+            public const string AddressLineTooLong = "ORD_400_BILLING_ADDRESS_LINE_TOO_LONG";
+        }
     }
 
     public static class OrderItem
@@ -285,6 +356,12 @@ public static class ErrorCodes
         public const string VariantSnapshotRequired = "OI_400_VARIANT_SNAPSHOT_REQUIRED";
     }
 
+    public static class Paymob
+    {
+        public const string CancelRequest = "PMB_499_REQUEST_CANCELLED";
+        public const string FailedRequest = "PMB_502_REQUEST_FAILED";
+    }
+
     public static class Payment
     {
         public const string AmountInvalid = "PAY_400_AMOUNT_INVALID";
@@ -298,6 +375,8 @@ public static class ErrorCodes
         public const string RefundNotCaptured = "PAY_409_REFUND_NOT_CAPTURED";
         public const string StatusFinal = "PAY_409_STATUS_FINAL";
         public const string StatusInvalidTransition = "PAY_409_STATUS_INVALID_TRANSITION";
+        public const string FailedInitSession = "PAY_500_FAILED_INIT_SESSION";
+        public const string FailedDeserializeResponse = "PAY_500_FAILED_DESERIALIZE_RESPONSE";
     }
 
     public static class Refresh

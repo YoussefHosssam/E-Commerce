@@ -20,6 +20,7 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
     public IPaymentRepository Payments { get; }
     public IRefreshTokenRepository RefreshTokens { get; }
     public IGenericRepository<EmailMessage> EmailMessages { get; }
+    public IIdempotencyRecordRepository IdempotencyRecords { get; }
     public IInventoryRepository Inventories { get; }
     public IStockMovementRepository StockMovements { get; }
     public IGenericRepository<UserTwoFactor> User2fa { get; }
@@ -30,6 +31,8 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
     public IAuthTokenRepository AuthTokens { get; }
     public IGenericRepository<UserCredential> UserCredentials { get; }
     public IGenericRepository<UserOAuthAccount> UserOauthAccounts { get; }
+
+    public IPaymentAttemptRepository PaymentAttempts { get; }
 
     public UnitOfWork(
         EcommerceContext context,
@@ -50,7 +53,9 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
         IInventoryRepository inventories,
         IStockMovementRepository stockMovements,
         IOrderRepository orders,
-        IPaymentRepository payments)
+        IPaymentRepository payments,
+        IPaymentAttemptRepository paymentAttempts,
+        IIdempotencyRecordRepository idempotencyRecords)
     {
         _context = context;
         Products = productRepository;
@@ -71,6 +76,8 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
         StockMovements = stockMovements;
         Orders = orders;
         Payments = payments;
+        PaymentAttempts = paymentAttempts;
+        IdempotencyRecords = idempotencyRecords;
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct)

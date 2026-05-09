@@ -96,6 +96,10 @@ public sealed class Variant : BaseEntity
     {
         Inventory = inventory ?? throw new DomainValidationException(VariantErrors.InventoryRequired);
     }
+    public Money GetPrice()
+    {
+        return PriceOverride != null ? PriceOverride : Product.BasePrice;
+    }
 
     private static void ValidatePriceOverride(Money? priceOverride)
     {

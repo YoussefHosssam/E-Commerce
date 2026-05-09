@@ -6,6 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace E_Commerce.API.Configuration
 {
@@ -18,6 +20,11 @@ namespace E_Commerce.API.Configuration
             // ---- AUTH ----
             var jwt = configuration.GetSection("Auth:Jwt").Get<JwtOptions>()!;
 
+            services.ConfigureHttpJsonOptions(opt =>
+            {
+                opt.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+
+            });
             services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>

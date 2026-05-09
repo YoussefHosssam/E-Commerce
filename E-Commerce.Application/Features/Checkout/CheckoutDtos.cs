@@ -1,4 +1,5 @@
-﻿using System;
+﻿using E_Commerce.Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,12 +33,50 @@ namespace E_Commerce.Application.Features.Checkout
     Guid OrderId,
     string OrderNumber,
     decimal TotalAmount,
+
     string Currency,
     PaymentDto? Payment
 );
 
     public sealed record PaymentDto(
-        Uri PaymentUrl,
-        DateTimeOffset ExpiresAt
-    );
+        Guid PaymentAttemptId,
+        string Provider,
+        string? PaymentUrl,
+        string? ClientSecret,
+        DateTimeOffset ExpiresAt,
+        bool IsReusedSession,
+        PaymentAttemptStatus Status)
+    {
+        public static PaymentDto Created(
+            Guid paymentAttemptId,
+            string provider,
+            string? paymentUrl,
+            string? clientSecret,
+            DateTimeOffset expiresAt)
+        {
+            return new PaymentDto(
+                paymentAttemptId,
+                provider,
+                paymentUrl,
+                clientSecret,
+                expiresAt,
+                IsReusedSession: false,
+                Status: PaymentAttemptStatus.AwaitingCustomerAction);
+        }
+
+        public static PaymentDto FailedInitialization(
+            string provider,
+            Guid paymentAttemptId,
+            DateTimeOffset expiresAt)
+        {
+            return new PaymentDto(
+                paymentAttemptId,
+                provider,
+                PaymentUrl: null,
+                ClientSecret: null,
+                expiresAt,
+                IsReusedSession: false,
+                Status: PaymentAttemptStatus.Failed);
+        }
+    }
 }

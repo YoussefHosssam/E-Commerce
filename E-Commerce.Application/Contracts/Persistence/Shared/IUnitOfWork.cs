@@ -10,8 +10,9 @@ public interface IUnitOfWork
     IUserRepository Users { get; }
     ICartRepository Carts { get; }
     IOrderRepository Orders { get; }
+    IIdempotencyRecordRepository IdempotencyRecords { get; }
     IPaymentRepository Payments { get; }
-
+    IPaymentAttemptRepository PaymentAttempts { get; }
     IGenericRepository<CartItem> CartItems { get; }
     IGenericRepository<UserTwoFactor> User2fa { get; }
     IGenericRepository<UserCredential> UserCredentials { get; }

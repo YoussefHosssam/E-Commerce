@@ -31,6 +31,10 @@ public static class PersistenceConfiguration
         services.AddScoped<IStockMovementRepository, StockMovementRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
+        services.AddScoped<IPaymentAttemptRepository, PaymentAttemptRepository>();
+        services.AddScoped<IIdempotencyRecordRepository, IdempotencyRecordRepository>();
+
+
 
         return services;
     }

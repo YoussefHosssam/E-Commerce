@@ -7,15 +7,20 @@ using System.Threading.Tasks;
 namespace E_Commerce.Application.Common.Dtos
 {
     public sealed record ShippingAddressDto(
-        string FullName,
-        string Phone,
-        string City,
-        string AddressLine1,
+        string FirstName,
+        string LastName,
+        string Email,
+        string PhoneNumber,
+        string? City,
+        string? AddressLine1,
         string? AddressLine2);
+
     public sealed record BillingAddressDto(
-    string FullName,
-    string Phone,
-    string City,
-    string AddressLine1,
-    string? AddressLine2);
+        string FirstName,
+        string LastName,
+        string Email,
+        string PhoneNumber,
+        string? City,
+        string? AddressLine1,
+        string? AddressLine2);
 }

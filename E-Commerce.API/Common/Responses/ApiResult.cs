@@ -1,12 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using E_Commerce.API.Common.Contracts;
+using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
 namespace E_Commerce.API.Common.Responses
 {
-    public class ApiResult<T> : IActionResult
+    public class ApiResult<T> : IActionResult , IApiResult
     {
-        public ApiResponse<T> Response { get; set; } = default!;
         public int StatusCode { get; set; }
+        public ApiResponse<T> Response { get; set; } = default!;
+
+        public bool IsSuccess => Response.IsSuccess;
+
+        public object? ResponseObject => Response;
+
+        public ApiError? Error => Response.Error;
 
         public async Task ExecuteResultAsync(ActionContext context)
         {
@@ -60,10 +67,16 @@ namespace E_Commerce.API.Common.Responses
         }
     }
 
-    public class ApiResult : IActionResult
+    public class ApiResult : IActionResult , IApiResult
     {
-        public ApiResponse Response { get; set; } = default!;
         public int StatusCode { get; set; }
+        public ApiResponse Response { get; set; } = default!;
+
+        public bool IsSuccess => Response.IsSuccess;
+
+        public object? ResponseObject => Response;
+
+        public ApiError? Error => Response.Error;
 
         public async Task ExecuteResultAsync(ActionContext context)
         {

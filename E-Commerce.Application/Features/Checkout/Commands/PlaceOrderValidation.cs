@@ -13,30 +13,41 @@ public sealed class PlaceOrderValidation : AbstractValidator<PlaceOrderCommand>
 
         When(x => x.ShippingAddress is not null, () =>
         {
-            RuleFor(x => x.ShippingAddress!.FullName)
+            RuleFor(x => x.ShippingAddress!.FirstName)
                 .NotEmpty()
-                .MaximumLength(120)
-                .WithError(OrderErrors.ShippingAddress.FullNameRequired);
+                .MaximumLength(60)
+                .WithError(OrderErrors.ShippingAddress.FirstNameRequired);
 
-            RuleFor(x => x.ShippingAddress!.Phone)
+            RuleFor(x => x.ShippingAddress!.LastName)
+                .NotEmpty()
+                .MaximumLength(60)
+                .WithError(OrderErrors.ShippingAddress.LastNameRequired);
+
+            RuleFor(x => x.ShippingAddress!.Email)
+                .NotEmpty()
+                .EmailAddress()
+                .MaximumLength(150)
+                .WithError(OrderErrors.ShippingAddress.EmailRequired);
+
+            RuleFor(x => x.ShippingAddress!.PhoneNumber)
                 .NotEmpty()
                 .MaximumLength(30)
                 .WithError(OrderErrors.ShippingAddress.PhoneRequired);
 
             RuleFor(x => x.ShippingAddress!.City)
-                .NotEmpty()
                 .MaximumLength(100)
-                .WithError(OrderErrors.ShippingAddress.CityRequired);
+                .When(x => !string.IsNullOrWhiteSpace(x.ShippingAddress!.City))
+                .WithError(OrderErrors.ShippingAddress.CityTooLong);
 
             RuleFor(x => x.ShippingAddress!.AddressLine1)
-                .NotEmpty()
                 .MaximumLength(250)
-                .WithError(OrderErrors.ShippingAddress.AddressLine1Required);
+                .When(x => !string.IsNullOrWhiteSpace(x.ShippingAddress!.AddressLine1))
+                .WithError(OrderErrors.ShippingAddress.AddressLineTooLong);
 
             RuleFor(x => x.ShippingAddress!.AddressLine2)
                 .MaximumLength(250)
-                .When(x => x.ShippingAddress!.AddressLine2 is not null)
-                .WithError(OrderErrors.ShippingAddress.AddressLine1Required);
+                .When(x => !string.IsNullOrWhiteSpace(x.ShippingAddress!.AddressLine2))
+                .WithError(OrderErrors.ShippingAddress.AddressLineTooLong);
         });
 
         When(x => !x.SameAsShipping, () =>
@@ -47,30 +58,41 @@ public sealed class PlaceOrderValidation : AbstractValidator<PlaceOrderCommand>
 
             When(x => x.BillingAddress is not null, () =>
             {
-                RuleFor(x => x.BillingAddress!.FullName)
+                RuleFor(x => x.BillingAddress!.FirstName)
                     .NotEmpty()
-                    .MaximumLength(120)
-                    .WithError(OrderErrors.BillingAddress.FullNameRequired);
+                    .MaximumLength(60)
+                    .WithError(OrderErrors.BillingAddress.FirstNameRequired);
 
-                RuleFor(x => x.BillingAddress!.Phone)
+                RuleFor(x => x.BillingAddress!.LastName)
+                    .NotEmpty()
+                    .MaximumLength(60)
+                    .WithError(OrderErrors.BillingAddress.LastNameRequired);
+
+                RuleFor(x => x.BillingAddress!.Email)
+                    .NotEmpty()
+                    .EmailAddress()
+                    .MaximumLength(150)
+                    .WithError(OrderErrors.BillingAddress.EmailRequired);
+
+                RuleFor(x => x.BillingAddress!.PhoneNumber)
                     .NotEmpty()
                     .MaximumLength(30)
                     .WithError(OrderErrors.BillingAddress.PhoneRequired);
 
                 RuleFor(x => x.BillingAddress!.City)
-                    .NotEmpty()
                     .MaximumLength(100)
-                    .WithError(OrderErrors.BillingAddress.CityRequired);
+                    .When(x => !string.IsNullOrWhiteSpace(x.BillingAddress!.City))
+                    .WithError(OrderErrors.BillingAddress.CityTooLong);
 
                 RuleFor(x => x.BillingAddress!.AddressLine1)
-                    .NotEmpty()
                     .MaximumLength(250)
-                    .WithError(OrderErrors.BillingAddress.AddressLine1Required);
+                    .When(x => !string.IsNullOrWhiteSpace(x.BillingAddress!.AddressLine1))
+                    .WithError(OrderErrors.BillingAddress.AddressLineTooLong);
 
                 RuleFor(x => x.BillingAddress!.AddressLine2)
                     .MaximumLength(250)
-                    .When(x => x.BillingAddress!.AddressLine2 is not null)
-                    .WithError(OrderErrors.BillingAddress.AddressLine1Required);
+                    .When(x => !string.IsNullOrWhiteSpace(x.BillingAddress!.AddressLine2))
+                    .WithError(OrderErrors.BillingAddress.AddressLineTooLong);
             });
         });
     }

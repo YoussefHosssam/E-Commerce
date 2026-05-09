@@ -12,5 +12,7 @@ public static class PaymentErrors
     public static readonly Error ProviderPaymentIdTooLong = new(ErrorCodes.Payment.ProviderPaymentIdTooLong, "Provider payment ID is too long.", ErrorType.Validation);
     public static readonly Error RefundNotCaptured = new(ErrorCodes.Payment.RefundNotCaptured, "Payment cannot be refunded because it was not captured.", ErrorType.Conflict);
     public static readonly Error StatusFinal = new(ErrorCodes.Payment.StatusFinal, "Payment status is final and cannot be changed.", ErrorType.Conflict);
+    public static readonly Error FailedInitSession =new(ErrorCodes.Payment.FailedInitSession,"Failed to initialize payment session.",ErrorType.Failure);
+    public static readonly Error FailedDeserializeResponse =new(ErrorCodes.Payment.FailedDeserializeResponse,"Failed to deserialize payment provider response.",ErrorType.Failure);
     public static readonly Error StatusInvalidTransition = new(ErrorCodes.Payment.StatusInvalidTransition, "Payment status transition is invalid.", ErrorType.Conflict);
 }

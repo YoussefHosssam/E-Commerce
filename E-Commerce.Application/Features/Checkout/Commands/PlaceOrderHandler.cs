@@ -1,4 +1,6 @@
-﻿using E_Commerce.Application.Common.Result;
+﻿using E_Commerce.Application.Common.Dtos;
+using E_Commerce.Application.Common.Result;
+using E_Commerce.Application.Contracts.Infrastructure.Payment;
 using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
 using E_Commerce.Application.Contracts.Services;
 using E_Commerce.Domain.Common.Errors;
@@ -6,141 +8,390 @@ using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.Enums;
 using E_Commerce.Domain.ValueObjects;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static E_Commerce.Domain.Common.Errors.ErrorCodes;
+using System.Text.Json;
 using CartEntity = E_Commerce.Domain.Entities.Cart;
 using OrderEntity = E_Commerce.Domain.Entities.Order;
 
-namespace E_Commerce.Application.Features.Checkout.Commands
-{
-    internal class PlaceOrderHandler : IRequestHandler<PlaceOrderCommand, Result<PlaceOrderResponse>>
-    {
-        private readonly IUnitOfWork _uow;
-        private readonly IUserAccessor _userAccessor;
-        private readonly IOrderService _orderService;
-        private readonly IPaymentService _paymentService;
+namespace E_Commerce.Application.Features.Checkout.Commands;
 
-        public PlaceOrderHandler(IUnitOfWork uow, IUserAccessor userAccessor, IOrderService orderService, IPaymentService paymentService )
+internal sealed class PlaceOrderHandler
+    : IRequestHandler<PlaceOrderCommand, Result<PlaceOrderResponse>>
+{
+    private const int PaymentExpiryMinutes = 15;
+
+    private readonly IUnitOfWork _uow;
+    private readonly IUserAccessor _userAccessor;
+    private readonly IOrderService _orderService;
+    private readonly IPaymentGateway _paymentGateway;
+
+    public PlaceOrderHandler(
+        IUnitOfWork uow,
+        IUserAccessor userAccessor,
+        IOrderService orderService,
+        IPaymentGateway paymentGateway)
+    {
+        _uow = uow;
+        _userAccessor = userAccessor;
+        _orderService = orderService;
+        _paymentGateway = paymentGateway;
+    }
+
+    public async Task<Result<PlaceOrderResponse>> Handle(
+        PlaceOrderCommand request,
+        CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow;
+
+        var userResult = GetCurrentUserId();
+
+        if (!userResult.IsSuccess)
+            return Result<PlaceOrderResponse>.Fail(userResult.Error!);
+
+        var userId = userResult.Data;
+
+        var cartResult = await GetAndValidateCartAsync(userId, cancellationToken);
+
+        if (!cartResult.IsSuccess)
+            return Result<PlaceOrderResponse>.Fail(cartResult.Error!);
+
+        var cart = cartResult.Data!;
+        var cartItems = cart.Items.ToList();
+
+        var inventoryResult = await GetAndValidateInventoriesAsync(
+            cartItems,
+            cancellationToken);
+
+        if (!inventoryResult.IsSuccess)
+            return Result<PlaceOrderResponse>.Fail(inventoryResult.Error!);
+
+        var inventoryByVariantId = inventoryResult.Data!;
+
+        var orderResult = await CreateOrderAsync(
+            request,
+            userId,
+            now,
+            cancellationToken);
+
+        if (!orderResult.IsSuccess)
+            return Result<PlaceOrderResponse>.Fail(orderResult.Error!);
+
+        var order = orderResult.Data!;
+
+        await ReserveStockAndCreateOrderItemsAsync(
+            order,
+            cartItems,
+            inventoryByVariantId,
+            userId,
+            now,
+            cancellationToken);
+
+        var paymentAttempt = await CreatePaymentAttemptAsync(
+            order,
+            now,
+            cancellationToken);
+
+        cart.SetStatus(CartStatus.CheckedOut, now);
+
+        await _uow.SaveChangesAsync(cancellationToken);
+
+        var providerRequest = BuildProviderPaymentSessionRequest(
+            request,
+            order,
+            paymentAttempt,
+            cartItems);
+
+        var paymentDto = await TryInitializeProviderPaymentSessionAsync(
+            order,
+            paymentAttempt,
+            providerRequest,
+            cancellationToken);
+
+
+        await _uow.SaveChangesAsync(cancellationToken);
+
+        return Result<PlaceOrderResponse>.Success(
+            new PlaceOrderResponse(
+                order.Id,
+                order.OrderNumber,
+                order.GrandTotal,
+                order.Currency.Value,
+                paymentDto));
+    }
+
+    private Result<Guid> GetCurrentUserId()
+    {
+        if (!_userAccessor.UserId.HasValue)
+            return Result<Guid>.Fail(AuthErrors.InvalidToken);
+
+        return Result<Guid>.Success(_userAccessor.UserId.Value);
+    }
+
+    private async Task<Result<CartEntity>> GetAndValidateCartAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var cart = await _uow.Carts.GetCartWithItemsByUserId(
+            userId,
+            cancellationToken);
+
+        if (cart is null || !cart.Items.Any())
+            return Result<CartEntity>.Fail(CheckoutErrors.EmptyCart);
+
+        var cartItems = cart.Items.ToList();
+
+        if (cartItems.Any(i => i.Quantity <= 0))
+            return Result<CartEntity>.Fail(CartItemErrors.QuantityInvalid);
+
+        foreach (var item in cartItems)
         {
-            _uow = uow;
-            _userAccessor = userAccessor;
-            _orderService = orderService;
-            _paymentService = paymentService;
+            if (item.Variant is null || item.Variant.Product is null)
+                return Result<CartEntity>.Fail(VariantErrors.NotFound);
+
+            if (!item.Variant.IsActive || !item.Variant.Product.IsActive)
+                return Result<CartEntity>.Fail(CheckoutErrors.InActiveProduct);
         }
 
-        public async Task<Result<PlaceOrderResponse>> Handle(PlaceOrderCommand request,CancellationToken cancellationToken)
+        return Result<CartEntity>.Success(cart);
+    }
+
+    private async Task<Result<Dictionary<Guid, Inventory>>> GetAndValidateInventoriesAsync(
+        IReadOnlyCollection<CartItem> cartItems,
+        CancellationToken cancellationToken)
+    {
+        var variantIds = cartItems
+            .Select(i => i.VariantId)
+            .Distinct()
+            .ToList();
+
+        var inventories = await _uow.Inventories.GetByVariantIdsAsync(
+            variantIds,
+            cancellationToken);
+
+        var inventoryByVariantId = inventories.ToDictionary(i => i.VariantId);
+
+        foreach (var item in cartItems)
         {
-            var now = DateTimeOffset.UtcNow;
+            if (!inventoryByVariantId.TryGetValue(item.VariantId, out var inventory))
+                return Result<Dictionary<Guid, Inventory>>.Fail(CheckoutErrors.UnfoundInventory);
 
-            if (!_userAccessor.UserId.HasValue)
-                return Result<PlaceOrderResponse>.Fail(AuthErrors.InvalidToken);
+            if (inventory.Available < item.Quantity)
+                return Result<Dictionary<Guid, Inventory>>.Fail(CheckoutErrors.VariantOutOfStock);
+        }
 
-            var userId = _userAccessor.UserId.Value;
+        return Result<Dictionary<Guid, Inventory>>.Success(inventoryByVariantId);
+    }
 
-            var cart = await _uow.Carts.GetCartWithItemsByUserId(userId, cancellationToken);
+    private async Task<Result<OrderEntity>> CreateOrderAsync(
+        PlaceOrderCommand request,
+        Guid userId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        return await _orderService.CreateOrder(
+            userId,
+            CurrencyCode.Create("EGP"),
+            request.ShippingAddress,
+            request.SameAsShipping,
+            request.BillingAddress,
+            cancellationToken,
+            now);
+    }
 
-            if (cart is null || !cart.Items.Any())
-                return Result<PlaceOrderResponse>.Fail(CheckoutErrors.EmptyCart);
+    private async Task ReserveStockAndCreateOrderItemsAsync(
+        OrderEntity order,
+        IReadOnlyCollection<CartItem> cartItems,
+        Dictionary<Guid, Inventory> inventoryByVariantId,
+        Guid userId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var stockMovements = new List<StockMovement>();
+        var orderItems = new List<OrderItem>();
 
-            var cartItems = cart.Items.ToList();
+        foreach (var item in cartItems)
+        {
+            var inventory = inventoryByVariantId[item.VariantId];
+            var variant = item.Variant!;
+            var product = variant.Product!;
 
-            if (cartItems.Any(i => i.Quantity <= 0))
-                return Result<PlaceOrderResponse>.Fail(CartItemErrors.QuantityInvalid);
+            inventory.Reserve(item.Quantity, now);
 
-            foreach (var item in cartItems)
-            {
-                if (item.Variant is null || item.Variant.Product is null)
-                    return Result<PlaceOrderResponse>.Fail(VariantErrors.NotFound);
-
-                if (!item.Variant.IsActive || !item.Variant.Product.IsActive)
-                    return Result<PlaceOrderResponse>.Fail(CheckoutErrors.InActiveProduct);
-            }
-
-            var variantIds = cartItems
-                .Select(i => i.VariantId)
-                .Distinct()
-                .ToList();
-
-            var inventories = await _uow.Inventories
-                .GetByVariantIdsAsync(variantIds, cancellationToken);
-
-            var inventoryByVariantId = inventories.ToDictionary(i => i.VariantId);
-
-            foreach (var item in cartItems)
-            {
-                if (!inventoryByVariantId.TryGetValue(item.VariantId, out var inventory))
-                    return Result<PlaceOrderResponse>.Fail(CheckoutErrors.UnfoundInventory);
-
-                if (inventory.Available <= 0)
-                    return Result<PlaceOrderResponse>.Fail(CheckoutErrors.VariantOutOfStock);
-
-                if (inventory.Available < item.Quantity)
-                    return Result<PlaceOrderResponse>.Fail(CheckoutErrors.VariantOutOfStock);
-            }
-
-            var orderResult = await _orderService.CreateOrder(
+            var movement = StockMovement.Create(
+                item.VariantId,
+                StockMovementType.Reservation,
+                -item.Quantity,
+                "Order stock reservation",
+                order.Id,
                 userId,
-                CurrencyCode.Create("EGP"),
+                now);
+
+            stockMovements.Add(movement);
+
+            var orderItem = OrderItem.Create(
+                order.Id,
+                item.VariantId,
+                variant.GetPrice().Currency,
+                variant.Sku,
+                product.Slug.Value,
+                JsonText.Create(JsonSerializer.Serialize(variant)),
+                variant.GetPrice().Amount,
+                item.Quantity);
+
+            order.AddItem(orderItem , now);
+        }
+
+        await _uow.StockMovements.CreateRangeAsync(
+            stockMovements,
+            cancellationToken);
+
+    }
+
+    private async Task<PaymentAttempt> CreatePaymentAttemptAsync(
+        OrderEntity order,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var paymentExpiresAt = now.AddMinutes(PaymentExpiryMinutes);
+
+        var paymentIdempotencyKey = $"checkout:{order.Id:N}:payment";
+
+        var paymentAttempt = PaymentAttempt.Create(
+            orderId: order.Id,
+            provider: _paymentGateway.Provider,
+            amount: order.GrandTotal,
+            currency: order.Currency,
+            idempotencyKey: paymentIdempotencyKey,
+            expiresAt: paymentExpiresAt,
+            now: now,
+            requestHash: null,
+            rawPayloadJson: JsonText.Create("{}"));
+
+        await _uow.PaymentAttempts.CreateAsync(
+            paymentAttempt,
+            cancellationToken);
+
+        return paymentAttempt;
+    }
+
+    private CreateProviderPaymentSessionRequest BuildProviderPaymentSessionRequest(
+        PlaceOrderCommand request,
+        OrderEntity order,
+        PaymentAttempt paymentAttempt,
+        IReadOnlyCollection<CartItem> cartItems)
+    {
+        return new CreateProviderPaymentSessionRequest(
+            OrderId: order.Id,
+            PaymentAttemptId: paymentAttempt.Id,
+            OrderNumber: order.OrderNumber,
+            Amount: order.GrandTotal,
+            Currency: order.Currency,
+            Items: BuildPaymentItems(cartItems),
+            BillingData: BuildBillingData(
                 request.ShippingAddress,
                 request.SameAsShipping,
-                request.BillingAddress,
-                cancellationToken,
-                now);
+                request.BillingAddress),
+            IdempotencyKey: paymentAttempt.IdempotencyKey,
+            SpecialReference: paymentAttempt.Id.ToString("N"),
+            ExpiresAt: paymentAttempt.ExpiresAt);
+    }
 
-            if (!orderResult.IsSuccess)
-                return Result<PlaceOrderResponse>.Fail(orderResult.Error!);
+    private async Task<PaymentDto> TryInitializeProviderPaymentSessionAsync(
+        OrderEntity order,
+        PaymentAttempt paymentAttempt,
+        CreateProviderPaymentSessionRequest providerRequest,
+        CancellationToken cancellationToken)
+    {
+        var providerResult = await _paymentGateway.CreateSessionAsync(
+            providerRequest,
+            cancellationToken);
 
-            var order = orderResult.Data!;
+        if (!providerResult.IsSuccess)
+        {
+            paymentAttempt.MarkFailed(
+                DateTimeOffset.UtcNow,
+                JsonText.Create("{}"));
 
-            var stockMovements = new List<Domain.Entities.StockMovement>();
-
-            foreach (var item in cartItems)
-            {
-                var inventory = inventoryByVariantId[item.VariantId];
-
-                inventory.Reserve(item.Quantity, now);
-
-                var movement = Domain.Entities.StockMovement.Create(
-                    item.VariantId,
-                    StockMovementType.Reservation,
-                    -item.Quantity,
-                    "Order stock reservation",
-                    order.Id,
-                    userId,
-                    now);
-
-                stockMovements.Add(movement);
-            }
-
-            await _uow.StockMovements.CreateRangeAsync(stockMovements, cancellationToken);
-
-            var paymentResult = await _paymentService.InitPaymentSession(
-                userId,
-                order,
-                cancellationToken,
-                now);
-
-            if (!paymentResult.IsSuccess)
-                return Result<PlaceOrderResponse>.Fail(paymentResult.Error!);
-
-            cart.SetStatus(CartStatus.CheckedOut, now);
-
-            var paymentDto = paymentResult.Data!;
-
-            await _uow.SaveChangesAsync(cancellationToken);
-
-            return Result<PlaceOrderResponse>.Success(
-                new PlaceOrderResponse(
-                    order.Id,
-                    order.OrderNumber,
-                    order.GrandTotal,
-                    order.Currency.Value,
-                    paymentDto));
+            return PaymentDto.FailedInitialization(
+                provider: paymentAttempt.Provider,
+                paymentAttemptId: paymentAttempt.Id,
+                expiresAt: paymentAttempt.ExpiresAt);
         }
+
+        var providerSession = providerResult.Data!;
+
+        paymentAttempt.AttachProviderSession(
+            providerSessionId: providerSession.ProviderSessionId!,
+            paymentUrl: providerSession.PaymentUrl ?? providerSession.ClientSecret!,
+            now: DateTimeOffset.UtcNow,
+            rawPayloadJson: JsonText.Create(providerSession.RawPayloadJson));
+
+        if (!string.IsNullOrWhiteSpace(providerSession.ProviderOrderId))
+        {
+            paymentAttempt.AttachProviderOrderId(
+                providerSession.ProviderOrderId,
+                DateTimeOffset.UtcNow);
+        }
+
+        return PaymentDto.Created(
+            paymentAttemptId: paymentAttempt.Id,
+            provider: providerSession.Provider,
+            paymentUrl: providerSession.PaymentUrl,
+            clientSecret: providerSession.ClientSecret,
+            expiresAt: paymentAttempt.ExpiresAt);
+    }
+
+    private static IReadOnlyCollection<PaymentSessionItemDto> BuildPaymentItems(
+        IReadOnlyCollection<CartItem> cartItems)
+    {
+        return cartItems
+            .Select(item =>
+            {
+                var variant = item.Variant!;
+                var product = variant.Product!;
+                var price = variant.GetPrice();
+
+                return new PaymentSessionItemDto(
+                    Name: product.Slug.Value,
+                    Amount: price.Amount,
+                    Quantity: item.Quantity);
+            })
+            .ToList();
+    }
+
+    private static PaymentBillingDataDto BuildBillingData(
+        ShippingAddressDto shippingAddress,
+        bool sameAsShipping,
+        BillingAddressDto? billingAddress)
+    {
+        if (sameAsShipping || billingAddress is null)
+        {
+            return new PaymentBillingDataDto(
+                FirstName: shippingAddress.FirstName,
+                LastName: shippingAddress.LastName,
+                Email: shippingAddress.Email,
+                PhoneNumber: shippingAddress.PhoneNumber,
+                Street: shippingAddress.AddressLine1 ?? "NA",
+                Building: "NA",
+                Floor: "NA",
+                Apartment: "NA",
+                City: shippingAddress.City ?? "NA",
+                State: "NA",
+                Country: "EG",
+                PostalCode: "NA");
+        }
+
+        return new PaymentBillingDataDto(
+            FirstName: billingAddress.FirstName,
+            LastName: billingAddress.LastName,
+            Email: billingAddress.Email,
+            PhoneNumber: billingAddress.PhoneNumber,
+            Street: billingAddress.AddressLine1 ?? "NA",
+            Building: "NA",
+            Floor: "NA",
+            Apartment: "NA",
+            City: billingAddress.City ?? "NA",
+            State: "NA",
+            Country: "EG",
+            PostalCode: "NA");
     }
 }

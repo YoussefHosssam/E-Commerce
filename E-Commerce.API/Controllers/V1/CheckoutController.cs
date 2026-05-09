@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using E_Commerce.API.Attributes;
 using E_Commerce.API.Common.Responses;
 using E_Commerce.API.Contracts.Requests.CheckoutRequests;
 using E_Commerce.Application.Features.Checkout;
@@ -29,6 +30,7 @@ namespace E_Commerce.API.Controllers.V1
         }
 
         [HttpPost("")]
+        [Idempotent("Checkout")]
         public async Task<ApiResult<PlaceOrderResponse>> PlaceOrder( [FromBody] PlaceOrderRequest request , CancellationToken ct)
         {
             var result = await _sender.Send(new PlaceOrderCommand(request.ShippingAddress , request.SameAsShipping , request.BillingAddress), ct);
