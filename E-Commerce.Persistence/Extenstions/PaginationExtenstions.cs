@@ -11,8 +11,8 @@ public static class PaginationExtensions
         var total = await query.CountAsync(ct);
 
         var items = await query
-            .Skip((page.PageNumber - 1) * page.PageSize)
-            .Take(page.PageSize)
+            .Skip(page.Skip)
+            .Take(page.Size)
             .ToListAsync(ct);
 
         return new PagedResult<T>(

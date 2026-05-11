@@ -10,7 +10,7 @@ public sealed class Product : BaseEntity
 {
     public Guid CategoryId { get; private set; }
     public Category Category { get; private set; } = default!; // EF navigation
-
+    public string Name { get; private set; } = default!;
     public Slug Slug { get; private set; } = default!; // unique (enforced via DB too)
     public ProductStatus Status { get; private set; } = ProductStatus.Draft;
 
@@ -35,6 +35,7 @@ public sealed class Product : BaseEntity
     private Product() { } // EF
 
     private Product(
+        string name,
         Guid categoryId,
         Slug slug,
         ProductStatus status,
@@ -46,22 +47,25 @@ public sealed class Product : BaseEntity
         Status = status;
         Brand = brand;
         BasePrice = basePrice;
-
+        Name = name;
         IsActive = true;
         UpdatedAt = null;
     }
 
     public static Product Create(
+        string name,
         Guid categoryId,
         Slug slug,
         Money basePrice,
         string? brand = null,
         ProductStatus status = ProductStatus.Draft)
     {
+        if (string.IsNullOrEmpty(name) || name.Length > 50)
+            throw new DomainValidationException(ProductErrors.NameInvalid);
+
         if (categoryId == Guid.Empty)
             throw new DomainValidationException(ProductErrors.CategoryRequired);
 
-        // ?? Slug VO ???? ??? IsEmpty ?? IsDefault ??????? ??? default check
         if (slug.Equals(default(Slug)))
             throw new DomainValidationException(ProductErrors.SlugRequired);
 
@@ -71,16 +75,15 @@ public sealed class Product : BaseEntity
         if (basePrice is null)
             throw new DomainValidationException(ProductErrors.BasePriceRequired);
 
-        // ?????? ?? Money ???? ???? ??????? ?? ????? check ???????
         if (basePrice.Amount < 0)
             throw new DomainValidationException(ProductErrors.BasePriceInvalid);
 
-        if (string.IsNullOrWhiteSpace(basePrice.Currency.Value)) // ???? ??? CurrencyCode ????
+        if (string.IsNullOrWhiteSpace(basePrice.Currency.Value))
             throw new DomainValidationException(ProductErrors.CurrencyRequired);
 
         brand = NormalizeBrandOrNull(brand);
 
-        return new Product(categoryId, slug, status, brand, basePrice);
+        return new Product(name , categoryId, slug, status, brand, basePrice);
     }
 
     // -------- Domain behaviors --------
@@ -93,7 +96,7 @@ public sealed class Product : BaseEntity
         if (newBasePrice.Amount < 0)
             throw new DomainValidationException(ProductErrors.BasePriceInvalid);
 
-        if (string.IsNullOrWhiteSpace(newBasePrice.Currency.Value)) // ???? ??? CurrencyCode ????
+        if (string.IsNullOrWhiteSpace(newBasePrice.Currency.Value))
             throw new DomainValidationException(ProductErrors.CurrencyRequired);
 
         BasePrice = newBasePrice;
@@ -126,7 +129,15 @@ public sealed class Product : BaseEntity
         Status = status;
         Touch(now);
     }
+    public void ChangeName(string name, DateTimeOffset now)
+    {
+        if (string.IsNullOrEmpty(name) || name.Length > 50)
+            throw new DomainValidationException(ProductErrors.NameInvalid);
 
+        Name = name;
+        Touch(now);
+    }
+    
     public void Activate(DateTimeOffset now)
     {
         IsActive = true;

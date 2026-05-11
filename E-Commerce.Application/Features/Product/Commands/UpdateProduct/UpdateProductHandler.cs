@@ -42,6 +42,7 @@ public sealed class UpdateProductHandler : IRequestHandler<UpdateProductCommand,
         var money = Money.Create(request.BasePriceAmount, CurrencyCode.Create(request.BasePriceCurrency));
         var now = DateTimeOffset.UtcNow;
 
+        product.ChangeName(request.Name, now);
         product.ChangeCategory(request.CategoryId, now);
         product.ChangeSlug(slug, now);
         product.ChangeBrand(request.Brand, now);

@@ -9,7 +9,7 @@ namespace E_Commerce.Infrastructure.Settings
     public sealed class CartSessionOptions
     {
         public string HeaderName { get; init; } = "X-Cart-Session-Id";
-        public int DaysToExpire { get; init; } = 30;
-        public bool Secure { get; init; } = true;
+        public int DaysToExpire { get; init; }
+        public bool Secure { get; init; }
     }
 }

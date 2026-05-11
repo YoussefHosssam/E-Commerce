@@ -8,6 +8,7 @@ public sealed class CreateProductValidation : AbstractValidator<CreateProductCom
 {
     public CreateProductValidation()
     {
+        RuleFor(x => x.Name).NotEmpty().WithError(ProductErrors.NameInvalid);
         RuleFor(x => x.CategoryId).NotEmpty().WithError(ProductErrors.CategoryRequired);
         RuleFor(x => x.Slug).NotEmpty().WithError(ProductErrors.SlugRequired);
         RuleFor(x => x.BasePriceAmount).GreaterThanOrEqualTo(0).WithError(ProductErrors.BasePriceInvalid);

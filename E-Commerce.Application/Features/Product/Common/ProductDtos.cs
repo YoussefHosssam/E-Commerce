@@ -6,6 +6,7 @@ namespace E_Commerce.Application.Features.Product.Common;
 public sealed record ProductListItemDto(
     Guid Id,
     Guid CategoryId,
+    string Name,
     string CategorySlug,
     string Slug,
     string? Brand,
@@ -25,6 +26,7 @@ public sealed record ProductVariantDto(
 public sealed record ProductDetailDto(
     Guid Id,
     Guid CategoryId,
+    string Name,
     string CategorySlug,
     string Slug,
     string? Brand,

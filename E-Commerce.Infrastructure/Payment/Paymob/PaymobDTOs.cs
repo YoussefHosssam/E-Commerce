@@ -140,7 +140,7 @@ namespace E_Commerce.Infrastructure.Payment.Paymob
         public List<PaymobPaymentKey> PaymentKeys { get; init; } = new();
 
         [JsonPropertyName("intention_order_id")]
-        public string IntentionOrderId { get; init; }
+        public string IntentionOrderId { get; init; } = default!;
 
         [JsonPropertyName("split_payment_methods")]
         public List<object> SplitPaymentMethods { get; init; } = new();

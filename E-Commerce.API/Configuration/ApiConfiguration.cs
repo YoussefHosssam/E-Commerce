@@ -20,11 +20,6 @@ namespace E_Commerce.API.Configuration
             // ---- AUTH ----
             var jwt = configuration.GetSection("Auth:Jwt").Get<JwtOptions>()!;
 
-            services.ConfigureHttpJsonOptions(opt =>
-            {
-                opt.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-
-            });
             services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -47,7 +42,6 @@ namespace E_Commerce.API.Configuration
                         ClockSkew = TimeSpan.FromSeconds(30)
                     };
                 });
-            services.AddAuthorization();
             services.AddOpenApi();
             services.AddApiVersioning(opt =>
             {

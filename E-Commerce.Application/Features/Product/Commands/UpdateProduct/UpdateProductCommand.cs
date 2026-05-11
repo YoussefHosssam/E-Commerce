@@ -7,6 +7,7 @@ namespace E_Commerce.Application.Features.Product.Commands.UpdateProduct;
 
 public sealed record UpdateProductCommand(
     Guid Id,
+    string Name,
     Guid CategoryId,
     string Slug,
     string? Brand,

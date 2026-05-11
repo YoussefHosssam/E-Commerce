@@ -6,6 +6,7 @@ using MediatR;
 namespace E_Commerce.Application.Features.Product.Commands.CreateProduct;
 
 public sealed record CreateProductCommand(
+    string Name,
     Guid CategoryId,
     string Slug,
     string? Brand,

@@ -18,6 +18,12 @@ public static class OrderErrors
     public static readonly Error UserIdRequired =
         new(ErrorCodes.Order.UserIdRequired, "User ID is required to create an order.", ErrorType.Validation);
 
+    public static readonly Error IdRequired =
+    new(ErrorCodes.Order.OrderIdRequired, "Order ID is required.", ErrorType.Validation);
+
+    public static readonly Error NotFound =
+    new(ErrorCodes.Order.NotFound, "Order is not found.", ErrorType.NotFound);
+    
     public static readonly Error NumberRequired =
         new(ErrorCodes.Order.NumberRequired, "Order number is required.", ErrorType.Validation);
 

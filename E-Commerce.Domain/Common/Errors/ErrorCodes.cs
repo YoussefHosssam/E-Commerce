@@ -56,6 +56,7 @@ public static class ErrorCodes
     public static class Product
     {
         public const string NotFound = "PRD_404";
+        public const string NameInvalid = "PRD_400_NAME_INVALID";
         public const string SlugDuplicate = "PRD_409_SLUG_EXISTS";
         public const string HasVariants = "PRD_409_HAS_VARIANTS";
         public const string InvalidInput = "PRD_400_INVALID";
@@ -304,6 +305,9 @@ public static class ErrorCodes
         public const string TaxInvalid = "ORD_400_TAX_INVALID";
         public const string TotalInvalid = "ORD_400_TOTAL_INVALID";
         public const string UserIdRequired = "ORD_400_USER_ID_REQUIRED";
+        public const string OrderIdRequired = "ORD_400_ID_REQUIRED";
+        public const string NotFound = "ORD_400_NOT_FOUND";
+
         public static class ShippingAddress
         {
             public const string Required = "ORD_400_SHIPPING_ADDRESS_REQUIRED";

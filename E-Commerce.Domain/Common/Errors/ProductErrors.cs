@@ -8,6 +8,7 @@ public static class ProductErrors
     public static readonly Error InvalidInput = new(ErrorCodes.Product.InvalidInput, "Product data is invalid.", ErrorType.Validation);
     public static readonly Error IdRequired = new(ErrorCodes.Product.IdRequired, "Product id is required.", ErrorType.Validation);
     public static readonly Error CategoryRequired = new(ErrorCodes.Product.CategoryRequired, "Category id is required.", ErrorType.Validation);
+    public static readonly Error NameInvalid = new(ErrorCodes.Product.NameInvalid, "Product name is invalid.", ErrorType.Validation);
     public static readonly Error SlugRequired = new(ErrorCodes.Product.SlugRequired, "Slug is required.", ErrorType.Validation);
     public static readonly Error StatusInvalid = new(ErrorCodes.Product.StatusInvalid, "Product status is invalid.", ErrorType.Validation);
     public static readonly Error BasePriceRequired = new(ErrorCodes.Product.BasePriceRequired, "Base price is required.", ErrorType.Validation);

@@ -34,7 +34,7 @@ public sealed class CreateProductHandler : IRequestHandler<CreateProductCommand,
         }
 
         var money = Money.Create(request.BasePriceAmount, CurrencyCode.Create(request.BasePriceCurrency));
-        var product = Domain.Entities.Product.Create(request.CategoryId, slug, money, request.Brand, request.Status);
+        var product = Domain.Entities.Product.Create(request.Name , request.CategoryId, slug, money, request.Brand, request.Status);
 
         if (!request.IsActive)
         {

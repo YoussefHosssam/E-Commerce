@@ -12,19 +12,6 @@ namespace E_Commerce.Application.Features.Category.Queries;
 
 public sealed record GetCategoriesQuery(PageRequest page) : IRequest<Result<IReadOnlyCollection<CategoryListItemDto>>>;
 
-public sealed class GetCategoriesValidation : AbstractValidator<GetCategoriesQuery>
-{
-    public GetCategoriesValidation()
-    {
-        RuleFor(x => x.page.PageNumber)
-            .GreaterThan(0)
-            .WithError(CommonErrors.PageInvalid);
-
-        RuleFor(x => x.page.PageSize)
-            .GreaterThan(0)
-            .WithError(CommonErrors.PageSizeInvalid);
-    }
-}
 public sealed class GetCategoriesHandler : IRequestHandler<GetCategoriesQuery, Result<IReadOnlyCollection<CategoryListItemDto>>>
 {
     private readonly IUnitOfWork _uow;

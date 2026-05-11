@@ -1,6 +1,7 @@
 ﻿using E_Commerce.API.Common.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace E_Commerce.API.Common.Responses
 {
@@ -86,9 +87,10 @@ namespace E_Commerce.API.Common.Responses
 
             var options = new JsonSerializerOptions
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
-
+            options.Converters.Add(new JsonStringEnumConverter());
             var json = JsonSerializer.Serialize(Response, options);
             await response.WriteAsync(json);
         }

@@ -48,6 +48,7 @@ public sealed partial class ProductsController : ControllerBase
     public async Task<ApiResult<ProductDetailDto>> Create([FromBody] CreateProductRequest request, CancellationToken ct)
     {
         var command = new CreateProductCommand(
+            request.Name,
             request.CategoryId,
             request.Slug,
             request.Brand,
@@ -66,6 +67,7 @@ public sealed partial class ProductsController : ControllerBase
     {
         var command = new UpdateProductCommand(
             id,
+            request.Name,
             request.CategoryId,
             request.Slug,
             request.Brand,

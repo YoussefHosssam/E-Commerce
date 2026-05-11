@@ -232,7 +232,7 @@ internal sealed class PlaceOrderHandler
                 item.VariantId,
                 variant.GetPrice().Currency,
                 variant.Sku,
-                product.Slug.Value,
+                product.Name,
                 JsonText.Create(JsonSerializer.Serialize(variant)),
                 variant.GetPrice().Amount,
                 item.Quantity);

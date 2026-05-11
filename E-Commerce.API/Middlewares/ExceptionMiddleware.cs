@@ -3,6 +3,8 @@ using E_Commerce.Domain.Common.Errors;
 using MailKit.Net.Smtp;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace E_Commerce.API.Middlewares
 {
@@ -32,7 +34,12 @@ namespace E_Commerce.API.Middlewares
                 var apiResponse = ApiResult.Fail(statusCode, error.Code, error.Message);
 
                 context.Response.StatusCode = statusCode;
-                await context.Response.WriteAsJsonAsync(apiResponse.Response);
+                await context.Response.WriteAsJsonAsync(
+                    apiResponse.Response,
+                    new JsonSerializerOptions
+                    {
+                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                    });
             }
         }
 

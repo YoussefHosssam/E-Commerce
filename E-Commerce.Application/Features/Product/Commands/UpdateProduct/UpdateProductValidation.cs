@@ -9,6 +9,7 @@ public sealed class UpdateProductValidation : AbstractValidator<UpdateProductCom
     public UpdateProductValidation()
     {
         RuleFor(x => x.Id).NotEmpty().WithError(ProductErrors.IdRequired);
+        RuleFor(x => x.Name).NotEmpty().WithError(ProductErrors.NameInvalid);
         RuleFor(x => x.CategoryId).NotEmpty().WithError(ProductErrors.CategoryRequired);
         RuleFor(x => x.Slug).NotEmpty().WithError(ProductErrors.SlugRequired);
         RuleFor(x => x.BasePriceAmount).GreaterThanOrEqualTo(0).WithError(ProductErrors.BasePriceInvalid);
