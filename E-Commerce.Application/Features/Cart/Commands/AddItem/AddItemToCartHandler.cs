@@ -77,7 +77,7 @@ namespace E_Commerce.Application.Features.Cart.Commands.AddItem
         private async Task<Result<CartSummaryDTO>> AddToCartService(CartEntity cart , AddItemToCartCommand request , CancellationToken cancellationToken, DateTimeOffset now)
         {
             var cartQuantity = cart.GetTotalQuantity();
-            if (cartQuantity > 20) return Result<CartSummaryDTO>.Fail(CartErrors.ItemsLimitExceeded);
+            if (cartQuantity + request.quantity > 20) return Result<CartSummaryDTO>.Fail(CartErrors.ItemsLimitExceeded);
             CartItem cartItem = CartItem.Create(cart.Id, request.variantId, request.quantity, now);
             if (!await _uow.Inventories.IsQuantityValid(request.variantId, cartItem.Quantity, cancellationToken)) return Result<CartSummaryDTO>.Fail(CartItemErrors.QuantityInvalid);
             cart.AddItem(cartItem, now);

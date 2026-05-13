@@ -32,7 +32,7 @@ namespace E_Commerce.Application.Features.Order.Commands.CancelOrder
             var userRole = _userAccessor.Role;
             if (!userId.HasValue) return Result.Fail(AuthErrors.InvalidToken);
             if (!userRole.HasValue) return Result.Fail(AuthErrors.InvalidToken);
-            var order = await _uow.Orders.GetOrderByIdWithDetailsAsync(request.id, cancellationToken);
+            var order = await _uow.Orders.GetTrackingOrderByIdWithDetailsAsync(request.id, cancellationToken);
             if (order is null) return Result.Fail(OrderErrors.NotFound);
             if (!(order.Status == OrderStatus.Pending)) return Result.Fail(OrderErrors.CancelNotAllowed);
             if (userRole != UserRole.Admin &&

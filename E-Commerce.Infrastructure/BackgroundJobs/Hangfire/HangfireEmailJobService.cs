@@ -26,10 +26,10 @@ namespace E_Commerce.Infrastructure.BackgroundJobs.Hangfire
                 x => x.SendVerificationEmailAsync(emailMessageId, cancellationToken));
         }
 
-        //public string EnqueueResetPasswordEmail(Guid userId, EmailAddress email, string token)
-        //{
-        //    return _jobs.Enqueue<EmailJobs>(
-        //        x => x.SendResetPasswordEmailAsync(userId, email, token));
-        //}
+        public string EnqueueResetPasswordEmail(Guid emailMessageId, CancellationToken cancellationToken)
+        {
+            return _jobs.Enqueue<EmailJobs>(
+                x => x.SendResetPasswordEmailAsync(emailMessageId, cancellationToken));
+        }
     }
 }

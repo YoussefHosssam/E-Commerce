@@ -1,9 +1,12 @@
 using Asp.Versioning;
 using E_Commerce.API.Common.Responses;
 using E_Commerce.API.Contracts.Requests.AuthRequests;
+using E_Commerce.Application.Features.Auth.Commands.ChangeUserPassword;
+using E_Commerce.Application.Features.Auth.Commands.ForgetUserPassword;
 using E_Commerce.Application.Features.Auth.Commands.LoginUser;
 using E_Commerce.Application.Features.Auth.Commands.RefreshUserToken;
 using E_Commerce.Application.Features.Auth.Commands.RegisterUser;
+using E_Commerce.Application.Features.Auth.Commands.ResetUserPassword;
 using E_Commerce.Application.Features.Auth.Commands.TwoFactorAuth;
 using E_Commerce.Application.Features.Auth.Commands.VerifyEmail;
 using MediatR;
@@ -116,5 +119,40 @@ public sealed partial class AuthController : ControllerBase
         var command = new RefreshTokenCommand(request.RefreshToken);
         var result = await _sender.Send(command, ct);
         return this.FromResult(result, "Tokens refreshed successfully.");
+    }
+
+    [Authorize]
+    [HttpPost("password/change")]
+    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status401Unauthorized)]
+    public async Task<ApiResult> ChangePassword([FromBody] ChangeUserPasswordRequest request, CancellationToken ct)
+    {
+        var command = new ChangeUserPasswordCommand(request.CurrentPassword, request.NewPassword);
+        var result = await _sender.Send(command, ct);
+        return this.FromResult(result, "Password changed successfully.");
+    }
+
+    [AllowAnonymous]
+    [HttpPost("password/forgot")]
+    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status400BadRequest)]
+    public async Task<ApiResult> ForgotPassword([FromBody] ForgetUserPasswordRequest request, CancellationToken ct)
+    {
+        var command = new ForgetUserPasswordCommand(request.Email);
+        var result = await _sender.Send(command, ct);
+        return this.FromResult(result, "If the account exists and is eligible, a password reset email will be sent.");
+    }
+
+    [AllowAnonymous]
+    [HttpPost("password/reset")]
+    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status401Unauthorized)]
+    public async Task<ApiResult> ResetPassword([FromBody] ResetUserPasswordRequest request, CancellationToken ct)
+    {
+        var command = new ResetUserPasswordCommand(request.Token, request.NewPassword);
+        var result = await _sender.Send(command, ct);
+        return this.FromResult(result, "Password reset successfully.");
     }
 }

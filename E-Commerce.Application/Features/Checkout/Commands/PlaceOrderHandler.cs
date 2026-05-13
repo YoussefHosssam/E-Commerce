@@ -1,8 +1,11 @@
-﻿using E_Commerce.Application.Common.Dtos;
+﻿using AutoMapper;
+using E_Commerce.Application.Common.Dtos;
 using E_Commerce.Application.Common.Result;
 using E_Commerce.Application.Contracts.Infrastructure.Payment;
 using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
 using E_Commerce.Application.Contracts.Services;
+using E_Commerce.Application.Features.Order.Common;
+using E_Commerce.Application.Features.Variant.Common;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.Enums;
@@ -23,17 +26,20 @@ internal sealed class PlaceOrderHandler
     private readonly IUserAccessor _userAccessor;
     private readonly IOrderService _orderService;
     private readonly IPaymentGateway _paymentGateway;
+    private readonly IMapper _mapper;
 
     public PlaceOrderHandler(
         IUnitOfWork uow,
         IUserAccessor userAccessor,
         IOrderService orderService,
-        IPaymentGateway paymentGateway)
+        IPaymentGateway paymentGateway,
+        IMapper mapper)
     {
         _uow = uow;
         _userAccessor = userAccessor;
         _orderService = orderService;
         _paymentGateway = paymentGateway;
+        _mapper = mapper;
     }
 
     public async Task<Result<PlaceOrderResponse>> Handle(
@@ -226,14 +232,14 @@ internal sealed class PlaceOrderHandler
                 now);
 
             stockMovements.Add(movement);
-
+            VariantSnapshot variantSnapshot = _mapper.Map<VariantSnapshot>(variant);
             var orderItem = OrderItem.Create(
                 order.Id,
                 item.VariantId,
                 variant.GetPrice().Currency,
                 variant.Sku,
                 product.Name,
-                JsonText.Create(JsonSerializer.Serialize(variant)),
+                JsonText.Create(JsonSerializer.Serialize(variantSnapshot)),
                 variant.GetPrice().Amount,
                 item.Quantity);
 

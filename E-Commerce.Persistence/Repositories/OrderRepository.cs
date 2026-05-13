@@ -29,5 +29,11 @@ namespace E_Commerce.Persistence.Repositories
             var orders = await _orders.AsNoTracking().Include(o => o.Items).ThenInclude(i => i.Variant).Where(o => o.UserId == userId).ToPagedResultAsync(page , ctn);
             return orders;
         }
+
+        public async Task<Order?> GetTrackingOrderByIdWithDetailsAsync(Guid id, CancellationToken ctn)
+        {
+            var order = await _orders.Include(o => o.Items).ThenInclude(i => i.Variant).FirstOrDefaultAsync(o => o.Id == id, ctn);
+            return order;
+        }
     }
 }

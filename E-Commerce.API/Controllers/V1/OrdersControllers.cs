@@ -6,11 +6,14 @@ using E_Commerce.Application.Features.Order.Commands.CancelOrder;
 using E_Commerce.Application.Features.Order.Common;
 using E_Commerce.Application.Features.Order.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_Commerce.API.Controllers.V1
 {
     [ApiVersion(1)]
+    [ApiController()]
+    [Authorize]
     [Route("/api/v{version:apiVersion}/orders")]
     public class OrdersControllers : ControllerBase
     {

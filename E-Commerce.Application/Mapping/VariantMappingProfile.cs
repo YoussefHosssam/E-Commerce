@@ -19,5 +19,12 @@ public class VariantMappingProfile : Profile
 
         CreateMap<Variant, CartVariantDto>()
             .ForMember(dest => dest.PriceOverride, opt => opt.MapFrom(src => src.PriceOverride != null ? MoneyDto.FromMoney(src.PriceOverride) : null));
+
+        CreateMap<Variant, VariantSnapshot>()
+            .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+            .ForMember(dest => dest.VariantId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.GetPrice().Amount))
+            .ForMember(dest => dest.Sku, opt => opt.MapFrom(src => src.Sku))
+            .ForMember(dest => dest.CurrencyCode, opt => opt.MapFrom(src => src.GetPrice().Currency.Value));
     }
 }

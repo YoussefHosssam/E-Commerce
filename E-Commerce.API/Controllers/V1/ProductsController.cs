@@ -138,6 +138,6 @@ public sealed partial class ProductsController : ControllerBase
     [Authorize]
     [ServiceFilter(typeof(AdminRouteFilter))]
     [HttpPatch("{productId:guid}/variants/{variantId:guid}/stock-movement")]
-    public async Task<ApiResult> UpdateStockMovement(UpdateStockMovementRequest request, CancellationToken ct)
-    => this.FromResult(await _sender.Send(new UpdateStockMovementCommand(request.VariantId , request.Type , request.Quantity , request.Reason), ct), "Variant deleted successfully.");
+    public async Task<ApiResult> UpdateStockMovement(Guid productId , Guid variantId , UpdateStockMovementRequest request, CancellationToken ct)
+    => this.FromResult(await _sender.Send(new UpdateStockMovementCommand(productId, variantId , request.Type , request.Quantity , request.Reason), ct), "Variant deleted successfully.");
 }

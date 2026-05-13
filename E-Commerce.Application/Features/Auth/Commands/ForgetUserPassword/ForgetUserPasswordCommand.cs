@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace E_Commerce.Application.Features.Auth.Commands.ForgetUserPassword
 {
-    public record ForgetUserPasswordCommand : IRequest<Result>
+    public record ForgetUserPasswordCommand(string Email) : IRequest<Result>
     {
     }
 }

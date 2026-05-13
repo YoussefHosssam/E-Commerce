@@ -124,7 +124,7 @@ public sealed class Cart : BaseEntity
 
     public int GetTotalQuantity()
     {
-        return _items.Count;
+        return _items.Sum(ci => ci.Quantity);
     }
     public decimal GetTotalPrice()
     {

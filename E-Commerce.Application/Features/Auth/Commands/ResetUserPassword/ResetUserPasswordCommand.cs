@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace E_Commerce.Application.Features.Auth.Commands.ResetUserPassword
 {
-    public record ResetUserPasswordCommand (string token) : IRequest<Result>
+    public record ResetUserPasswordCommand(string Token, string NewPassword) : IRequest<Result>
     {
     }
 }

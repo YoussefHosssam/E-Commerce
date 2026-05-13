@@ -10,5 +10,6 @@ namespace E_Commerce.Application.Contracts.Infrastructure.Emails
     public interface IEmailTemplateRenderer
     {
         Task<string> RenderVerifyAccountAsync(VerifyAccountEmailModel model, CancellationToken cancellationToken = default);
+        Task<string> RenderResetPasswordAsync(ResetPasswordEmailModel model, CancellationToken cancellationToken = default);
     }
 }

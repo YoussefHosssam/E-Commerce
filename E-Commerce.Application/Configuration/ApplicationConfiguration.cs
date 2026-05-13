@@ -25,6 +25,7 @@ namespace E_Commerce.Application.Configuration
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ExceptionBehavior<,>));
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             services.AddScoped(typeof(IVerificationEmailPreparationService), typeof(VerificationEmailPreparationService));
+            services.AddScoped<IPasswordResetEmailPreparationService, PasswordResetEmailPreparationService>();
             services.AddScoped(typeof(IGenerateLoginTokens), typeof(GenerateLoginTokens));
             services.AddScoped<IOrderService, OrderService>();
             services.AddSingleton<OrderNumberGenerator>();

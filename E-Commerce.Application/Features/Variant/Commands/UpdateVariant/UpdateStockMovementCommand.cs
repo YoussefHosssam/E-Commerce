@@ -9,5 +9,5 @@ using System.Threading.Tasks;
 
 namespace E_Commerce.Application.Features.Variant.Commands.UpdateVariant
 {
-    public record UpdateStockMovementCommand(Guid VariantId,StockMovementType Type,int Quantity,string? Reason) : IRequest<Result>;
+    public record UpdateStockMovementCommand(Guid productId , Guid VariantId,StockMovementType Type,int Quantity,string? Reason) : IRequest<Result>;
 }

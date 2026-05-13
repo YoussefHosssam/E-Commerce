@@ -44,9 +44,29 @@ namespace E_Commerce.Infrastructure.BackgroundJobs.Jobs
             }
         }
 
-        //public async Task SendResetPasswordEmailAsync(Guid userId, EmailAddress email, string token)
-        //{
-        //    await _emailSender.SendAsync(email, "Reset Password", $"Token: {token}");
-        //}
+        [AutomaticRetry(Attempts = 5)]
+        public async Task SendResetPasswordEmailAsync(Guid emailMessageId, CancellationToken cancellationToken)
+        {
+            EmailMessage? emailMessage = await _uow.EmailMessages.GetByIdAsync(emailMessageId, cancellationToken);
+            if (emailMessage is null) return;
+            if (emailMessage.Status == EmailStatus.Sent) return;
+            if (emailMessage.MessageType != MessageType.ResetPasswordMessage) return;
+
+            emailMessage.MarkAttempt();
+            await _uow.SaveChangesAsync(cancellationToken);
+
+            try
+            {
+                await _emailSender.SendAsync(emailMessage.Recipient, emailMessage.Subject, emailMessage.BodyHtml, cancellationToken);
+                emailMessage.MarkAsSent("MailTrap");
+                await _uow.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception)
+            {
+                emailMessage.MarkAsFailed("MailTrap");
+                await _uow.SaveChangesAsync(cancellationToken);
+                throw;
+            }
+        }
     }
 }

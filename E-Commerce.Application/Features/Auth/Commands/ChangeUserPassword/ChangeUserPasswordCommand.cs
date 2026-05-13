@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace E_Commerce.Application.Features.Auth.Commands.ChangeUserPassword
 {
-    public record ChangeUserPasswordCommand (string password , string newPassword) : IRequest<Result>
+    public record ChangeUserPasswordCommand(string CurrentPassword, string NewPassword) : IRequest<Result>
     {
     }
 }

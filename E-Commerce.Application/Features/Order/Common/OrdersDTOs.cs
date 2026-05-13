@@ -1,4 +1,5 @@
-﻿using System;
+﻿using E_Commerce.Domain.ValueObjects;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -47,4 +48,6 @@ namespace E_Commerce.Application.Features.Order.Common
         public string Currency { get; init; } = default!;
         public DateTimeOffset? UpdatedAt { get; init; }
     }
+
+
 }

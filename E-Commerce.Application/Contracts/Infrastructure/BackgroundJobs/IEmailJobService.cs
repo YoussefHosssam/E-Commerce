@@ -12,6 +12,6 @@ namespace E_Commerce.Application.Contracts.Infrastructure.BackgroundJobs
     public interface IEmailJobService
     {
         string EnqueueVerificationEmail(Guid emailMessageId, CancellationToken cancellationToken);
-        //string EnqueueResetPasswordEmail(Guid userId, EmailAddress email, string token);
+        string EnqueueResetPasswordEmail(Guid emailMessageId, CancellationToken cancellationToken);
     }
 }

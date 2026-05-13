@@ -12,5 +12,6 @@ namespace E_Commerce.Application.Contracts.Persistence
     public interface IRefreshTokenRepository : IGenericRepository<RefreshToken>
     {
         Task<RefreshToken?> GetByHashedTokenAsync(TokenHash hashedToken, CancellationToken cancellationToken);
+        Task<IReadOnlyCollection<RefreshToken>> GetActiveTokensByUserIdAsync(Guid userId, DateTimeOffset now, CancellationToken cancellationToken);
     }
 }

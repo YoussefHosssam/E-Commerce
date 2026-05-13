@@ -11,6 +11,7 @@ namespace E_Commerce.Application.Contracts.Persistence
 {
     public interface IOrderRepository : IGenericRepository<Order>
     {
+        public Task<Order?> GetTrackingOrderByIdWithDetailsAsync(Guid id, CancellationToken ctn);
         public Task<Order?> GetOrderByIdWithDetailsAsync(Guid id, CancellationToken ctn);
         public Task<PagedResult<Order>> GetOrdersWithDetailsAsync(Guid userId, PageRequest page, CancellationToken ctn);
 

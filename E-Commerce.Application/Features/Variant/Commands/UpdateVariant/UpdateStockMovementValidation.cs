@@ -14,6 +14,7 @@ namespace E_Commerce.Application.Features.Variant.Commands.UpdateVariant
     {
         public UpdateStockMovementValidation()
         {
+            RuleFor(x => x.productId).NotEmpty().WithError(ProductErrors.InvalidInput);
             RuleFor(x => x.VariantId).NotEmpty().WithError(StockMovementErrors.VariantIdRequired);
             RuleFor(x => x.Type).IsInEnum().WithError(StockMovementErrors.TypeInvalid);
             RuleFor(x => x.Reason).Length(0 , 500).WithError(StockMovementErrors.TypeInvalid);

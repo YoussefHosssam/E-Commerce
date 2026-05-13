@@ -24,5 +24,15 @@ namespace E_Commerce.Persistence.Repositories
         {
             return await _refreshTokens.FirstOrDefaultAsync(t => t.TokenHash == hashedToken);
         }
+
+        public async Task<IReadOnlyCollection<RefreshToken>> GetActiveTokensByUserIdAsync(
+            Guid userId,
+            DateTimeOffset now,
+            CancellationToken cancellationToken)
+        {
+            return await _refreshTokens
+                .Where(t => t.UserId == userId && t.RevokedAt == null && t.ExpiresAt > now)
+                .ToListAsync(cancellationToken);
+        }
     }
 }

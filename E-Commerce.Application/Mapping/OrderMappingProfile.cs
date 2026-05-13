@@ -31,6 +31,7 @@ namespace E_Commerce.Application.Mapping
             CreateMap<OrderItemEntity, OrderItemDto>()
                 .ForMember(d => d.ProductTitle, o => o.MapFrom(s => s.ProductTitleSnapshot))
                 .ForMember(d => d.Currency, o => o.MapFrom(s => s.Currency.Value));
+
         }
     }
 }
