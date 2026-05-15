@@ -16,6 +16,7 @@ using E_Commerce.Application.Features.Variant.Commands.DeleteVariant;
 using E_Commerce.Application.Features.Variant.Commands.UpdateVariant;
 using E_Commerce.Application.Features.Variant.Common;
 using E_Commerce.Application.Features.Variant.Queries;
+using E_Commerce.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -42,8 +43,7 @@ public sealed partial class ProductsController : ControllerBase
     public async Task<ApiResult<ProductDetailDto>> GetById(Guid id, CancellationToken ct)
         => this.FromResult(await _sender.Send(new GetProductByIdQuery(id), ct), "Product retrieved successfully.");
 
-    [Authorize]
-    [ServiceFilter(typeof(AdminRouteFilter))]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpPost]
     public async Task<ApiResult<ProductDetailDto>> Create([FromBody] CreateProductRequest request, CancellationToken ct)
     {
@@ -60,8 +60,7 @@ public sealed partial class ProductsController : ControllerBase
         return this.FromResult(await _sender.Send(command, ct), "Product created successfully.", StatusCodes.Status201Created);
     }
 
-    [Authorize]
-    [ServiceFilter(typeof(AdminRouteFilter))]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpPut("{id:guid}")]
     public async Task<ApiResult<ProductDetailDto>> Update(Guid id, [FromBody] UpdateProductRequest request, CancellationToken ct)
     {
@@ -79,8 +78,7 @@ public sealed partial class ProductsController : ControllerBase
         return this.FromResult(await _sender.Send(command, ct), "Product updated successfully.");
     }
 
-    [Authorize]
-    [ServiceFilter(typeof(AdminRouteFilter))]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpDelete("{id:guid}")]
     public async Task<ApiResult> Delete(Guid id, CancellationToken ct)
         => this.FromResult(await _sender.Send(new DeleteProductCommand(id), ct), "Product deleted successfully.");
@@ -93,8 +91,7 @@ public sealed partial class ProductsController : ControllerBase
     public async Task<ApiResult<VariantDetailDto>> GetVariantById(Guid productId, Guid variantId, CancellationToken ct)
         => this.FromResult(await _sender.Send(new GetVariantByIdQuery(productId, variantId), ct), "Variant retrieved successfully.");
 
-    [Authorize]
-    [ServiceFilter(typeof(AdminRouteFilter))]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpPost("{productId:guid}/variants")]
     public async Task<ApiResult<VariantDetailDto>> CreateVariant(Guid productId, [FromBody] CreateVariantRequest request, CancellationToken ct)
     {
@@ -111,8 +108,7 @@ public sealed partial class ProductsController : ControllerBase
         return this.FromResult(await _sender.Send(command, ct), "Variant created successfully.", StatusCodes.Status201Created);
     }
 
-    [Authorize]
-    [ServiceFilter(typeof(AdminRouteFilter))]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpPut("{productId:guid}/variants/{variantId:guid}")]
     public async Task<ApiResult<VariantDetailDto>> UpdateVariant(Guid productId, Guid variantId, [FromBody] UpdateVariantRequest request, CancellationToken ct)
     {
@@ -129,14 +125,12 @@ public sealed partial class ProductsController : ControllerBase
         return this.FromResult(await _sender.Send(command, ct), "Variant updated successfully.");
     }
 
-    [Authorize]
-    [ServiceFilter(typeof(AdminRouteFilter))]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpDelete("{productId:guid}/variants/{variantId:guid}")]
     public async Task<ApiResult> DeleteVariant(Guid productId, Guid variantId, CancellationToken ct)
         => this.FromResult(await _sender.Send(new DeleteVariantCommand(productId, variantId), ct), "Variant deleted successfully.");
 
-    [Authorize]
-    [ServiceFilter(typeof(AdminRouteFilter))]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpPatch("{productId:guid}/variants/{variantId:guid}/stock-movement")]
     public async Task<ApiResult> UpdateStockMovement(Guid productId , Guid variantId , UpdateStockMovementRequest request, CancellationToken ct)
     => this.FromResult(await _sender.Send(new UpdateStockMovementCommand(productId, variantId , request.Type , request.Quantity , request.Reason), ct), "Variant deleted successfully.");

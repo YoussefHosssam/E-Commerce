@@ -15,8 +15,6 @@ namespace E_Commerce.API.Configuration
     {
         public static IServiceCollection ApplyApiConfiguration (this IServiceCollection services , IConfiguration configuration)
         {
-            services.AddScoped<AdminRouteFilter>();
-
             // ---- AUTH ----
             var jwt = configuration.GetSection("Auth:Jwt").Get<JwtOptions>()!;
 

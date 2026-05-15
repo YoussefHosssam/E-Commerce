@@ -6,6 +6,7 @@ using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.Enums;
 using E_Commerce.Domain.ValueObjects;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Application.Features.Auth.Commands.ResetUserPassword;
 
@@ -14,15 +15,18 @@ internal class ResetUserPasswordHandler : IRequestHandler<ResetUserPasswordComma
     private readonly IUnitOfWork _uow;
     private readonly ITokenHasher _tokenHasher;
     private readonly IPasswordHasherAdapter _passwordHasher;
+    private readonly ILogger<ResetUserPasswordHandler> _logger;
 
     public ResetUserPasswordHandler(
         IUnitOfWork uow,
         ITokenHasher tokenHasher,
-        IPasswordHasherAdapter passwordHasher)
+        IPasswordHasherAdapter passwordHasher,
+        ILogger<ResetUserPasswordHandler> logger)
     {
         _uow = uow;
         _tokenHasher = tokenHasher;
         _passwordHasher = passwordHasher;
+        _logger = logger;
     }
 
     public async Task<Result> Handle(ResetUserPasswordCommand request, CancellationToken cancellationToken)
@@ -54,6 +58,10 @@ internal class ResetUserPasswordHandler : IRequestHandler<ResetUserPasswordComma
 
         await RevokeActiveRefreshTokensAsync(user.Id, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Password reset completed for User {UserId}",
+            user.Id);
 
         return Result.Success();
     }

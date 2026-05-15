@@ -17,8 +17,11 @@ public static class CategoryErrors
     public static readonly Error ChildRequired = new(ErrorCodes.Category.ChildRequired, "Child category is required.", ErrorType.Validation);
     public static readonly Error ChildDuplicate = new(ErrorCodes.Category.ChildDuplicate, "Child category already exists.", ErrorType.Conflict);
     public static readonly Error SlugDuplicate = new(ErrorCodes.Category.SlugDuplicate, "Slug already exists.", ErrorType.Conflict);
+    public static readonly Error NameAlreadyExsit = new(ErrorCodes.Category.NameAlreadyExist, "Name already exists.", ErrorType.Conflict);
     public static readonly Error ChildNotFound = new(ErrorCodes.Category.ChildNotFound, "Child category not found.", ErrorType.NotFound);
     public static readonly Error ChildSelf = new(ErrorCodes.Category.ChildSelf, "A category cannot be its own child.", ErrorType.Conflict);
     public static readonly Error ParentRequired = new(ErrorCodes.Category.ParentRequired, "Parent category is required.", ErrorType.Validation);
+    public static readonly Error InvalidName = new(ErrorCodes.Category.InvalidName, "Category name is invalid.", ErrorType.Validation);
+
 
 }

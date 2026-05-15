@@ -5,6 +5,7 @@ using MediatR;
 namespace E_Commerce.Application.Features.Category.Commands;
 
 public sealed record CreateCategoryCommand(
+    string Name,
     Guid? ParentId,
     string Slug,
     int SortOrder,

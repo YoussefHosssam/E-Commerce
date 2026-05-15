@@ -11,6 +11,7 @@ using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.Enums;
 using E_Commerce.Domain.ValueObjects;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using CartEntity = E_Commerce.Domain.Entities.Cart;
 using OrderEntity = E_Commerce.Domain.Entities.Order;
@@ -27,19 +28,22 @@ internal sealed class PlaceOrderHandler
     private readonly IOrderService _orderService;
     private readonly IPaymentGateway _paymentGateway;
     private readonly IMapper _mapper;
+    private readonly ILogger<PlaceOrderHandler> _logger;
 
     public PlaceOrderHandler(
         IUnitOfWork uow,
         IUserAccessor userAccessor,
         IOrderService orderService,
         IPaymentGateway paymentGateway,
-        IMapper mapper)
+        IMapper mapper,
+        ILogger<PlaceOrderHandler> logger)
     {
         _uow = uow;
         _userAccessor = userAccessor;
         _orderService = orderService;
         _paymentGateway = paymentGateway;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<Result<PlaceOrderResponse>> Handle(
@@ -58,7 +62,14 @@ internal sealed class PlaceOrderHandler
         var cartResult = await GetAndValidateCartAsync(userId, cancellationToken);
 
         if (!cartResult.IsSuccess)
+        {
+            _logger.LogWarning(
+                "Checkout blocked for User {UserId} with {ErrorCode}",
+                userId,
+                cartResult.Error?.Code);
+
             return Result<PlaceOrderResponse>.Fail(cartResult.Error!);
+        }
 
         var cart = cartResult.Data!;
         var cartItems = cart.Items.ToList();
@@ -68,7 +79,14 @@ internal sealed class PlaceOrderHandler
             cancellationToken);
 
         if (!inventoryResult.IsSuccess)
+        {
+            _logger.LogWarning(
+                "Checkout inventory validation failed for User {UserId} with {ErrorCode}",
+                userId,
+                inventoryResult.Error?.Code);
+
             return Result<PlaceOrderResponse>.Fail(inventoryResult.Error!);
+        }
 
         var inventoryByVariantId = inventoryResult.Data!;
 
@@ -114,6 +132,14 @@ internal sealed class PlaceOrderHandler
 
 
         await _uow.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Order {OrderId} created for User {UserId} with Total {GrandTotal} {Currency} and PaymentAttempt {PaymentAttemptId}",
+            order.Id,
+            userId,
+            order.GrandTotal,
+            order.Currency.Value,
+            paymentAttempt.Id);
 
         return Result<PlaceOrderResponse>.Success(
             new PlaceOrderResponse(
@@ -313,6 +339,13 @@ internal sealed class PlaceOrderHandler
 
         if (!providerResult.IsSuccess)
         {
+            _logger.LogWarning(
+                "Payment session creation failed for Order {OrderId}, PaymentAttempt {PaymentAttemptId}, Provider {Provider}, ErrorCode {ErrorCode}",
+                order.Id,
+                paymentAttempt.Id,
+                paymentAttempt.Provider,
+                providerResult.Error?.Code);
+
             paymentAttempt.MarkFailed(
                 DateTimeOffset.UtcNow,
                 JsonText.Create("{}"));
@@ -324,6 +357,12 @@ internal sealed class PlaceOrderHandler
         }
 
         var providerSession = providerResult.Data!;
+
+        _logger.LogInformation(
+            "Payment session created for Order {OrderId}, PaymentAttempt {PaymentAttemptId}, Provider {Provider}",
+            order.Id,
+            paymentAttempt.Id,
+            providerSession.Provider);
 
         paymentAttempt.AttachProviderSession(
             providerSessionId: providerSession.ProviderSessionId!,

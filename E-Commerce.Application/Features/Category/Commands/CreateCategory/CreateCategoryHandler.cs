@@ -38,8 +38,12 @@ public sealed class CreateCategoryHandler : IRequestHandler<CreateCategoryComman
         {
             return Result<CategoryDetailDto>.Fail(CategoryErrors.SlugDuplicate);
         }
-
-        var category = DomainCategory.Create(request.ParentId, slug, request.SortOrder);
+        var name = request.Name;
+        if (await _uow.Categories.NameExistsAsync(name, null, cancellationToken))
+        {
+            return Result<CategoryDetailDto>.Fail(CategoryErrors.NameAlreadyExsit);
+        }
+        var category = DomainCategory.Create(request.ParentId, name, slug, request.SortOrder);
         if (!request.IsActive)
         {
             category.Deactivate();

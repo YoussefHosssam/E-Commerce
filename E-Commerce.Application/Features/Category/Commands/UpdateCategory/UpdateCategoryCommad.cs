@@ -5,6 +5,7 @@ using MediatR;
 namespace E_Commerce.Application.Features.Category.Commands;
 
 public sealed record UpdateCategoryCommand(
+    string Name,
     Guid Id,
     Guid? ParentId,
     string Slug,

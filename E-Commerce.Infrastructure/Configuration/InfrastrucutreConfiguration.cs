@@ -2,6 +2,8 @@
 using E_Commerce.Application.Contracts.Infrastructure.Common;
 using E_Commerce.Application.Contracts.Infrastructure.Emails;
 using E_Commerce.Application.Contracts.Infrastructure.Payment;
+using E_Commerce.Application.Contracts.Infrastructure.Images;
+using E_Commerce.Application.Common.Options;
 using E_Commerce.Application.Contracts.Infrastructure.TotpTwoFactorAuth;
 using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
 using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Jwt;
@@ -14,6 +16,7 @@ using E_Commerce.Infrastructure.Carts;
 using E_Commerce.Infrastructure.Common;
 using E_Commerce.Infrastructure.Emails;
 using E_Commerce.Infrastructure.Identity;
+using E_Commerce.Infrastructure.Images;
 using E_Commerce.Infrastructure.Payment.Paymob;
 using E_Commerce.Infrastructure.Settings;
 using E_Commerce.Infrastructure.TotpTwoFactorAuth;
@@ -44,6 +47,7 @@ namespace E_Commerce.Infrastructure.Configuration
             services.AddOptions<JwtOptions>().Bind(config.GetSection("Auth:Jwt")).ValidateOnStart();
             services.AddOptions<MailTrapProviderOptions>().Bind(config.GetSection("MailTrap")).ValidateOnStart();
             services.AddOptions<PaymobPyamentOptions>().Bind(config.GetSection("Payment:Paymob")).ValidateOnStart();
+            services.AddOptions<ImageStorageOptions>().Bind(config.GetSection("Cloudinary")).ValidateOnStart();
 
             // Jwt
             services.AddSingleton<IJwtTokenService, JwtTokenService>();
@@ -63,6 +67,7 @@ namespace E_Commerce.Infrastructure.Configuration
             services.AddScoped<ICartMergeService, CartMergeService>();
             services.AddScoped<ITotpHandler, TotpHandler>();
             services.AddScoped<IPaymentGateway, PaymobPaymentGateway>();
+            services.AddScoped<IImageStorageService, CloudinaryImageStorageService>();
 
 
             services.AddTransient<ITokenGenerator, TokenGenerator>();

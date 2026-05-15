@@ -84,4 +84,19 @@ internal sealed class CategoryRepository : GenericRepository<Category>, ICategor
 
         return false;
     }
+
+    public Task<bool> NameExistsAsync(string name, Guid? excludedId, CancellationToken ct)
+    {
+        return _categories
+            .AsNoTracking()
+            .AnyAsync(
+        x => x.Name == name && (!excludedId.HasValue || x.Id != excludedId.Value),
+        ct);
+    }
+
+    public async Task<PagedResult<IReadOnlyCollection<Product>>?> GetProductsForCategory(Guid id, PageRequest page, CancellationToken ct)
+    {
+        var products = await _categories.AsNoTracking().Include(c => c.Products).Where(c => c.Id == id && c.IsActive).Select(c => c.Products).ToPagedResultAsync(page , ct);
+        return products;
+    }
 }

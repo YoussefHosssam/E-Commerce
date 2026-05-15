@@ -14,6 +14,10 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(x => x.Id)
        .ValueGeneratedNever();
 
+        builder.Property(x => x.Name)
+            .IsRequired()
+            .HasMaxLength(50);
+
         builder.Property(x => x.CategoryId).IsRequired();
 
         builder.HasOne(p => p.Category)

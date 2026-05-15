@@ -28,9 +28,16 @@ namespace E_Commerce.API.Middlewares
             catch (Exception exception)
             {
                 var error = MapException(exception);
-                _logger.LogError(exception, "Unhandled exception translated to error code {ErrorCode}", error.Code);
-
                 var statusCode = ApiResultMapper.MapStatusCode(error);
+
+                _logger.LogError(
+                    exception,
+                    "Unhandled exception mapped to {ErrorCode} with HTTP {StatusCode} for {RequestMethod} {RequestPath}",
+                    error.Code,
+                    statusCode,
+                    context.Request.Method,
+                    context.Request.Path.Value);
+
                 var apiResponse = ApiResult.Fail(statusCode, error.Code, error.Message);
 
                 context.Response.StatusCode = statusCode;

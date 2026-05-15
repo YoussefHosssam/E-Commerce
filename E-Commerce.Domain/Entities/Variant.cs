@@ -1,5 +1,6 @@
 using E_Commerce.Domain.Common;
 using E_Commerce.Domain.Common.Errors;
+using E_Commerce.Domain.Enums;
 using E_Commerce.Domain.Exceptions;
 using E_Commerce.Domain.ValueObjects;
 
@@ -89,7 +90,70 @@ public sealed class Variant : BaseEntity
         if (image is null)
             throw new DomainValidationException(VariantErrors.ImageRequired);
 
+        if (image.VariantId != Id)
+            throw new DomainValidationException(VariantImageErrors.VariantIdEmpty);
+
+        if (!_images.Any(x => x.ProcessingStatus != ImageProcessingStatus.Deleted))
+            image.SetPrimary(true);
+
+        if (image.IsPrimary)
+            UnsetPrimaryImages();
+
         _images.Add(image);
+    }
+
+    public VariantImage GetImage(Guid imageId)
+    {
+        return _images.FirstOrDefault(x => x.Id == imageId && x.ProcessingStatus != ImageProcessingStatus.Deleted)
+            ?? throw new DomainValidationException(VariantImageErrors.ImageNotFound);
+    }
+
+    public VariantImage GetImageByStorageKey(string storageKey)
+    {
+        return _images.FirstOrDefault(x => x.StorageKey == storageKey && x.ProcessingStatus != ImageProcessingStatus.Deleted)
+            ?? throw new DomainValidationException(VariantImageErrors.ImageNotFound);
+    }
+
+    public void SetPrimaryImage(Guid imageId)
+    {
+        var image = GetImage(imageId);
+
+        UnsetPrimaryImages();
+        image.SetPrimary(true);
+    }
+
+    public void DeleteImage(Guid imageId)
+    {
+        var image = GetImage(imageId);
+        var wasPrimary = image.IsPrimary;
+
+        image.MarkDeleted();
+
+        if (wasPrimary)
+        {
+            var next = _images
+                .Where(x => x.ProcessingStatus != ImageProcessingStatus.Deleted && x.ProcessingStatus == ImageProcessingStatus.Ready)
+                .OrderBy(x => x.SortOrder)
+                .FirstOrDefault();
+
+            next?.SetPrimary(true);
+        }
+    }
+
+    public void ReorderImages(IReadOnlyDictionary<Guid, int> sortOrders)
+    {
+        foreach (var (imageId, sortOrder) in sortOrders)
+        {
+            GetImage(imageId).ChangeSortOrder(sortOrder);
+        }
+    }
+
+    private void UnsetPrimaryImages()
+    {
+        foreach (var existing in _images)
+        {
+            existing.SetPrimary(false);
+        }
     }
 
     public void SetInventory(Inventory inventory)

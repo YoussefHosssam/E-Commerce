@@ -1,4 +1,5 @@
 using E_Commerce.Application.Common.Result;
+using E_Commerce.Application.Common.Logging;
 using AutoMapper;
 using E_Commerce.Application.Common.Entities;
 using E_Commerce.Application.Contracts.Infrastructure.BackgroundJobs;
@@ -8,6 +9,7 @@ using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.ValueObjects;
 using MediatR;
 using E_Commerce.Application.Contracts.Services;
+using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Application.Features.Auth.Commands.RegisterUser
 {
@@ -18,14 +20,16 @@ namespace E_Commerce.Application.Features.Auth.Commands.RegisterUser
         private readonly IVerificationEmailPreparationService _verificationEmailPreparationService;
         private readonly IEmailJobService _emailJobService;
         private readonly IMapper _mapper;
+        private readonly ILogger<RegisterUserHandler> _logger;
 
-        public RegisterUserHandler(IUnitOfWork uow, IPasswordHasherAdapter passwordHasher, IEmailJobService emailJobService, IMapper mapper, IVerificationEmailPreparationService verificationEmailPreparationService)
+        public RegisterUserHandler(IUnitOfWork uow, IPasswordHasherAdapter passwordHasher, IEmailJobService emailJobService, IMapper mapper, IVerificationEmailPreparationService verificationEmailPreparationService, ILogger<RegisterUserHandler> logger)
         {
             _uow = uow;
             _passwordHasher = passwordHasher;
             _emailJobService = emailJobService;
             _mapper = mapper;
             _verificationEmailPreparationService = verificationEmailPreparationService;
+            _logger = logger;
         }
 
         async Task<Result> IRequestHandler<RegisterUserCommand, Result>.Handle(RegisterUserCommand request, CancellationToken cancellationToken)
@@ -38,6 +42,13 @@ namespace E_Commerce.Application.Features.Auth.Commands.RegisterUser
             await _uow.EmailMessages.CreateAsync(result.EmailMessage, cancellationToken);
             await _uow.SaveChangesAsync(cancellationToken);
             _emailJobService.EnqueueVerificationEmail(result.EmailMessage.Id, cancellationToken);
+
+            _logger.LogInformation(
+                "User {UserId} registered with EmailHash {EmailHash}; verification email {EmailMessageId} queued",
+                user.Id,
+                SensitiveDataHasher.HashEmail(request.Email),
+                result.EmailMessage.Id);
+
             return Result.Success();
         }
     }

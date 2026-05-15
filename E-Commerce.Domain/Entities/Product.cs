@@ -161,8 +161,76 @@ public sealed class Product : BaseEntity
         if (image is null)
             throw new DomainValidationException(ProductErrors.ImageRequired);
 
+        if (image.ProductId != Id)
+            throw new DomainValidationException(ProductImageErrors.ProductIdEmpty);
+
+        if (!_images.Any(x => x.ProcessingStatus != ImageProcessingStatus.Deleted))
+            image.SetPrimary(true);
+
+        if (image.IsPrimary)
+            UnsetPrimaryImages();
+
         _images.Add(image);
         Touch(now);
+    }
+
+    public ProductImage GetImage(Guid imageId)
+    {
+        return _images.FirstOrDefault(x => x.Id == imageId && x.ProcessingStatus != ImageProcessingStatus.Deleted)
+            ?? throw new DomainValidationException(ProductImageErrors.ImageNotFound);
+    }
+
+    public ProductImage GetImageByStorageKey(string storageKey)
+    {
+        return _images.FirstOrDefault(x => x.StorageKey == storageKey && x.ProcessingStatus != ImageProcessingStatus.Deleted)
+            ?? throw new DomainValidationException(ProductImageErrors.ImageNotFound);
+    }
+
+    public void SetPrimaryImage(Guid imageId, DateTimeOffset now)
+    {
+        var image = GetImage(imageId);
+
+        UnsetPrimaryImages();
+        image.SetPrimary(true);
+        Touch(now);
+    }
+
+    public void DeleteImage(Guid imageId, DateTimeOffset now)
+    {
+        var image = GetImage(imageId);
+        var wasPrimary = image.IsPrimary;
+
+        image.MarkDeleted();
+
+        if (wasPrimary)
+        {
+            var next = _images
+                .Where(x => x.ProcessingStatus != ImageProcessingStatus.Deleted && x.ProcessingStatus == ImageProcessingStatus.Ready)
+                .OrderBy(x => x.SortOrder)
+                .FirstOrDefault();
+
+            next?.SetPrimary(true);
+        }
+
+        Touch(now);
+    }
+
+    public void ReorderImages(IReadOnlyDictionary<Guid, int> sortOrders, DateTimeOffset now)
+    {
+        foreach (var (imageId, sortOrder) in sortOrders)
+        {
+            GetImage(imageId).ChangeSortOrder(sortOrder);
+        }
+
+        Touch(now);
+    }
+
+    private void UnsetPrimaryImages()
+    {
+        foreach (var existing in _images)
+        {
+            existing.SetPrimary(false);
+        }
     }
 
     // ? override ????? ???? Money? ?? decimal?

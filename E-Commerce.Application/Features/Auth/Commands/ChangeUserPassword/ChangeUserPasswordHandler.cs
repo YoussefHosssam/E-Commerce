@@ -4,6 +4,7 @@ using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.ValueObjects;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Application.Features.Auth.Commands.ChangeUserPassword;
 
@@ -12,15 +13,18 @@ public class ChangeUserPasswordHandler : IRequestHandler<ChangeUserPasswordComma
     private readonly IUnitOfWork _uow;
     private readonly IUserAccessor _userAccessor;
     private readonly IPasswordHasherAdapter _passwordHasher;
+    private readonly ILogger<ChangeUserPasswordHandler> _logger;
 
     public ChangeUserPasswordHandler(
         IUnitOfWork uow,
         IUserAccessor userAccessor,
-        IPasswordHasherAdapter passwordHasher)
+        IPasswordHasherAdapter passwordHasher,
+        ILogger<ChangeUserPasswordHandler> logger)
     {
         _uow = uow;
         _userAccessor = userAccessor;
         _passwordHasher = passwordHasher;
+        _logger = logger;
     }
 
     public async Task<Result> Handle(ChangeUserPasswordCommand request, CancellationToken cancellationToken)
@@ -45,6 +49,10 @@ public class ChangeUserPasswordHandler : IRequestHandler<ChangeUserPasswordComma
 
         await RevokeActiveRefreshTokensAsync(user.Id, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Password changed for User {UserId}",
+            user.Id);
 
         return Result.Success();
     }

@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CartEntity = E_Commerce.Domain.Entities.Cart;
 using E_Commerce.Application.Features.Cart.Common;
+using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Application.Features.Cart.Commands.AddItem
 {
@@ -22,13 +23,20 @@ namespace E_Commerce.Application.Features.Cart.Commands.AddItem
         private readonly ICartSessionService _cartService;
         private readonly IUserAccessor _userAccessor;
         private readonly IMapper _mapper;
+        private readonly ILogger<AddItemToCartHandler> _logger;
 
-        public AddItemToCartHandler(IUnitOfWork uow, ICartSessionService cartService, IUserAccessor userAccessor, IMapper mapper)
+        public AddItemToCartHandler(
+            IUnitOfWork uow,
+            ICartSessionService cartService,
+            IUserAccessor userAccessor,
+            IMapper mapper,
+            ILogger<AddItemToCartHandler> logger)
         {
             _uow = uow;
             _cartService = cartService;
             _userAccessor = userAccessor;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<Result<CartSummaryDTO>> Handle(AddItemToCartCommand request, CancellationToken cancellationToken)
@@ -89,6 +97,13 @@ namespace E_Commerce.Application.Features.Cart.Commands.AddItem
                 return Result<CartSummaryDTO>.Fail(CartErrors.NotActive);
 
             var cartSummary = _mapper.Map<CartSummaryDTO>(reloadedCart);
+
+            _logger.LogInformation(
+                "Cart {CartId} updated with Variant {VariantId}, Quantity {Quantity}, User {UserId}",
+                cart.Id,
+                request.variantId,
+                request.quantity,
+                cart.UserId);
 
             return Result<CartSummaryDTO>.Success(cartSummary);
         }

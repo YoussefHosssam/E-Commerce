@@ -8,5 +8,5 @@ using System.Threading.Tasks;
 
 namespace E_Commerce.Application.Features.Order.Commands.CancelOrder
 {
-    public record CancelOrderCommand(Guid id) : IRequest<Result>;
+    public record CancelOrderCommand(Guid id , string? reason) : IRequest<Result>;
 }

@@ -16,6 +16,11 @@ namespace E_Commerce.Application.Features.Order.Commands.CancelOrder
             RuleFor(o => o.id)
                 .NotEmpty()
                 .WithError(OrderErrors.IdRequired);
+            When(o => !string.IsNullOrEmpty(o.reason), () =>
+            {
+                RuleFor(o => o.reason).Length(0, 200)
+                .WithError(OrderErrors.CancelReasonTooLong);
+            });
         }
     }
 }

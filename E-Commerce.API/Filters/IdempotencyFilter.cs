@@ -21,13 +21,16 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
 
     private readonly IIdempotencyStore _store;
     private readonly IUserAccessor _userAccessor;
+    private readonly ILogger<IdempotencyFilter> _logger;
 
     public IdempotencyFilter(
         IIdempotencyStore store,
-        IUserAccessor userAccessor)
+        IUserAccessor userAccessor,
+        ILogger<IdempotencyFilter> logger)
     {
         _store = store;
         _userAccessor = userAccessor;
+        _logger = logger;
     }
 
     public async Task OnResourceExecutionAsync(
@@ -98,23 +101,43 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
         {
             if (existing.IsExpired(now))
             {
+                _logger.LogWarning(
+                    "Idempotency key expired for Operation {Operation} and User {UserId}",
+                    operation,
+                    userId);
+
                 context.Result = Fail(IdempotencyApiErrors.KeyExpired);
                 return;
             }
             if (!existing.HasSameRequestHash(requestHash))
             {
+                _logger.LogWarning(
+                    "Idempotency key reused with different request for Operation {Operation} and User {UserId}",
+                    operation,
+                    userId);
+
                 context.Result = Fail(IdempotencyApiErrors.KeyUsedWithDifferentRequest);
                 return;
             }
 
             if (existing.Status == IdempotencyRequestStatus.Completed)
             {
+                _logger.LogInformation(
+                    "Idempotency cached response returned for Operation {Operation} and User {UserId}",
+                    operation,
+                    userId);
+
                 context.Result = BuildCachedResult(existing);
                 return;
             }
 
             if (existing.Status == IdempotencyRequestStatus.Processing)
             {
+                _logger.LogWarning(
+                    "Idempotency request already processing for Operation {Operation} and User {UserId}",
+                    operation,
+                    userId);
+
                 context.Result = Fail(IdempotencyApiErrors.RequestAlreadyProcessing);
                 return;
             }

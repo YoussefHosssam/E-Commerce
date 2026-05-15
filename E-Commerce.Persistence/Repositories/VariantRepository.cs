@@ -19,8 +19,17 @@ internal sealed class VariantRepository : GenericRepository<Variant>, IVariantRe
 
     public async Task<Variant?> GetByIdWithDetailsAsync(Guid variantId, CancellationToken ct)
     {
-        return await _variants
-            .AsNoTracking()
+        return await GetByIdWithDetailsAsync(variantId, false, ct);
+    }
+
+    public async Task<Variant?> GetByIdWithDetailsAsync(Guid variantId, bool asTracking, CancellationToken ct)
+    {
+        IQueryable<Variant> query = _variants;
+
+        if (!asTracking)
+            query = query.AsNoTracking();
+
+        return await query
             .Include(x => x.Product)
             .Include(x => x.Images)
             .FirstOrDefaultAsync(x => x.Id == variantId, ct);

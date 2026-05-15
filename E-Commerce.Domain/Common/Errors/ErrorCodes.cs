@@ -16,9 +16,11 @@ public static class ErrorCodes
     {
         public const string NotFound = "CAT_404";
         public const string ParentNotFound = "CAT_404_PARENT";
+        public const string InvalidName = "CAT_400_NAME_INVALID";
         public const string ParentSelf = "CAT_409_PARENT_SELF";
         public const string ParentCycle = "CAT_409_PARENT_CYCLE";
         public const string SlugDuplicate = "CAT_409_SLUG_EXISTS";
+        public const string NameAlreadyExist = "CAT_409_Name_EXISTS";
         public const string DeleteHasChildren = "CAT_409_HAS_CHILDREN";
         public const string DeleteHasProducts = "CAT_409_HAS_PRODUCTS";
         public const string InvalidInput = "CAT_400_INVALID";
@@ -416,6 +418,39 @@ public static class ErrorCodes
         public const string SortOrderInvalid = "VI_400_SORT_ORDER_INVALID";
         public const string UrlEmpty = "VI_400_URL_EMPTY";
         public const string VariantIdEmpty = "VI_400_VARIANT_ID_EMPTY";
+        public const string StorageKeyEmpty = "VI_400_STORAGE_KEY_EMPTY";
+        public const string WidthInvalid = "VI_400_WIDTH_INVALID";
+        public const string HeightInvalid = "VI_400_HEIGHT_INVALID";
+        public const string SizeInvalid = "VI_400_SIZE_INVALID";
+        public const string FormatEmpty = "VI_400_FORMAT_EMPTY";
+        public const string InvalidProcessingStatus = "VI_400_STATUS_INVALID";
+        public const string ImageRequired = "VI_400_IMAGE_REQUIRED";
+        public const string ImageNotFound = "VI_404_IMAGE_NOT_FOUND";
+    }
+
+    public static class ProductImage
+    {
+        public const string ProductIdEmpty = "PI_400_PRODUCT_ID_EMPTY";
+        public const string UrlEmpty = "PI_400_URL_EMPTY";
+        public const string StorageKeyEmpty = "PI_400_STORAGE_KEY_EMPTY";
+        public const string WidthInvalid = "PI_400_WIDTH_INVALID";
+        public const string HeightInvalid = "PI_400_HEIGHT_INVALID";
+        public const string SizeInvalid = "PI_400_SIZE_INVALID";
+        public const string FormatEmpty = "PI_400_FORMAT_EMPTY";
+        public const string SortOrderInvalid = "PI_400_SORT_ORDER_INVALID";
+        public const string InvalidProcessingStatus = "PI_400_STATUS_INVALID";
+        public const string ImageRequired = "PI_400_IMAGE_REQUIRED";
+        public const string ImageNotFound = "PI_404_IMAGE_NOT_FOUND";
+    }
+
+    public static class ImageUpload
+    {
+        public const string ContentTypeInvalid = "IMG_400_CONTENT_TYPE_INVALID";
+        public const string SizeInvalid = "IMG_400_SIZE_INVALID";
+        public const string FormatInvalid = "IMG_400_FORMAT_INVALID";
+        public const string DimensionsInvalid = "IMG_400_DIMENSIONS_INVALID";
+        public const string StorageKeyInvalid = "IMG_400_STORAGE_KEY_INVALID";
+        public const string UploadedResourceNotFound = "IMG_404_UPLOADED_RESOURCE_NOT_FOUND";
     }
 
     public static class Infrastructure

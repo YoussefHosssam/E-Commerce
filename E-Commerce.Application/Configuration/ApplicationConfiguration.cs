@@ -1,5 +1,6 @@
 ﻿using E_Commerce.Application.Behaviors;
 using E_Commerce.Application.Contracts.Services;
+using E_Commerce.Application.Features.ImageUploads.Common;
 using E_Commerce.Application.Services;
 using FluentValidation;
 using MediatR;
@@ -23,11 +24,13 @@ namespace E_Commerce.Application.Configuration
             });
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ExceptionBehavior<,>));
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             services.AddScoped(typeof(IVerificationEmailPreparationService), typeof(VerificationEmailPreparationService));
             services.AddScoped<IPasswordResetEmailPreparationService, PasswordResetEmailPreparationService>();
             services.AddScoped(typeof(IGenerateLoginTokens), typeof(GenerateLoginTokens));
             services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<ImageUploadValidationService>();
             services.AddSingleton<OrderNumberGenerator>();
 
             return services;

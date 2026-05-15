@@ -19,5 +19,10 @@ public sealed class CreateCategoryValidation : AbstractValidator<CreateCategoryC
         RuleFor(x => x.SortOrder)
             .GreaterThanOrEqualTo(0)
             .WithError(CategoryErrors.SortOrderInvalid);
+
+        RuleFor(x => x.Name)
+            .Length(5, 50)
+            .WithError(CategoryErrors.InvalidName);
+        
     }
 }

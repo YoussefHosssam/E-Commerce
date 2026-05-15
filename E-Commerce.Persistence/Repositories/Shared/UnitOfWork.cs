@@ -5,12 +5,14 @@ using E_Commerce.Domain.Entities;
 using E_Commerce.Persistence.Context;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Persistence.Repositories.Shared;
 
 public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
 {
     private readonly EcommerceContext _context;
+    private readonly ILogger<UnitOfWork> _logger;
 
     public IProductRepository Products { get; }
     public ICategoryRepository Categories { get; }
@@ -55,9 +57,11 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
         IOrderRepository orders,
         IPaymentRepository payments,
         IPaymentAttemptRepository paymentAttempts,
-        IIdempotencyRecordRepository idempotencyRecords)
+        IIdempotencyRecordRepository idempotencyRecords,
+        ILogger<UnitOfWork> logger)
     {
         _context = context;
+        _logger = logger;
         Products = productRepository;
         Categories = categoryRepository;
         Variants = variantRepository;
@@ -88,10 +92,19 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
         }
         catch (DbUpdateException exception) when (exception.InnerException is SqlException sqlException && (sqlException.Number == 4060 || sqlException.Number == 53 || sqlException.Number == -2))
         {
+            _logger.LogError(
+                exception,
+                "Database unavailable during SaveChanges with SQL error {SqlErrorNumber}",
+                sqlException.Number);
+
             throw new AppException(InfrastructureErrors.DatabaseUnavailable, exception);
         }
         catch (DbUpdateException exception)
         {
+            _logger.LogError(
+                exception,
+                "Persistence failure during SaveChanges");
+
             throw new AppException(InfrastructureErrors.PersistenceFailure, exception);
         }
     }

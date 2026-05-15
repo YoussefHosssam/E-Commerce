@@ -9,6 +9,7 @@ using System.Text;
 using CartEntity = E_Commerce.Domain.Entities.Cart;
 using System.Threading.Tasks;
 using E_Commerce.Domain.Common.Errors;
+using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Application.Features.Cart.Commands.RemoveItem
 {
@@ -17,11 +18,18 @@ namespace E_Commerce.Application.Features.Cart.Commands.RemoveItem
         private readonly IUnitOfWork _uow;
         private readonly IUserAccessor _userAccessor;
         private readonly ICartSessionService _cartSessionService;
-        public RemoveItemHandler(IUnitOfWork uow, IUserAccessor userAccessor, ICartSessionService cartService)
+        private readonly ILogger<RemoveItemHandler> _logger;
+
+        public RemoveItemHandler(
+            IUnitOfWork uow,
+            IUserAccessor userAccessor,
+            ICartSessionService cartService,
+            ILogger<RemoveItemHandler> logger)
         {
             _uow = uow;
             _userAccessor = userAccessor;
             _cartSessionService = cartService;
+            _logger = logger;
         }
         public async Task<Result> Handle(RemoveItemCommand request, CancellationToken cancellationToken)
         {
@@ -32,6 +40,13 @@ namespace E_Commerce.Application.Features.Cart.Commands.RemoveItem
             if (cartItem is null) return Result.Fail(CartErrors.ItemNotFound);
             cart.RemoveItem(request.cartItemId , now);
             await _uow.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Cart {CartId} item {CartItemId} removed for User {UserId}",
+                cart.Id,
+                request.cartItemId,
+                cart.UserId);
+
             return Result.Success();
         }
         private async Task<CartEntity?> ResolveCartAsync(CancellationToken cancellationToken)

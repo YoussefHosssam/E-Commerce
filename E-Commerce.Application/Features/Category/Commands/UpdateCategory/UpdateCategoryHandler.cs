@@ -22,6 +22,7 @@ public sealed class UpdateCategoryHandler : IRequestHandler<UpdateCategoryComman
 
     public async Task<Result<CategoryDetailDto>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
         var category = await _uow.Categories.GetByIdWithDetailsAsync(request.Id, true, cancellationToken);
         if (category is null)
         {
@@ -54,9 +55,15 @@ public sealed class UpdateCategoryHandler : IRequestHandler<UpdateCategoryComman
             return Result<CategoryDetailDto>.Fail(CategoryErrors.SlugDuplicate);
         }
 
-        category.ChangeSlug(slug);
-        category.SetSortOrder(request.SortOrder);
-        category.ChangeParent(parent);
+        var name = request.Name;
+        if (await _uow.Categories.NameExistsAsync(name, category.Id, cancellationToken))
+        {
+            return Result<CategoryDetailDto>.Fail(CategoryErrors.NameAlreadyExsit);
+        }
+        category.ChangeName(name, now);
+        category.ChangeSlug(slug , now);
+        category.SetSortOrder(request.SortOrder , now);
+        category.ChangeParent(parent , now);
 
         if (request.IsActive)
         {

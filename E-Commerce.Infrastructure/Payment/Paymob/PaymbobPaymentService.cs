@@ -5,6 +5,8 @@ using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
 using E_Commerce.Infrastructure.Settings;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,12 +25,18 @@ namespace E_Commerce.Infrastructure.Payment.Paymob
         private readonly IUnitOfWork _uow;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly PaymobPyamentOptions _options;
+        private readonly ILogger<PaymobPaymentGateway> _logger;
 
-        public PaymobPaymentGateway(IUnitOfWork uow, IOptions<PaymobPyamentOptions> options, IHttpClientFactory httpClientFactory)
+        public PaymobPaymentGateway(
+            IUnitOfWork uow,
+            IOptions<PaymobPyamentOptions> options,
+            IHttpClientFactory httpClientFactory,
+            ILogger<PaymobPaymentGateway> logger)
         {
             _uow = uow;
             _options = options.Value;
             _httpClientFactory = httpClientFactory;
+            _logger = logger;
         }
         private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
         {
@@ -40,9 +48,17 @@ namespace E_Commerce.Infrastructure.Payment.Paymob
 
         public async Task<Result<CreateProviderPaymentSessionResult>> CreateSessionAsync(CreateProviderPaymentSessionRequest request, CancellationToken ct)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             try
             {
                 var httpClient = _httpClientFactory.CreateClient(nameof(PaymobClient));
+
+                _logger.LogInformation(
+                    "Creating payment session with Provider {Provider} for Order {OrderId}, PaymentAttempt {PaymentAttemptId}",
+                    Provider,
+                    request.OrderId,
+                    request.PaymentAttemptId);
 
                 using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "v1/intention")
                 {
@@ -62,9 +78,18 @@ namespace E_Commerce.Infrastructure.Payment.Paymob
                     ct);
 
                 var rawJson = await response.Content.ReadAsStringAsync(ct);
+                stopwatch.Stop();
 
                 if (!response.IsSuccessStatusCode)
                 {
+                    _logger.LogWarning(
+                        "Payment provider {Provider} returned HTTP {StatusCode} for Order {OrderId}, PaymentAttempt {PaymentAttemptId} in {ElapsedMs} ms",
+                        Provider,
+                        (int)response.StatusCode,
+                        request.OrderId,
+                        request.PaymentAttemptId,
+                        stopwatch.ElapsedMilliseconds);
+
                     return Result<CreateProviderPaymentSessionResult>.Fail(PaymentErrors.FailedInitSession);
                 }
 
@@ -74,6 +99,12 @@ namespace E_Commerce.Infrastructure.Payment.Paymob
 
                 if (paymobResponse is null)
                 {
+                    _logger.LogError(
+                        "Payment provider {Provider} response deserialization failed for Order {OrderId}, PaymentAttempt {PaymentAttemptId}",
+                        Provider,
+                        request.OrderId,
+                        request.PaymentAttemptId);
+
                     return Result<CreateProviderPaymentSessionResult>.Fail(PaymentErrors.FailedDeserializeResponse);
                 }
 
@@ -81,14 +112,40 @@ namespace E_Commerce.Infrastructure.Payment.Paymob
 
                 var result = new CreateProviderPaymentSessionResult(Provider, paymobResponse.IntentionOrderId, paymobResponse.Id, paymentUrl, paymobResponse.ClientSecret, rawJson);
 
+                _logger.LogInformation(
+                    "Payment provider {Provider} session created for Order {OrderId}, PaymentAttempt {PaymentAttemptId} in {ElapsedMs} ms",
+                    Provider,
+                    request.OrderId,
+                    request.PaymentAttemptId,
+                    stopwatch.ElapsedMilliseconds);
+
                 return Result<CreateProviderPaymentSessionResult>.Success(result);
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
+                stopwatch.Stop();
+
+                _logger.LogWarning(
+                    "Payment provider {Provider} request canceled for Order {OrderId}, PaymentAttempt {PaymentAttemptId} after {ElapsedMs} ms",
+                    Provider,
+                    request.OrderId,
+                    request.PaymentAttemptId,
+                    stopwatch.ElapsedMilliseconds);
+
                 return Result<CreateProviderPaymentSessionResult>.Fail(PaymobErrors.CancelRequest);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
+                stopwatch.Stop();
+
+                _logger.LogError(
+                    exception,
+                    "Payment provider {Provider} request failed for Order {OrderId}, PaymentAttempt {PaymentAttemptId} after {ElapsedMs} ms",
+                    Provider,
+                    request.OrderId,
+                    request.PaymentAttemptId,
+                    stopwatch.ElapsedMilliseconds);
+
                 return Result<CreateProviderPaymentSessionResult>.Fail(PaymobErrors.FailedRequest);
             }
         }

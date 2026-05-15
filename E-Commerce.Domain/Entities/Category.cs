@@ -8,6 +8,7 @@ namespace E_Commerce.Domain.Entities;
 public sealed class Category : BaseEntity
 {
     public Guid? ParentId { get; private set; }
+    public string Name { get; private set; }
     public Category? Parent { get; private set; } // EF navigation
 
     private readonly List<Category> _children = new();
@@ -16,55 +17,64 @@ public sealed class Category : BaseEntity
     public Slug Slug { get; private set; } = default!; // unique (DB unique index)
     public int SortOrder { get; private set; }
     public bool IsActive { get; private set; } = true;
-
+    public DateTimeOffset? UpdatedAt { get; private set; } = null;
     // Usually not part of category aggregate (query navigation)
     private readonly List<Product> _products = new();
     public IReadOnlyCollection<Product> Products => _products.AsReadOnly();
 
     private Category() { } // EF
 
-    private Category(Guid? parentId, Slug slug, int sortOrder)
+    private Category(Guid? parentId , string name, Slug slug, int sortOrder)
     {
         ParentId = parentId;
+        Name = name;
         Slug = slug;
         SortOrder = sortOrder;
         IsActive = true;
     }
 
-    public static Category Create(Guid? parentId, Slug slug, int sortOrder = 0)
+    public static Category Create(Guid? parentId , string name, Slug slug, int sortOrder = 0)
     {
         if (parentId.HasValue && parentId.Value == Guid.Empty)
             throw new DomainValidationException(CategoryErrors.ParentInvalid);
-
+        if (string.IsNullOrEmpty(name) || name.Length < 5 || name.Length > 50)
+            throw new DomainValidationException(CategoryErrors.InvalidName);
         if (slug.Equals(default(Slug)))
             throw new DomainValidationException(CategoryErrors.SlugRequired);
-
         if (sortOrder < 0)
             throw new DomainValidationException(CategoryErrors.SortOrderInvalid);
 
-        return new Category(parentId, slug, sortOrder);
+        return new Category(parentId,name, slug, sortOrder);
     }
 
     // --------- Behaviors ---------
 
-    public void ChangeSlug(Slug slug)
+    public void ChangeSlug(Slug slug , DateTimeOffset now)
     {
         if (slug.Equals(default(Slug)))
             throw new DomainValidationException(CategoryErrors.SlugRequired);
 
         // uniqueness globally is DB/application responsibility
         Slug = slug;
+        Touch(now);
     }
 
-    public void SetSortOrder(int sortOrder)
+    public void SetSortOrder(int sortOrder , DateTimeOffset now)
     {
         if (sortOrder < 0)
             throw new DomainValidationException(CategoryErrors.SortOrderInvalid);
 
         SortOrder = sortOrder;
+        Touch(now);
     }
-
-    public void ChangeParent(Category? parent)
+    public void ChangeName(string name , DateTimeOffset now)
+    {
+        if (string.IsNullOrEmpty(name) || name.Length < 5 || name.Length > 50)
+            throw new DomainValidationException(CategoryErrors.InvalidName);
+        Name = name;
+        Touch(now);
+    }
+    public void ChangeParent(Category? parent , DateTimeOffset now)
     {
         if (parent is null)
         {
@@ -73,17 +83,13 @@ public sealed class Category : BaseEntity
         }
 
         SetParent(parent);
+        Touch(now);
     }
 
     public void Activate() => IsActive = true;
     public void Deactivate() => IsActive = false;
 
-    /// <summary>
-    /// Attach child category under this category.
-    /// Only local validation here (self-parent).
-    /// Cycle prevention beyond this requires repository check in application layer.
-    /// </summary>
-    public void AddChild(Category child)
+    public void AddChild(Category child , DateTimeOffset now)
     {
         if (child is null)
             throw new DomainValidationException(CategoryErrors.ChildRequired);
@@ -91,17 +97,16 @@ public sealed class Category : BaseEntity
         if (child.Id == this.Id)
             throw new DomainValidationException(CategoryErrors.ChildSelf);
 
-        // prevent duplicate child
         if (_children.Any(c => c.Id == child.Id))
             throw new DomainValidationException(CategoryErrors.ChildDuplicate);
 
-        // set parent link (domain owns the relationship)
         child.SetParent(this);
 
         _children.Add(child);
+        Touch(now);
     }
 
-    public void RemoveChild(Guid childId)
+    public void RemoveChild(Guid childId , DateTimeOffset now)
     {
         var idx = _children.FindIndex(c => c.Id == childId);
         if (idx < 0)
@@ -109,6 +114,8 @@ public sealed class Category : BaseEntity
 
         _children[idx].ClearParent();
         _children.RemoveAt(idx);
+        Touch(now);
+
     }
 
     private void SetParent(Category parent)
@@ -127,6 +134,11 @@ public sealed class Category : BaseEntity
     {
         Parent = null;
         ParentId = null;
+    }
+
+    private void Touch(DateTimeOffset now)
+    {
+        UpdatedAt = now;
     }
 }
 

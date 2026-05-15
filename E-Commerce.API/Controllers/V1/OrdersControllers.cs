@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning;
 using E_Commerce.API.Common.Contracts;
 using E_Commerce.API.Common.Responses;
+using E_Commerce.API.Contracts.Requests.OrderRequests;
 using E_Commerce.Application.Common.Pagination;
 using E_Commerce.Application.Features.Order.Commands.CancelOrder;
 using E_Commerce.Application.Features.Order.Common;
@@ -37,9 +38,9 @@ namespace E_Commerce.API.Controllers.V1
         }
 
         [HttpPost("{orderId}/cancel")]
-        public async Task<ApiResult> CancelOrder(Guid orderId, CancellationToken ctn)
+        public async Task<ApiResult> CancelOrder(Guid orderId , CancelOrderRequest request, CancellationToken ctn)
         {
-            return this.FromResult(await _sender.Send(new CancelOrderCommand(orderId), ctn), "Order canceled successfully.");
+            return this.FromResult(await _sender.Send(new CancelOrderCommand(orderId , request.reason), ctn), "Order canceled successfully.");
         }
     }
 }
