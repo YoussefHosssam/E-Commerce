@@ -37,12 +37,12 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
 
         builder.Property(x => x.ShippingAddressJson)
                .IsRequired()
-               .HasConversion(ValueConverters.StructString<JsonText>())
+               .HasConversion(ValueConverters.ClassString<JsonText>())
                .HasColumnType("nvarchar(max)");
 
         builder.Property(x => x.BillingAddressJson)
                .IsRequired()
-               .HasConversion(ValueConverters.StructString<JsonText>())
+               .HasConversion(ValueConverters.ClassString<JsonText>())
                .HasColumnType("nvarchar(max)");
 
         builder.Property(x => x.Notes).HasMaxLength(500);

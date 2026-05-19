@@ -16,7 +16,12 @@ public static class PersistenceConfiguration
         IConfiguration config)
     {
         services.AddDbContext<EcommerceContext>(opt =>
-            opt.UseSqlServer(config.GetSection("Database:SqlServer:ConnectionString").Value));
+            opt.UseSqlServer(config.GetSection("Database:SqlServer:ConnectionString").Value , sql =>
+            {
+                sql
+                .EnableRetryOnFailure(3, TimeSpan.FromSeconds(5) , null)
+                .CommandTimeout(30);
+            }));
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -25,6 +30,8 @@ public static class PersistenceConfiguration
         services.AddScoped<IVariantRepository, VariantRepository>();
         services.AddScoped<IAuthTokenRepository, AuthTokenRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+        services.AddScoped<IUserAddressRepository, UserAddressRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IInventoryRepository, InventoryRepository>();
         services.AddScoped<ICartRepository, CartRepository>();

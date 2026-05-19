@@ -8,6 +8,8 @@ public interface IUnitOfWork
     ICategoryRepository Categories { get; }
     IVariantRepository Variants { get; }
     IUserRepository Users { get; }
+    IUserProfileRepository UserProfiles { get; }
+    IUserAddressRepository UserAddresses { get; }
     ICartRepository Carts { get; }
     IOrderRepository Orders { get; }
     IIdempotencyRecordRepository IdempotencyRecords { get; }

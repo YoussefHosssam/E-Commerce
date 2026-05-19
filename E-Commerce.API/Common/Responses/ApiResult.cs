@@ -24,8 +24,10 @@ namespace E_Commerce.API.Common.Responses
 
             var options = new JsonSerializerOptions
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
+            options.Converters.Add(new JsonStringEnumConverter());
 
             var json = JsonSerializer.Serialize(Response, options);
             await response.WriteAsync(json);

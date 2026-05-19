@@ -14,7 +14,7 @@ namespace E_Commerce.API.Controllers.V1
     [Authorize]
     [ApiController]
     [ApiVersion(1)]
-    [Route("/api/v{version:apiVersion}/checkout")]
+    [Route("api/v{version:apiVersion}/checkout")]
     public class CheckoutController : ControllerBase
     {
         private readonly ISender _sender;
@@ -33,7 +33,7 @@ namespace E_Commerce.API.Controllers.V1
         [Idempotent("Checkout")]
         public async Task<ApiResult<PlaceOrderResponse>> PlaceOrder( [FromBody] PlaceOrderRequest request , CancellationToken ct)
         {
-            var result = await _sender.Send(new PlaceOrderCommand(request.ShippingAddress , request.SameAsShipping , request.BillingAddress), ct);
+            var result = await _sender.Send(new PlaceOrderCommand(request.DefaultAddress , request.AddressId , request.SameAsShipping , request.BillingAddress), ct);
             return this.FromResult(result, "Order placed successfully.");
         }
     }

@@ -105,7 +105,7 @@ public sealed class PaymentAttempt : BaseEntity
             currency,
             idempotencyKey,
             requestHash,
-            rawPayloadJson.Value,
+            rawPayloadJson,
             expiresAt,
             now);
     }
@@ -138,7 +138,7 @@ public sealed class PaymentAttempt : BaseEntity
         Status = PaymentAttemptStatus.AwaitingCustomerAction;
 
         if (rawPayloadJson is not null)
-            RawPayloadJson = rawPayloadJson.Value;
+            RawPayloadJson = rawPayloadJson;
 
         Touch(now);
     }
@@ -182,7 +182,7 @@ public sealed class PaymentAttempt : BaseEntity
         Status = PaymentAttemptStatus.Paid;
 
         if (rawPayloadJson is not null)
-            RawPayloadJson = rawPayloadJson.Value;
+            RawPayloadJson = rawPayloadJson;
 
         Touch(now);
     }
@@ -194,7 +194,7 @@ public sealed class PaymentAttempt : BaseEntity
         Status = PaymentAttemptStatus.Failed;
 
         if (rawPayloadJson is not null)
-            RawPayloadJson = rawPayloadJson.Value;
+            RawPayloadJson = rawPayloadJson;
 
         Touch(now);
     }

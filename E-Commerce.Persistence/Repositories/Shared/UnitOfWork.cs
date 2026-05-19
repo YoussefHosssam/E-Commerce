@@ -18,6 +18,8 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
     public ICategoryRepository Categories { get; }
     public IVariantRepository Variants { get; }
     public IUserRepository Users { get; }
+    public IUserProfileRepository UserProfiles { get; }
+    public IUserAddressRepository UserAddresses { get; }
     public IOrderRepository Orders { get; }
     public IPaymentRepository Payments { get; }
     public IRefreshTokenRepository RefreshTokens { get; }
@@ -42,6 +44,8 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
         ICategoryRepository categoryRepository,
         IVariantRepository variantRepository,
         IUserRepository users,
+        IUserProfileRepository userProfiles,
+        IUserAddressRepository userAddresses,
         IGenericRepository<EmailMessage> emailMessages,
         IGenericRepository<UserTwoFactor> user2fa,
         IGenericRepository<UserCredential> userCredentials,
@@ -66,6 +70,8 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
         Categories = categoryRepository;
         Variants = variantRepository;
         Users = users;
+        UserProfiles = userProfiles;
+        UserAddresses = userAddresses;
         EmailMessages = emailMessages;
         User2fa = user2fa;
         UserCredentials = userCredentials;

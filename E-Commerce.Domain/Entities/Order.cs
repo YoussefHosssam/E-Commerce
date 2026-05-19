@@ -96,7 +96,7 @@ public sealed class Order : BaseEntity
                 throw new DomainValidationException(OrderErrors.NotesTooLong);
         }
 
-        return new Order(userId, orderNumber, currency, shippingAddress, billingAddress.Value, notes, now);
+        return new Order(userId, orderNumber, currency, shippingAddress, billingAddress, notes, now);
     }
 
     // ---------------- Domain behaviors ----------------

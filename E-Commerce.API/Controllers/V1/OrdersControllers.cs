@@ -15,7 +15,7 @@ namespace E_Commerce.API.Controllers.V1
     [ApiVersion(1)]
     [ApiController()]
     [Authorize]
-    [Route("/api/v{version:apiVersion}/orders")]
+    [Route("api/v{version:apiVersion}/orders")]
     public class OrdersControllers : ControllerBase
     {
         private readonly ISender _sender;
@@ -38,7 +38,7 @@ namespace E_Commerce.API.Controllers.V1
         }
 
         [HttpPost("{orderId}/cancel")]
-        public async Task<ApiResult> CancelOrder(Guid orderId , CancelOrderRequest request, CancellationToken ctn)
+        public async Task<ApiResult> CancelOrder(Guid orderId , [FromBody] CancelOrderRequest request, CancellationToken ctn)
         {
             return this.FromResult(await _sender.Send(new CancelOrderCommand(orderId , request.reason), ctn), "Order canceled successfully.");
         }

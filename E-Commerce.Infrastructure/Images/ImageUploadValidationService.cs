@@ -1,10 +1,11 @@
 using E_Commerce.Application.Common.Options;
 using E_Commerce.Domain.Common.Errors;
+using E_Commerce.Domain.Entities;
 using Microsoft.Extensions.Options;
 
 namespace E_Commerce.Application.Features.ImageUploads.Common;
 
-internal sealed class ImageUploadValidationService
+internal sealed class ImageUploadValidationService : IImageUploadValidationService
 {
     private readonly ImageStorageOptions _options;
 
@@ -43,8 +44,19 @@ internal sealed class ImageUploadValidationService
         return null;
     }
 
-    public bool HasExpectedPrefix(string storageKey, string expectedPrefix)
+    public bool HasExpectedPrefix<T>(string storageKey , Guid id)
     {
-        return storageKey.StartsWith(expectedPrefix, StringComparison.Ordinal);
+
+        return storageKey.StartsWith(GetExpectedPrefix<T>(id), StringComparison.Ordinal);
+    }
+
+    private string GetExpectedPrefix<T>(Guid id)
+    {
+        if (typeof(T) == typeof(VariantImage))
+            return $"{_options.UploadFolderRoot.TrimEnd('/')}/variants/{id:N}/images/";
+        if (typeof(T) == typeof(ProductImage))
+            return $"{_options.UploadFolderRoot.TrimEnd('/')}/products/{id:N}/images/";
+        else
+            return "";
     }
 }

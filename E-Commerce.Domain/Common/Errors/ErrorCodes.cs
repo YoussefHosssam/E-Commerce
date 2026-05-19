@@ -136,6 +136,35 @@ public static class ErrorCodes
         public const string RoleInvalid = "USR_400_ROLE_INVALID";
     }
 
+    public static class UserProfile
+    {
+        public const string NotFound = "UPR_404";
+        public const string UserIdRequired = "UPR_400_USER_ID_REQUIRED";
+        public const string FirstNameRequired = "UPR_400_FIRST_NAME_REQUIRED";
+        public const string LastNameRequired = "UPR_400_LAST_NAME_REQUIRED";
+        public const string NameTooLong = "UPR_400_NAME_TOO_LONG";
+        public const string DisplayNameTooLong = "UPR_400_DISPLAY_NAME_TOO_LONG";
+        public const string DateOfBirthInvalid = "UPR_400_DOB_INVALID";
+        public const string AvatarUrlInvalid = "UPR_400_AVATAR_URL_INVALID";
+        public const string GenderInvalid = "UPR_400_GENDER_INVALID";
+    }
+
+    public static class UserAddress
+    {
+        public const string NotFound = "UAD_404";
+        public const string UserIdRequired = "UAD_400_USER_ID_REQUIRED";
+        public const string LabelInvalid = "UAD_400_LABEL_INVALID";
+        public const string CountryRequired = "UAD_400_COUNTRY_REQUIRED";
+        public const string GovernorateRequired = "UAD_400_GOVERNORATE_REQUIRED";
+        public const string CityRequired = "UAD_400_CITY_REQUIRED";
+        public const string AreaRequired = "UAD_400_AREA_REQUIRED";
+        public const string StreetRequired = "UAD_400_STREET_REQUIRED";
+        public const string BuildingNumberRequired = "UAD_400_BUILDING_NUMBER_REQUIRED";
+        public const string TextTooLong = "UAD_400_TEXT_TOO_LONG";
+        public const string LatitudeInvalid = "UAD_400_LATITUDE_INVALID";
+        public const string LongitudeInvalid = "UAD_400_LONGITUDE_INVALID";
+    }
+
     public static class Auth
     {
         public const string InvalidCredentials = "AUTH_401_INVALID_CREDENTIALS";
@@ -220,6 +249,11 @@ public static class ErrorCodes
         public const string UnfoundInventory = "CHK_404_INVENTORY_NOT_FOUND";
         public const string VariantOutOfStock = "CHK_409_OUT_OF_STOCK";
         public const string QuantityInvalid = "CHK_400_INVALID_QUANTITY";
+        public const string DefaultAddressNotFound = "CHK_404_DEFAULT_ADDRESS_NOT_FOUND";
+        public const string AddressRequired = "CHK_400_ADDRESS_REQUIRED";
+        public const string AddressDoesNotBelongToUser = "CHK_403_ADDRESS_NOT_OWNED";
+        public const string AddressInvalidForShipping = "CHK_400_ADDRESS_INVALID_FOR_SHIPPING";
+        public const string ShipmentFeeCalculationFailed = "CHK_503_SHIPMENT_FEE_FAILED";
     }
 
     public static class Inventory

@@ -15,25 +15,24 @@ internal sealed class GenerateProductImageUploadSignatureHandler
 {
     private readonly IUnitOfWork _uow;
     private readonly IImageStorageService _imageStorage;
-    private readonly ImageUploadValidationService _validation;
-    private readonly ImageStorageOptions _options;
+    private readonly IImageUploadValidationService _validation;
 
     public GenerateProductImageUploadSignatureHandler(
         IUnitOfWork uow,
         IImageStorageService imageStorage,
-        ImageUploadValidationService validation,
-        IOptions<ImageStorageOptions> options)
+        IImageUploadValidationService validation
+        )
     {
         _uow = uow;
         _imageStorage = imageStorage;
         _validation = validation;
-        _options = options.Value;
     }
 
     public async Task<Result<GenerateImageUploadSignatureResponse>> Handle(
         GenerateProductImageUploadSignatureCommand request,
         CancellationToken cancellationToken)
     {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
         var requestError = _validation.ValidateRequestedFile(request.ContentType, request.SizeInBytes);
         if (requestError is not null)
             return Result<GenerateImageUploadSignatureResponse>.Fail(requestError);
@@ -42,10 +41,11 @@ internal sealed class GenerateProductImageUploadSignatureHandler
         if (product is null)
             return Result<GenerateImageUploadSignatureResponse>.Fail(ProductErrors.NotFound);
 
-        var storageKey = BuildStorageKey(request.ProductId);
+        var storageKey = _imageStorage.BuildStorageKey<ProductImage>(request.ProductId);
         var sortOrder = product.Images.Count(x => x.ProcessingStatus != Domain.Enums.ImageProcessingStatus.Deleted) + 1;
         var isPrimary = product.Images.All(x => x.ProcessingStatus == Domain.Enums.ImageProcessingStatus.Deleted);
-        var image = ProductImage.CreatePending(request.ProductId, storageKey, isPrimary, sortOrder);
+        var expiresAt = now.AddMinutes(15);
+        var image = ProductImage.CreatePending(request.ProductId, storageKey, isPrimary, sortOrder , expiresAt);
 
         product.AddImage(image, DateTimeOffset.UtcNow);
         await _uow.SaveChangesAsync(cancellationToken);
@@ -56,9 +56,6 @@ internal sealed class GenerateProductImageUploadSignatureHandler
 
         return Result<GenerateImageUploadSignatureResponse>.Success(signature);
     }
-
-    private string BuildStorageKey(Guid productId)
-        => $"{_options.UploadFolderRoot.TrimEnd('/')}/products/{productId:N}/images/{Guid.NewGuid():N}";
 }
 
 internal sealed class CompleteProductImageUploadHandler
@@ -66,21 +63,18 @@ internal sealed class CompleteProductImageUploadHandler
 {
     private readonly IUnitOfWork _uow;
     private readonly IImageStorageService _imageStorage;
-    private readonly ImageUploadValidationService _validation;
-    private readonly ImageStorageOptions _options;
+    private readonly IImageUploadValidationService _validation;
     private readonly IMapper _mapper;
 
     public CompleteProductImageUploadHandler(
         IUnitOfWork uow,
         IImageStorageService imageStorage,
-        ImageUploadValidationService validation,
-        IOptions<ImageStorageOptions> options,
+        IImageUploadValidationService validation,
         IMapper mapper)
     {
         _uow = uow;
         _imageStorage = imageStorage;
         _validation = validation;
-        _options = options.Value;
         _mapper = mapper;
     }
 
@@ -88,8 +82,7 @@ internal sealed class CompleteProductImageUploadHandler
         CompleteProductImageUploadCommand request,
         CancellationToken cancellationToken)
     {
-        var expectedPrefix = $"{_options.UploadFolderRoot.TrimEnd('/')}/products/{request.ProductId:N}/images/";
-        if (!_validation.HasExpectedPrefix(request.StorageKey, expectedPrefix))
+        if (!_validation.HasExpectedPrefix<ProductImage>(request.StorageKey , request.ProductId))
             return Result<ImageDto>.Fail(ImageUploadErrors.StorageKeyInvalid);
 
         var product = await _uow.Products.GetByIdWithDetailsAsync(request.ProductId, true, cancellationToken);

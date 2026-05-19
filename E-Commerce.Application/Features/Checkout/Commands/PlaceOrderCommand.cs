@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace E_Commerce.Application.Features.Checkout.Commands
 {
-    public record PlaceOrderCommand (ShippingAddressDto ShippingAddress, bool SameAsShipping, BillingAddressDto? BillingAddress) : IRequest<Result<PlaceOrderResponse>>
+    public record PlaceOrderCommand (bool DefaultAddress , Guid AddressId, bool SameAsShipping, BillingAddressDto? BillingAddress) : IRequest<Result<PlaceOrderResponse>>
     {
     }
 

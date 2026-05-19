@@ -1,4 +1,5 @@
-﻿using E_Commerce.Domain.ValueObjects;
+﻿using E_Commerce.Application.Common.Dtos;
+using E_Commerce.Domain.ValueObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,8 +22,8 @@ namespace E_Commerce.Application.Features.Order.Common
 
         public string Currency { get; init; } = default!;
 
-        public string ShippingAddress { get; init; } = default!;
-        public string BillingAddress { get; init; } = default!;
+        public ShippingAddressDto ShippingAddress { get; init; } = default!;
+        public BillingAddressDto BillingAddress { get; init; } = default!;
 
         public string? Notes { get; init; }
         public DateTimeOffset? UpdatedAt { get; init; }

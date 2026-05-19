@@ -27,6 +27,7 @@ public sealed class OrderService : IOrderService
         ShippingAddressDto shippingAddress,
         bool isSameAddress,
         BillingAddressDto? billingAddress,
+        decimal shippingFee,
         CancellationToken ct,
         DateTimeOffset now)
     {
@@ -38,18 +39,11 @@ public sealed class OrderService : IOrderService
 
         string orderNumber = _orderNumberGenerator.Generate();
 
-        string shippingAddressJsonString = JsonSerializer.Serialize(shippingAddress);
+        JsonText shippingAddressJson = JsonText.From(shippingAddress);
 
-        string billingAddressJsonString = isSameAddress
-            ? shippingAddressJsonString
-            : JsonSerializer.Serialize(billingAddress);
-
-        JsonText shippingAddressJson = JsonText.Create(shippingAddressJsonString);
-
-        JsonText billingAddressJson = JsonText.Create(
-            string.IsNullOrWhiteSpace(billingAddressJsonString)
-                ? "{}"
-                : billingAddressJsonString);
+        JsonText billingAddressJson = isSameAddress
+            ? shippingAddressJson
+            : JsonText.From(billingAddress!);
 
         Order order = Order.Create(
             userId,
@@ -59,6 +53,8 @@ public sealed class OrderService : IOrderService
             billingAddressJson,
             string.Empty,
             now);
+
+        order.SetShippingFee(shippingFee, now);
 
         await _uow.Orders.CreateAsync(order, ct);
 

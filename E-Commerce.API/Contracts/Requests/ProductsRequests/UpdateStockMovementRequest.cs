@@ -2,7 +2,7 @@
 
 namespace E_Commerce.API.Contracts.Requests.ProductsRequests
 {
-    public record UpdateStockMovementRequest(Guid VariantId,
+    public record UpdateStockMovementRequest(
         StockMovementType Type,
         int Quantity,
         string? Reason);

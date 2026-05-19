@@ -2,7 +2,6 @@
 using E_Commerce.Application.Common.Dtos;
 using E_Commerce.Application.Common.Result;
 using E_Commerce.Application.Contracts.Infrastructure.Payment;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
 using E_Commerce.Application.Contracts.Services;
 using E_Commerce.Application.Features.Order.Common;
 using E_Commerce.Application.Features.Variant.Common;
@@ -24,26 +23,29 @@ internal sealed class PlaceOrderHandler
     private const int PaymentExpiryMinutes = 15;
 
     private readonly IUnitOfWork _uow;
-    private readonly IUserAccessor _userAccessor;
+    private readonly ICheckoutAddressResolver _addressResolver;
     private readonly IOrderService _orderService;
     private readonly IPaymentGateway _paymentGateway;
+    private readonly IShipmentFeesCalculator _shipmentFeesCalculator;
     private readonly IMapper _mapper;
     private readonly ILogger<PlaceOrderHandler> _logger;
 
     public PlaceOrderHandler(
         IUnitOfWork uow,
-        IUserAccessor userAccessor,
+        ICheckoutAddressResolver addressResolver,
         IOrderService orderService,
         IPaymentGateway paymentGateway,
         IMapper mapper,
-        ILogger<PlaceOrderHandler> logger)
+        ILogger<PlaceOrderHandler> logger,
+        IShipmentFeesCalculator shipmentFeesCalculator)
     {
         _uow = uow;
-        _userAccessor = userAccessor;
+        _addressResolver = addressResolver;
         _orderService = orderService;
         _paymentGateway = paymentGateway;
         _mapper = mapper;
         _logger = logger;
+        _shipmentFeesCalculator = shipmentFeesCalculator;
     }
 
     public async Task<Result<PlaceOrderResponse>> Handle(
@@ -52,12 +54,15 @@ internal sealed class PlaceOrderHandler
     {
         var now = DateTimeOffset.UtcNow;
 
-        var userResult = GetCurrentUserId();
+        var addressResult = await _addressResolver.ResolveAsync(
+            new CheckoutAddressSelection(request.DefaultAddress, request.AddressId),
+            cancellationToken);
 
-        if (!userResult.IsSuccess)
-            return Result<PlaceOrderResponse>.Fail(userResult.Error!);
+        if (!addressResult.IsSuccess)
+            return Result<PlaceOrderResponse>.Fail(addressResult.Error!);
 
-        var userId = userResult.Data;
+        var resolvedAddress = addressResult.Data!;
+        var userId = resolvedAddress.User.Id;
 
         var cartResult = await GetAndValidateCartAsync(userId, cancellationToken);
 
@@ -90,8 +95,18 @@ internal sealed class PlaceOrderHandler
 
         var inventoryByVariantId = inventoryResult.Data!;
 
+        var shipmentFeeResult = await CalculateShipmentFeeAsync(
+            resolvedAddress,
+            request.SameAsShipping,
+            request.BillingAddress);
+
+        if (!shipmentFeeResult.IsSuccess)
+            return Result<PlaceOrderResponse>.Fail(shipmentFeeResult.Error!);
+
         var orderResult = await CreateOrderAsync(
             request,
+            resolvedAddress,
+            shipmentFeeResult.Data,
             userId,
             now,
             cancellationToken);
@@ -108,7 +123,6 @@ internal sealed class PlaceOrderHandler
             userId,
             now,
             cancellationToken);
-
         var paymentAttempt = await CreatePaymentAttemptAsync(
             order,
             now,
@@ -120,6 +134,7 @@ internal sealed class PlaceOrderHandler
 
         var providerRequest = BuildProviderPaymentSessionRequest(
             request,
+            resolvedAddress,
             order,
             paymentAttempt,
             cartItems);
@@ -148,14 +163,6 @@ internal sealed class PlaceOrderHandler
                 order.GrandTotal,
                 order.Currency.Value,
                 paymentDto));
-    }
-
-    private Result<Guid> GetCurrentUserId()
-    {
-        if (!_userAccessor.UserId.HasValue)
-            return Result<Guid>.Fail(AuthErrors.InvalidToken);
-
-        return Result<Guid>.Success(_userAccessor.UserId.Value);
     }
 
     private async Task<Result<CartEntity>> GetAndValidateCartAsync(
@@ -215,6 +222,8 @@ internal sealed class PlaceOrderHandler
 
     private async Task<Result<OrderEntity>> CreateOrderAsync(
         PlaceOrderCommand request,
+        ResolvedCheckoutAddress resolvedAddress,
+        decimal shippingFee,
         Guid userId,
         DateTimeOffset now,
         CancellationToken cancellationToken)
@@ -222,11 +231,41 @@ internal sealed class PlaceOrderHandler
         return await _orderService.CreateOrder(
             userId,
             CurrencyCode.Create("EGP"),
-            request.ShippingAddress,
+            resolvedAddress.ShippingAddress,
             request.SameAsShipping,
             request.BillingAddress,
+            shippingFee,
             cancellationToken,
             now);
+    }
+
+    private async Task<Result<decimal>> CalculateShipmentFeeAsync(
+        ResolvedCheckoutAddress resolvedAddress,
+        bool sameAsShipping,
+        BillingAddressDto? billingAddress)
+    {
+        try
+        {
+            var result = await _shipmentFeesCalculator.CalculateFees(
+                resolvedAddress.ShippingAddress,
+                sameAsShipping,
+                billingAddress);
+
+            if (result is null || !result.IsSuccess || result.Data < 0)
+                return Result<decimal>.Fail(CheckoutErrors.ShipmentFeeCalculationFailed);
+
+            return Result<decimal>.Success(result.Data);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Shipment fee calculation failed for User {UserId} Address {AddressId}",
+                resolvedAddress.User.Id,
+                resolvedAddress.Address.Id);
+
+            return Result<decimal>.Fail(CheckoutErrors.ShipmentFeeCalculationFailed);
+        }
     }
 
     private async Task ReserveStockAndCreateOrderItemsAsync(
@@ -307,6 +346,7 @@ internal sealed class PlaceOrderHandler
 
     private CreateProviderPaymentSessionRequest BuildProviderPaymentSessionRequest(
         PlaceOrderCommand request,
+        ResolvedCheckoutAddress resolvedAddress,
         OrderEntity order,
         PaymentAttempt paymentAttempt,
         IReadOnlyCollection<CartItem> cartItems)
@@ -319,7 +359,7 @@ internal sealed class PlaceOrderHandler
             Currency: order.Currency,
             Items: BuildPaymentItems(cartItems),
             BillingData: BuildBillingData(
-                request.ShippingAddress,
+                resolvedAddress.ShippingAddress,
                 request.SameAsShipping,
                 request.BillingAddress),
             IdempotencyKey: paymentAttempt.IdempotencyKey,

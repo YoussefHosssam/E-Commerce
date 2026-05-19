@@ -17,19 +17,21 @@ public class ProductImage : BaseEntity
     public bool IsPrimary { get; private set; }
     public int SortOrder { get; private set; }
     public ImageProcessingStatus ProcessingStatus { get; private set; } = ImageProcessingStatus.PendingUpload;
+    public DateTimeOffset? UploadExpiresAt { get; private set; } = null;
 
     private ProductImage() { }
 
-    private ProductImage(Guid productId, string storageKey, bool isPrimary, int sortOrder)
+    private ProductImage(Guid productId, string storageKey, bool isPrimary, int sortOrder , DateTimeOffset? uploadExpiresAt = null)
     {
         ProductId = productId;
         StorageKey = storageKey;
         IsPrimary = isPrimary;
         SortOrder = sortOrder;
         ProcessingStatus = ImageProcessingStatus.PendingUpload;
+        UploadExpiresAt = uploadExpiresAt;
     }
 
-    public static ProductImage CreatePending(Guid productId, string storageKey, bool isPrimary, int sortOrder)
+    public static ProductImage CreatePending(Guid productId, string storageKey, bool isPrimary, int sortOrder , DateTimeOffset expiresAt)
     {
         if (productId == Guid.Empty)
             throw new DomainValidationException(ProductImageErrors.ProductIdEmpty);
@@ -39,7 +41,7 @@ public class ProductImage : BaseEntity
         if (sortOrder <= 0)
             throw new DomainValidationException(ProductImageErrors.SortOrderInvalid);
 
-        return new ProductImage(productId, storageKey, isPrimary, sortOrder);
+        return new ProductImage(productId, storageKey, isPrimary, sortOrder , expiresAt);
     }
 
     public void MarkUploaded(string url, int width, int height, long sizeInBytes, string format)

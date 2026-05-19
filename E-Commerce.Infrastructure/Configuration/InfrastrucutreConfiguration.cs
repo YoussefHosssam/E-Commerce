@@ -1,14 +1,15 @@
-﻿using E_Commerce.Application.Contracts.Infrastructure.BackgroundJobs;
+﻿using E_Commerce.Application.Common.Options;
+using E_Commerce.Application.Contracts.Infrastructure.BackgroundJobs;
 using E_Commerce.Application.Contracts.Infrastructure.Common;
 using E_Commerce.Application.Contracts.Infrastructure.Emails;
-using E_Commerce.Application.Contracts.Infrastructure.Payment;
 using E_Commerce.Application.Contracts.Infrastructure.Images;
-using E_Commerce.Application.Common.Options;
+using E_Commerce.Application.Contracts.Infrastructure.Payment;
 using E_Commerce.Application.Contracts.Infrastructure.TotpTwoFactorAuth;
 using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
 using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Jwt;
 using E_Commerce.Application.Contracts.Infrastrucuture.Auth.RefreshTokens;
 using E_Commerce.Application.Contracts.Infrastrucuture.Cart;
+using E_Commerce.Application.Features.ImageUploads.Common;
 using E_Commerce.Infrastructure.Auth.Jwt;
 using E_Commerce.Infrastructure.Auth.RefreshTokens;
 using E_Commerce.Infrastructure.BackgroundJobs.Hangfire;
@@ -27,6 +28,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Polly;
+using Polly.CircuitBreaker;
+using Polly.Retry;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -68,6 +71,7 @@ namespace E_Commerce.Infrastructure.Configuration
             services.AddScoped<ITotpHandler, TotpHandler>();
             services.AddScoped<IPaymentGateway, PaymobPaymentGateway>();
             services.AddScoped<IImageStorageService, CloudinaryImageStorageService>();
+            services.AddScoped<IImageUploadValidationService, ImageUploadValidationService>();
 
 
             services.AddTransient<ITokenGenerator, TokenGenerator>();
@@ -124,6 +128,27 @@ namespace E_Commerce.Infrastructure.Configuration
                     BreakDuration = TimeSpan.FromSeconds(5),
                     MinimumThroughput = 6,
                 });
+            });
+
+            services.AddResiliencePipeline("cloudinary", builder =>
+            {
+                builder
+                    .AddRetry(new RetryStrategyOptions
+                    {
+                        MaxRetryAttempts = 3,
+                        Delay = TimeSpan.FromMilliseconds(300),
+                        BackoffType = DelayBackoffType.Exponential,
+                        ShouldHandle = new PredicateBuilder()
+                            .Handle<Exception>()
+                    })
+                    .AddTimeout(TimeSpan.FromSeconds(10))
+                    .AddCircuitBreaker(new CircuitBreakerStrategyOptions
+                    {
+                        FailureRatio = 0.5,
+                        SamplingDuration = TimeSpan.FromSeconds(30),
+                        MinimumThroughput = 10,
+                        BreakDuration = TimeSpan.FromSeconds(20)
+                    });
             });
             return services;
         }

@@ -16,6 +16,33 @@ namespace E_Commerce.Application.Features.Checkout
         decimal Total,
         string Currency);
 
+    public sealed record CheckoutReviewDto(
+        IReadOnlyCollection<CheckoutItemDto> Items,
+        int TotalItems,
+        int TotalQuantity,
+        decimal Subtotal,
+        decimal ShippingFee,
+        decimal Total,
+        string Currency,
+        CheckoutAddressDto ShippingAddress);
+
+    public sealed record CheckoutAddressDto(
+        Guid AddressId,
+        string Label,
+        string Country,
+        string Governorate,
+        string City,
+        string Area,
+        string Street,
+        string BuildingNumber,
+        string? Floor,
+        string? Apartment,
+        string? PostalCode,
+        string? Landmark,
+        decimal? Latitude,
+        decimal? Longitude,
+        bool IsDefault);
+
     public sealed record CheckoutItemDto(
         Guid CartItemId,
         Guid VariantId,

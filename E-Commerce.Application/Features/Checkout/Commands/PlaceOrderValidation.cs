@@ -7,48 +7,10 @@ public sealed class PlaceOrderValidation : AbstractValidator<PlaceOrderCommand>
 {
     public PlaceOrderValidation()
     {
-        RuleFor(x => x.ShippingAddress)
+        RuleFor(x => x.AddressId)
             .NotNull()
-            .WithError(OrderErrors.ShippingAddress.Required);
-
-        When(x => x.ShippingAddress is not null, () =>
-        {
-            RuleFor(x => x.ShippingAddress!.FirstName)
-                .NotEmpty()
-                .MaximumLength(60)
-                .WithError(OrderErrors.ShippingAddress.FirstNameRequired);
-
-            RuleFor(x => x.ShippingAddress!.LastName)
-                .NotEmpty()
-                .MaximumLength(60)
-                .WithError(OrderErrors.ShippingAddress.LastNameRequired);
-
-            RuleFor(x => x.ShippingAddress!.Email)
-                .NotEmpty()
-                .EmailAddress()
-                .MaximumLength(150)
-                .WithError(OrderErrors.ShippingAddress.EmailRequired);
-
-            RuleFor(x => x.ShippingAddress!.PhoneNumber)
-                .NotEmpty()
-                .MaximumLength(30)
-                .WithError(OrderErrors.ShippingAddress.PhoneRequired);
-
-            RuleFor(x => x.ShippingAddress!.City)
-                .MaximumLength(100)
-                .When(x => !string.IsNullOrWhiteSpace(x.ShippingAddress!.City))
-                .WithError(OrderErrors.ShippingAddress.CityTooLong);
-
-            RuleFor(x => x.ShippingAddress!.AddressLine1)
-                .MaximumLength(250)
-                .When(x => !string.IsNullOrWhiteSpace(x.ShippingAddress!.AddressLine1))
-                .WithError(OrderErrors.ShippingAddress.AddressLineTooLong);
-
-            RuleFor(x => x.ShippingAddress!.AddressLine2)
-                .MaximumLength(250)
-                .When(x => !string.IsNullOrWhiteSpace(x.ShippingAddress!.AddressLine2))
-                .WithError(OrderErrors.ShippingAddress.AddressLineTooLong);
-        });
+            .WithError(CheckoutErrors.AddressRequired)
+            .When(x => !x.DefaultAddress);
 
         When(x => !x.SameAsShipping, () =>
         {

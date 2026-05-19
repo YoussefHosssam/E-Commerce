@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using E_Commerce.Application.Common.Dtos;
 using E_Commerce.Application.Features.Order.Common;
 using System;
 using System.Collections.Generic;
@@ -23,8 +24,8 @@ namespace E_Commerce.Application.Mapping
             CreateMap<OrderEntity, OrderDto>()
                 .ForMember(d => d.Status, o => o.MapFrom(s => s.Status))
                 .ForMember(d => d.Currency, o => o.MapFrom(s => s.Currency.Value))
-                .ForMember(d => d.ShippingAddress, o => o.MapFrom(s => s.ShippingAddressJson.Value))
-                .ForMember(d => d.BillingAddress, o => o.MapFrom(s => s.BillingAddressJson.Value))
+                .ForMember(d => d.ShippingAddress, o => o.MapFrom(s => MapShippingAddress(s)))
+                .ForMember(d => d.BillingAddress, o => o.MapFrom(s => MapBillingAddress(s)))
                 .ForMember(d => d.Items, o => o.MapFrom(s => s.Items));
 
             // 🔹 OrderItem -> DTO
@@ -32,6 +33,15 @@ namespace E_Commerce.Application.Mapping
                 .ForMember(d => d.ProductTitle, o => o.MapFrom(s => s.ProductTitleSnapshot))
                 .ForMember(d => d.Currency, o => o.MapFrom(s => s.Currency.Value));
 
+        }
+        private static ShippingAddressDto MapShippingAddress(OrderEntity order)
+        {
+            return JsonText.To<ShippingAddressDto>(order.ShippingAddressJson);
+        }
+
+        private static BillingAddressDto MapBillingAddress(OrderEntity order)
+        {
+            return JsonText.To<BillingAddressDto>(order.BillingAddressJson);
         }
     }
 }

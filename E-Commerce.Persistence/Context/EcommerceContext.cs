@@ -12,6 +12,8 @@ namespace E_Commerce.Persistence.Context
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<UserProfile> UserProfiles { get; set; }
+        public DbSet<UserAddress> UserAddresses { get; set; }
         public DbSet<UserTwoFactor> Users2Fa { get; set; }
         public DbSet<UserOAuthAccount> UserOAuthAccounts { get; set; }
         public DbSet<Inventory> Inventories { get; set; }

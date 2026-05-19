@@ -30,7 +30,7 @@ namespace E_Commerce.Application.Configuration
             services.AddScoped<IPasswordResetEmailPreparationService, PasswordResetEmailPreparationService>();
             services.AddScoped(typeof(IGenerateLoginTokens), typeof(GenerateLoginTokens));
             services.AddScoped<IOrderService, OrderService>();
-            services.AddScoped<ImageUploadValidationService>();
+            services.AddScoped<ICheckoutAddressResolver, CheckoutAddressResolver>();
             services.AddSingleton<OrderNumberGenerator>();
 
             return services;

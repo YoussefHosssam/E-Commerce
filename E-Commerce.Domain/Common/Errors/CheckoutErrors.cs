@@ -38,4 +38,39 @@ public static class CheckoutErrors
             "One or more items in your cart have invalid quantity.",
             ErrorType.Validation
         );
+
+    public static readonly Error DefaultAddressNotFound =
+        new(
+            ErrorCodes.Checkout.DefaultAddressNotFound,
+            "Default shipping address was not found.",
+            ErrorType.NotFound
+        );
+
+    public static readonly Error AddressRequired =
+        new(
+            ErrorCodes.Checkout.AddressRequired,
+            "Shipping address is required.",
+            ErrorType.Validation
+        );
+
+    public static readonly Error AddressDoesNotBelongToUser =
+        new(
+            ErrorCodes.Checkout.AddressDoesNotBelongToUser,
+            "Shipping address does not belong to the current user.",
+            ErrorType.Forbidden
+        );
+
+    public static readonly Error AddressInvalidForShipping =
+        new(
+            ErrorCodes.Checkout.AddressInvalidForShipping,
+            "Shipping address is missing required shipping information.",
+            ErrorType.Validation
+        );
+
+    public static readonly Error ShipmentFeeCalculationFailed =
+        new(
+            ErrorCodes.Checkout.ShipmentFeeCalculationFailed,
+            "Shipment fee could not be calculated for the selected address.",
+            ErrorType.External
+        );
 }

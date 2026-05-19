@@ -12,6 +12,6 @@ namespace E_Commerce.Application.Contracts.Services
 {
     internal interface IOrderService
     {
-        Task<Result<Order>> CreateOrder(Guid userId ,CurrencyCode currency ,ShippingAddressDto shippingAddress, bool isSameAddress, BillingAddressDto? billingAddress , CancellationToken ctn , DateTimeOffset now);
+        Task<Result<Order>> CreateOrder(Guid userId ,CurrencyCode currency ,ShippingAddressDto shippingAddress, bool isSameAddress, BillingAddressDto? billingAddress, decimal shippingFee, CancellationToken ctn , DateTimeOffset now);
     }
 }

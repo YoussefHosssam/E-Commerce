@@ -33,7 +33,7 @@ internal sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
 
         builder.Property(x => x.RawPayloadJson)
                .IsRequired()
-               .HasConversion(ValueConverters.StructString<JsonText>())
+               .HasConversion(ValueConverters.ClassString<JsonText>())
                .HasColumnType("nvarchar(max)");
 
         builder.Property(x => x.UpdatedAt);

@@ -26,4 +26,25 @@ internal static class ValueObjectFactory
             throw;
         }
     }
+
+    public static T FromReferenceString<T>(string value) where T : class
+    {
+        var type = typeof(T);
+        var create = type.GetMethod("Create", BindingFlags.Public | BindingFlags.Static, new[] { typeof(string) });
+
+        try
+        {
+            if (create is not null)
+            {
+                return (T)create.Invoke(null, new object[] { value })!;
+            }
+
+            return (T)Activator.CreateInstance(type, value)!;
+        }
+        catch (TargetInvocationException exception) when (exception.InnerException is AppException inner)
+        {
+            ExceptionDispatchInfo.Capture(inner).Throw();
+            throw;
+        }
+    }
 }

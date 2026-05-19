@@ -27,11 +27,11 @@ internal sealed class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
                .HasMaxLength(100);
 
         builder.Property(x => x.OldValuesJson)
-               .HasConversion(ValueConverters.StructString<JsonText>())
+               .HasConversion(ValueConverters.ClassString<JsonText>())
                .HasColumnType("nvarchar(max)");
 
         builder.Property(x => x.NewValuesJson)
-               .HasConversion(ValueConverters.StructString<JsonText>())
+               .HasConversion(ValueConverters.ClassString<JsonText>())
                .HasColumnType("nvarchar(max)");
 
         builder.Property(x => x.IpAddress).HasMaxLength(64);

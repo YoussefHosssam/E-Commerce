@@ -35,7 +35,7 @@ public sealed partial class CategoriesController : ControllerBase
         => this.FromResult(await _sender.Send(new GetCategoryByIdQuery(id), ct), "Category retrieved successfully.");
 
     [HttpGet("{id:guid}/products")]
-    public async Task<ApiResult<IReadOnlyCollection<ProductListItemDto>>> GetProductsById(Guid id , PageRequest page, CancellationToken ct)
+    public async Task<ApiResult<IReadOnlyCollection<ProductListItemDto>>> GetProductsById(Guid id , [FromQuery] PageRequest page, CancellationToken ct)
     => this.FromResult(await _sender.Send(new GetCategoryProductsQuery(id , page), ct), "Products retrieved successfully.");
 
     [Authorize(Roles = nameof(UserRole.Admin))]

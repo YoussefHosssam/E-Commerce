@@ -15,4 +15,5 @@ public interface IImageStorageService
     Task DeleteAsync(
         string storageKey,
         CancellationToken cancellationToken);
+    string BuildStorageKey<T>(Guid id);
 }

@@ -16,7 +16,7 @@ internal sealed class OrderItemConfiguration : IEntityTypeConfiguration<OrderIte
 
         builder.Property(x => x.VariantSnapshotJson)
                .IsRequired()
-               .HasConversion(ValueConverters.StructString<JsonText>())
+               .HasConversion(ValueConverters.ClassString<JsonText>())
                .HasColumnType("nvarchar(max)");
 
         builder.Property(x => x.UnitPrice).HasPrecision(18, 2);

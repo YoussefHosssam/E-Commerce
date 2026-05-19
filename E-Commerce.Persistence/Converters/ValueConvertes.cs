@@ -7,4 +7,8 @@ internal static class ValueConverters
     public static ValueConverter<T, string> StructString<T>() where T : struct
         => new(v => (string)typeof(T).GetProperty("Value")!.GetValue(v)!,
                s => ValueObjectFactory.FromString<T>(s));
+
+    public static ValueConverter<T, string> ClassString<T>() where T : class
+        => new(v => (string)typeof(T).GetProperty("Value")!.GetValue(v)!,
+               s => ValueObjectFactory.FromReferenceString<T>(s));
 }

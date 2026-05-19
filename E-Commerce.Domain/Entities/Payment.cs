@@ -71,7 +71,7 @@ public sealed class Payment : BaseEntity
 
         rawPayloadJson ??= JsonText.Create("{}");
 
-        return new Payment(orderId, provider, amount, currency, rawPayloadJson.Value, now);
+        return new Payment(orderId, provider, amount, currency, rawPayloadJson, now);
     }
 
     // --------- Domain transitions ---------
@@ -115,7 +115,7 @@ public sealed class Payment : BaseEntity
 
         Status = PaymentStatus.Failed;
         if (rawPayloadJson is not null)
-            RawPayloadJson = rawPayloadJson.Value;
+            RawPayloadJson = rawPayloadJson;
 
         Touch(now);
     }

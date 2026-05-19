@@ -132,6 +132,6 @@ public sealed partial class ProductsController : ControllerBase
 
     [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpPatch("{productId:guid}/variants/{variantId:guid}/stock-movement")]
-    public async Task<ApiResult> UpdateStockMovement(Guid productId , Guid variantId , UpdateStockMovementRequest request, CancellationToken ct)
-    => this.FromResult(await _sender.Send(new UpdateStockMovementCommand(productId, variantId , request.Type , request.Quantity , request.Reason), ct), "Variant deleted successfully.");
+    public async Task<ApiResult> UpdateStockMovement(Guid productId , Guid variantId , [FromBody] UpdateStockMovementRequest request, CancellationToken ct)
+    => this.FromResult(await _sender.Send(new UpdateStockMovementCommand(productId, variantId , request.Type , request.Quantity , request.Reason), ct), "Stock updated successfully.");
 }

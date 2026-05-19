@@ -16,19 +16,21 @@ public class VariantImage : BaseEntity
     public bool IsPrimary { get; private set; }
     public int SortOrder { get; private set; }
     public ImageProcessingStatus ProcessingStatus { get; private set; } = ImageProcessingStatus.PendingUpload;
+    public DateTimeOffset? UploadExpiresAt { get; private set; } = null;
 
     private VariantImage() { }
 
-    private VariantImage(Guid variantId, string storageKey, bool isPrimary, int sortOrder)
+    private VariantImage(Guid variantId, string storageKey, bool isPrimary, int sortOrder , DateTimeOffset? uploadExpiresAt = null)
     {
         VariantId = variantId;
         StorageKey = storageKey;
         IsPrimary = isPrimary;
         SortOrder = sortOrder;
         ProcessingStatus = ImageProcessingStatus.PendingUpload;
+        UploadExpiresAt = uploadExpiresAt;
     }
 
-    public static VariantImage CreatePending(Guid variantId, string storageKey, bool isPrimary, int sortOrder)
+    public static VariantImage CreatePending(Guid variantId, string storageKey, bool isPrimary, int sortOrder , DateTimeOffset uploadExpiresAt)
     {
         if (variantId == Guid.Empty)
             throw new DomainValidationException(VariantImageErrors.VariantIdEmpty);
@@ -38,16 +40,8 @@ public class VariantImage : BaseEntity
         if (sortOrder <= 0)
             throw new DomainValidationException(VariantImageErrors.SortOrderInvalid);
 
-        return new VariantImage(variantId, storageKey, isPrimary, sortOrder);
+        return new VariantImage(variantId, storageKey, isPrimary, sortOrder , uploadExpiresAt);
     }
-
-    public static VariantImage Create(Guid variantId, string url, bool isPrimary, int sortOrder)
-    {
-        var image = CreatePending(variantId, url, isPrimary, sortOrder);
-        image.MarkReady(url, 1, 1, 1, "unknown");
-        return image;
-    }
-
     public void MarkUploaded(string url, int width, int height, long sizeInBytes, string format)
     {
         SetMetadata(url, width, height, sizeInBytes, format);

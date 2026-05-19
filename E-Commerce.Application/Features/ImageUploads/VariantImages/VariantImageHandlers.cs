@@ -15,25 +15,24 @@ internal sealed class GenerateVariantImageUploadSignatureHandler
 {
     private readonly IUnitOfWork _uow;
     private readonly IImageStorageService _imageStorage;
-    private readonly ImageUploadValidationService _validation;
-    private readonly ImageStorageOptions _options;
+    private readonly IImageUploadValidationService _validation;
 
     public GenerateVariantImageUploadSignatureHandler(
         IUnitOfWork uow,
         IImageStorageService imageStorage,
-        ImageUploadValidationService validation,
-        IOptions<ImageStorageOptions> options)
+        IImageUploadValidationService validation
+        )
     {
         _uow = uow;
         _imageStorage = imageStorage;
         _validation = validation;
-        _options = options.Value;
     }
 
     public async Task<Result<GenerateImageUploadSignatureResponse>> Handle(
         GenerateVariantImageUploadSignatureCommand request,
         CancellationToken cancellationToken)
     {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
         var requestError = _validation.ValidateRequestedFile(request.ContentType, request.SizeInBytes);
         if (requestError is not null)
             return Result<GenerateImageUploadSignatureResponse>.Fail(requestError);
@@ -42,10 +41,11 @@ internal sealed class GenerateVariantImageUploadSignatureHandler
         if (variant is null)
             return Result<GenerateImageUploadSignatureResponse>.Fail(VariantErrors.NotFound);
 
-        var storageKey = BuildStorageKey(request.VariantId);
+        var storageKey = _imageStorage.BuildStorageKey<VariantImage>(request.VariantId);
         var sortOrder = variant.Images.Count(x => x.ProcessingStatus != Domain.Enums.ImageProcessingStatus.Deleted) + 1;
         var isPrimary = variant.Images.All(x => x.ProcessingStatus == Domain.Enums.ImageProcessingStatus.Deleted);
-        var image = VariantImage.CreatePending(request.VariantId, storageKey, isPrimary, sortOrder);
+        var expiresAt = now.AddMinutes(15);
+        var image = VariantImage.CreatePending(request.VariantId, storageKey, isPrimary, sortOrder , expiresAt);
 
         variant.AddImage(image);
         await _uow.SaveChangesAsync(cancellationToken);
@@ -56,9 +56,6 @@ internal sealed class GenerateVariantImageUploadSignatureHandler
 
         return Result<GenerateImageUploadSignatureResponse>.Success(signature);
     }
-
-    private string BuildStorageKey(Guid variantId)
-        => $"{_options.UploadFolderRoot.TrimEnd('/')}/variants/{variantId:N}/images/{Guid.NewGuid():N}";
 }
 
 internal sealed class CompleteVariantImageUploadHandler
@@ -66,21 +63,18 @@ internal sealed class CompleteVariantImageUploadHandler
 {
     private readonly IUnitOfWork _uow;
     private readonly IImageStorageService _imageStorage;
-    private readonly ImageUploadValidationService _validation;
-    private readonly ImageStorageOptions _options;
+    private readonly IImageUploadValidationService _validation;
     private readonly IMapper _mapper;
 
     public CompleteVariantImageUploadHandler(
         IUnitOfWork uow,
         IImageStorageService imageStorage,
-        ImageUploadValidationService validation,
-        IOptions<ImageStorageOptions> options,
+        IImageUploadValidationService validation,
         IMapper mapper)
     {
         _uow = uow;
         _imageStorage = imageStorage;
         _validation = validation;
-        _options = options.Value;
         _mapper = mapper;
     }
 
@@ -88,8 +82,7 @@ internal sealed class CompleteVariantImageUploadHandler
         CompleteVariantImageUploadCommand request,
         CancellationToken cancellationToken)
     {
-        var expectedPrefix = $"{_options.UploadFolderRoot.TrimEnd('/')}/variants/{request.VariantId:N}/images/";
-        if (!_validation.HasExpectedPrefix(request.StorageKey, expectedPrefix))
+        if (!_validation.HasExpectedPrefix<VariantImage>(request.StorageKey, request.VariantId))
             return Result<ImageDto>.Fail(ImageUploadErrors.StorageKeyInvalid);
 
         var variant = await _uow.Variants.GetByIdWithDetailsAsync(request.VariantId, true, cancellationToken);
