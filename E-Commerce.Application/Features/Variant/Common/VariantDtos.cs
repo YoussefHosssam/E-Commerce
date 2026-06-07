@@ -3,37 +3,56 @@ using E_Commerce.Domain.Entities;
 
 namespace E_Commerce.Application.Features.Variant.Common
 {
-    public sealed record VariantListItemDto(
-        Guid Id,
-        Guid ProductId,
-        string ProductSlug,
-        string Sku,
-        string? Size,
-        string? Color,
-        MoneyDto? PriceOverride,
-        bool IsActive);
-    public sealed record CartVariantDto(
-        Guid Id,
-        string Sku,
-        string? Size,
-        string? Color,
-        MoneyDto? PriceOverride);
-    public sealed record VariantDetailDto(
-        Guid Id,
-        Guid ProductId,
-        string ProductSlug,
-        string Sku,
-        string? Size,
-        string? Color,
-        MoneyDto? PriceOverride,
-        bool IsActive);
+    public sealed record VariantListItemDto
+    {
+        public Guid Id { get; init; }
+        public Guid ProductId { get; init; }
+        public string ProductSlug { get; init; } = default!;
+        public string Sku { get; init; } = default!;
+        public string? Size { get; init; }
+        public ColorDto Color { get; init; } = default!;
+        public MoneyDto EffectivePrice { get; init; } = default!;
+        public MoneyDto? VariantPriceOverride { get; init; }
+        public int Stock { get; init; }
+        public bool IsDefault { get; init; }
+        public bool IsActive { get; init; }
+    }
+
+    public sealed record CartVariantDto
+    {
+        public Guid Id { get; init; }
+        public string Sku { get; init; } = default!;
+        public string? Size { get; init; }
+        public ColorDto Color { get; init; } = default!;
+        public MoneyDto EffectivePrice { get; init; } = default!;
+        public MoneyDto? VariantPriceOverride { get; init; }
+        public bool IsDefault { get; init; }
+    }
+
+    public sealed record VariantDetailDto
+    {
+        public Guid Id { get; init; }
+        public Guid ProductId { get; init; }
+        public string ProductSlug { get; init; } = default!;
+        public string Sku { get; init; } = default!;
+        public string? Size { get; init; }
+        public ColorDto Color { get; init; } = default!;
+        public MoneyDto EffectivePrice { get; init; } = default!;
+        public MoneyDto? VariantPriceOverride { get; init; }
+        public int Stock { get; init; }
+        public bool IsDefault { get; init; }
+        public bool IsActive { get; init; }
+    }
+
     public sealed record VariantSnapshot
     {
-        public int VariantId { get; set; }
-        public int ProductId { get; set; }
-        public string ProductName { get; set; } = string.Empty;
-        public string? Sku { get; set; }
-        public decimal UnitPrice { get; set; }
-        public string CurrencyCode { get; set; } = "EGP";
+        public Guid VariantId { get; init; }
+        public Guid ProductId { get; init; }
+        public string ProductName { get; init; } = string.Empty;
+        public string? Sku { get; init; }
+        public string? Size { get; init; }
+        public ColorDto? Color { get; init; }
+        public decimal UnitPrice { get; init; }
+        public string CurrencyCode { get; init; } = "EGP";
     }
 }

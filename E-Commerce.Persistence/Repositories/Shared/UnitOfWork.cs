@@ -24,7 +24,6 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
     public IPaymentRepository Payments { get; }
     public IRefreshTokenRepository RefreshTokens { get; }
     public IGenericRepository<EmailMessage> EmailMessages { get; }
-    public IIdempotencyRecordRepository IdempotencyRecords { get; }
     public IInventoryRepository Inventories { get; }
     public IStockMovementRepository StockMovements { get; }
     public IGenericRepository<UserTwoFactor> User2fa { get; }
@@ -61,7 +60,6 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
         IOrderRepository orders,
         IPaymentRepository payments,
         IPaymentAttemptRepository paymentAttempts,
-        IIdempotencyRecordRepository idempotencyRecords,
         ILogger<UnitOfWork> logger)
     {
         _context = context;
@@ -87,7 +85,6 @@ public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
         Orders = orders;
         Payments = payments;
         PaymentAttempts = paymentAttempts;
-        IdempotencyRecords = idempotencyRecords;
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct)

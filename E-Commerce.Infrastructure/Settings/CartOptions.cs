@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace E_Commerce.Infrastructure.Settings
+{
+    public sealed class CartOptions
+    {
+        public string HeaderName { get; init; } = "X-Cart-Session-Id";
+        public int DaysToExpire { get; init; }
+        public bool Secure { get; init; }
+    }
+}

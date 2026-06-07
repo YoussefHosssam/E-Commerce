@@ -1,5 +1,5 @@
 using E_Commerce.Application.Common.Result;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
+using E_Commerce.Application.Contracts.API.Identity;
 using E_Commerce.Application.Features.Me.Common;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
@@ -20,11 +20,8 @@ public sealed class CreateUserAddressHandler : IRequestHandler<CreateUserAddress
 
     public async Task<Result<UserAddressDto>> Handle(CreateUserAddressCommand request, CancellationToken cancellationToken)
     {
-        var userId = _userAccessor.UserId;
-        if (!userId.HasValue)
-            return Result<UserAddressDto>.Fail(AuthErrors.InvalidToken);
-
-        var user = await _uow.Users.GetByIdWithLoadingDataAsync(userId.Value, cancellationToken);
+        var userId = _userAccessor.GetRequiredUserId();
+        var user = await _uow.Users.GetByIdWithLoadingDataAsync(userId, cancellationToken);
         if (user is null)
             return Result<UserAddressDto>.Fail(UserErrors.NotFound);
 

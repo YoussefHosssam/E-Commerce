@@ -1,5 +1,6 @@
 using E_Commerce.Application.Common.Result;
 using E_Commerce.Application.Features.Product.Common;
+using E_Commerce.Application.Features.Variant.Common;
 using E_Commerce.Domain.Enums;
 using MediatR;
 
@@ -13,6 +14,11 @@ public sealed record UpdateProductCommand(
     string? Brand,
     decimal BasePriceAmount,
     string BasePriceCurrency,
+    bool HasVariants,
+    bool HasDiscount,
+    decimal? CompareAtPriceAmount,
+    string? CompareAtPriceCurrency,
+    IReadOnlyCollection<VariantCreateDto>? Variants,
     ProductStatus Status,
     bool IsActive) : IRequest<Result<ProductDetailDto>>;
 

@@ -187,6 +187,8 @@ public sealed class PaymentAttempt : BaseEntity
         Touch(now);
     }
 
+    public bool IsPaid { get { return Status == PaymentAttemptStatus.Paid;} }
+
     public void MarkFailed(DateTimeOffset now, JsonText? rawPayloadJson = null)
     {
         EnsureNotFinal();

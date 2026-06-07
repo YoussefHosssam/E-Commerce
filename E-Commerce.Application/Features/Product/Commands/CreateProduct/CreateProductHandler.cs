@@ -1,5 +1,6 @@
 using E_Commerce.Application.Common.Result;
 using E_Commerce.Application.Contracts.Persistence.Shared;
+using E_Commerce.Application.Contracts.Services;
 using E_Commerce.Application.Features.Product.Common;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.ValueObjects;
@@ -12,11 +13,13 @@ public sealed class CreateProductHandler : IRequestHandler<CreateProductCommand,
 {
     private readonly IUnitOfWork _uow;
     private readonly IMapper _mapper;
+    private readonly IVariantService _variantService;
 
-    public CreateProductHandler(IUnitOfWork uow, IMapper mapper)
+    public CreateProductHandler(IUnitOfWork uow, IMapper mapper, IVariantService variantService)
     {
         _uow = uow;
         _mapper = mapper;
+        _variantService = variantService;
     }
 
     public async Task<Result<ProductDetailDto>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
@@ -34,7 +37,17 @@ public sealed class CreateProductHandler : IRequestHandler<CreateProductCommand,
         }
 
         var money = Money.Create(request.BasePriceAmount, CurrencyCode.Create(request.BasePriceCurrency));
-        var product = Domain.Entities.Product.Create(request.Name , request.CategoryId, slug, money, request.Brand, request.Status);
+        var product = Domain.Entities.Product.Create(request.Name , request.CategoryId, slug, money, request.HasVariants, request.Brand, request.Status);
+
+        var variantsResult = await _variantService.CreateVariantsForProductAsync(product, request.Variants, cancellationToken);
+        if (!variantsResult.IsSuccess)
+            return Result<ProductDetailDto>.Fail(variantsResult.Error!);
+
+        if (request.HasDiscount)
+        {
+            var compareAtPrice = Money.Create(request.CompareAtPriceAmount!.Value, CurrencyCode.Create(request.CompareAtPriceCurrency!));
+            product.ApplyDiscount(compareAtPrice);
+        }
 
         if (!request.IsActive)
         {

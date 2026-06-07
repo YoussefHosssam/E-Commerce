@@ -1,5 +1,5 @@
 ﻿using E_Commerce.Application.Common.Result;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
+using E_Commerce.Application.Contracts.API.Identity;
 using E_Commerce.Application.Features.Order.Common;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
@@ -35,13 +35,8 @@ namespace E_Commerce.Application.Features.Order.Commands.CancelOrder
         {
             var now = DateTimeOffset.UtcNow;
 
-            var userId = _userAccessor.UserId;
-            var userRole = _userAccessor.Role;
-
-            if (!userId.HasValue) 
-                return Result.Fail(AuthErrors.InvalidToken);
-            if (!userRole.HasValue)
-                return Result.Fail(AuthErrors.InvalidToken);
+            var userId = _userAccessor.GetRequiredUserId();
+            var userRole = _userAccessor.GetRequiredRole();
 
             var order = await _uow.Orders.GetTrackingOrderByIdWithDetailsAsync(request.id, cancellationToken);
 
@@ -51,18 +46,18 @@ namespace E_Commerce.Application.Features.Order.Commands.CancelOrder
                 return Result.Fail(OrderErrors.CancelNotAllowed);
 
             if (userRole != UserRole.Admin &&
-                order.UserId != userId.Value)
+                order.UserId != userId)
             {
                 _logger.LogWarning(
                     "Order cancel forbidden for Order {OrderId}, User {UserId}, Role {UserRole}",
                     request.id,
-                    userId.Value,
-                    userRole.Value);
+                    userId,
+                    userRole);
 
                 return Result.Fail(OrderErrors.NotFound);
             }
 
-            return await CancelOrder(request, order, userId.Value, now, cancellationToken);
+            return await CancelOrder(request, order, userId, now, cancellationToken);
         }
 
         private async Task<Result> CancelOrder(CancelOrderCommand request,Domain.Entities.Order order, Guid userId , DateTimeOffset now, CancellationToken cancellationToken)

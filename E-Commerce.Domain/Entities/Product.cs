@@ -18,6 +18,9 @@ public sealed class Product : BaseEntity
 
     // ? Money ??? (Currency + decimal)
     public Money BasePrice { get; private set; } = default!;
+    public bool HasVariants { get; private set; }
+    public bool HasDiscount { get; private set; }
+    public Money? CompareAtPrice { get; private set; }
 
     public bool IsActive { get; private set; } = true;
 
@@ -40,13 +43,17 @@ public sealed class Product : BaseEntity
         Slug slug,
         ProductStatus status,
         string? brand,
-        Money basePrice)
+        Money basePrice,
+        bool hasVariants)
     {
         CategoryId = categoryId;
         Slug = slug;
         Status = status;
         Brand = brand;
         BasePrice = basePrice;
+        HasVariants = hasVariants;
+        HasDiscount = false;
+        CompareAtPrice = null;
         Name = name;
         IsActive = true;
         UpdatedAt = null;
@@ -57,6 +64,7 @@ public sealed class Product : BaseEntity
         Guid categoryId,
         Slug slug,
         Money basePrice,
+        bool hasVariants,
         string? brand = null,
         ProductStatus status = ProductStatus.Draft)
     {
@@ -83,7 +91,7 @@ public sealed class Product : BaseEntity
 
         brand = NormalizeBrandOrNull(brand);
 
-        return new Product(name , categoryId, slug, status, brand, basePrice);
+        return new Product(name , categoryId, slug, status, brand, basePrice, hasVariants);
     }
 
     // -------- Domain behaviors --------
@@ -101,6 +109,31 @@ public sealed class Product : BaseEntity
 
         BasePrice = newBasePrice;
         Touch(now);
+    }
+
+    public void ChangeVariantMode(bool hasVariants, DateTimeOffset now)
+    {
+        HasVariants = hasVariants;
+        Touch(now);
+    }
+
+    public void ApplyDiscount(Money compareAtPrice)
+    {
+        if (compareAtPrice is null || compareAtPrice.Amount <= 0)
+            throw new DomainValidationException(ProductErrors.DiscountPriceRequired);
+
+        var actualPrice = GetActualSellingPrice();
+        if (compareAtPrice.Currency != actualPrice.Currency || compareAtPrice.Amount <= actualPrice.Amount)
+            throw new DomainValidationException(ProductErrors.DiscountPriceMustBeGreaterThanActualPrice);
+
+        CompareAtPrice = compareAtPrice;
+        HasDiscount = true;
+    }
+
+    public void RemoveDiscount()
+    {
+        CompareAtPrice = null;
+        HasDiscount = false;
     }
 
     public void ChangeCategory(Guid categoryId, DateTimeOffset now)
@@ -205,7 +238,7 @@ public sealed class Product : BaseEntity
         if (wasPrimary)
         {
             var next = _images
-                .Where(x => x.ProcessingStatus != ImageProcessingStatus.Deleted && x.ProcessingStatus == ImageProcessingStatus.Ready)
+                .Where(x => x.ProcessingStatus != ImageProcessingStatus.Deleted && x.ProcessingStatus == ImageProcessingStatus.Uploaded)
                 .OrderBy(x => x.SortOrder)
                 .FirstOrDefault();
 
@@ -238,8 +271,9 @@ public sealed class Product : BaseEntity
     public Variant AddVariant(
         string sku,
         string? size,
-        string? color,
-        Money? priceOverride,
+        Color color,
+        Money? price,
+        bool isDefault,
         DateTimeOffset now)
     {
         if (string.IsNullOrWhiteSpace(sku))
@@ -250,18 +284,19 @@ public sealed class Product : BaseEntity
         if (_variants.Any(v => v.Sku == normalizedSku))
             throw new DomainValidationException(ProductErrors.VariantSkuDuplicate);
 
-        if (priceOverride is not null)
+        if (price is not null)
         {
-            if (priceOverride.Amount < 0)
+            if (price.Amount <= 0)
                 throw new DomainValidationException(ProductErrors.VariantPriceOverrideInvalid);
 
-            // important: ?????? variant override ????? ?????? ?? ??????
-            if (!Equals(priceOverride.Currency, BasePrice.Currency))
+            if (!Equals(price.Currency, BasePrice.Currency))
                 throw new DomainValidationException(ProductErrors.VariantPriceOverrideCurrencyMismatch);
         }
 
-        // ?? ???? ????? Variant.Create signature ???? ?????? Money? ??? decimal?
-        var variant = Variant.Create(this.Id, normalizedSku, size, color, priceOverride);
+        if (isDefault)
+            ClearDefaultVariant();
+
+        var variant = Variant.Create(this.Id, normalizedSku, size, color, price, isDefault, BasePrice.Currency);
 
         _variants.Add(variant);
         Touch(now);
@@ -272,8 +307,10 @@ public sealed class Product : BaseEntity
         Guid variantId,
         string sku,
         string? size,
-        string? color,
-        Money? priceOverride,
+        Color color,
+        Money? price,
+        bool updatePrice,
+        bool isDefault,
         bool isActive,
         DateTimeOffset now)
     {
@@ -285,23 +322,38 @@ public sealed class Product : BaseEntity
         if (_variants.Any(v => v.Id != variantId && v.Sku == normalizedSku))
             throw new DomainValidationException(ProductErrors.VariantSkuDuplicate);
 
-        if (priceOverride is not null)
+        if (updatePrice && price is not null)
         {
-            if (priceOverride.Amount < 0)
+            if (price.Amount <= 0)
                 throw new DomainValidationException(ProductErrors.VariantPriceOverrideInvalid);
 
-            if (!Equals(priceOverride.Currency, BasePrice.Currency))
+            if (!Equals(price.Currency, BasePrice.Currency))
                 throw new DomainValidationException(ProductErrors.VariantPriceOverrideCurrencyMismatch);
         }
 
         variant.ChangeSku(normalizedSku);
         variant.ChangeAttributes(size, color);
-        variant.SetPriceOverride(priceOverride);
+        if (updatePrice)
+            variant.ChangePrice(price, BasePrice.Currency);
 
         if (isActive)
             variant.Activate();
         else
             variant.Deactivate();
+
+        if (isDefault)
+        {
+            ClearDefaultVariant(exceptVariantId: variantId);
+            variant.SetDefault();
+        }
+        else if (variant.IsDefault && !_variants.Any(v => v.Id != variantId && v.IsActive && v.IsDefault))
+        {
+            throw new DomainValidationException(ProductErrors.ProductMustHaveOneDefaultVariant);
+        }
+        else
+        {
+            variant.UnsetDefault();
+        }
 
         Touch(now);
         return variant;
@@ -312,8 +364,66 @@ public sealed class Product : BaseEntity
         var variant = _variants.FirstOrDefault(v => v.Id == variantId)
             ?? throw new DomainValidationException(ProductErrors.VariantNotFound);
 
+        if (_variants.Count(v => v.IsActive) <= 1)
+            throw new DomainValidationException(VariantErrors.CannotDeleteLastActiveVariant);
+
+        if (variant.IsDefault && !_variants.Any(v => v.Id != variantId && v.IsActive))
+            throw new DomainValidationException(ProductErrors.ProductMustHaveOneDefaultVariant);
+
         _variants.Remove(variant);
+
+        if (variant.IsDefault)
+            _variants.First(v => v.IsActive).SetDefault();
+
         Touch(now);
+    }
+
+    public void ArchiveVariant(Guid variantId, DateTimeOffset now)
+    {
+        var variant = _variants.FirstOrDefault(v => v.Id == variantId)
+            ?? throw new DomainValidationException(ProductErrors.VariantNotFound);
+
+        if (_variants.Count(v => v.IsActive) <= 1)
+            throw new DomainValidationException(VariantErrors.CannotDeleteLastActiveVariant);
+
+        variant.Deactivate();
+
+        if (variant.IsDefault)
+        {
+            variant.UnsetDefault();
+            _variants.First(v => v.IsActive).SetDefault();
+        }
+
+        Touch(now);
+    }
+
+    public void ArchiveActiveVariantsForReplacement(DateTimeOffset now)
+    {
+        foreach (var variant in _variants.Where(v => v.IsActive))
+        {
+            variant.Deactivate();
+            variant.UnsetDefault();
+        }
+
+        Touch(now);
+    }
+
+    private Money GetActualSellingPrice()
+    {
+        var activeVariants = _variants.Where(v => v.IsActive).ToList();
+        if (activeVariants.Count == 0)
+            throw new DomainValidationException(ProductErrors.ProductMustHaveAtLeastOneVariant);
+
+        return activeVariants.FirstOrDefault(v => v.IsDefault)?.GetEffectivePrice(BasePrice)
+            ?? activeVariants.Select(v => v.GetEffectivePrice(BasePrice)).OrderBy(m => m.Amount).First();
+    }
+
+    private void ClearDefaultVariant(Guid? exceptVariantId = null)
+    {
+        foreach (var variant in _variants.Where(v => v.Id != exceptVariantId))
+        {
+            variant.UnsetDefault();
+        }
     }
 
     private void Touch(DateTimeOffset now)

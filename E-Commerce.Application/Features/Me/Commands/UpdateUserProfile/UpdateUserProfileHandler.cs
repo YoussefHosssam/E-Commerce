@@ -1,5 +1,5 @@
 using E_Commerce.Application.Common.Result;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
+using E_Commerce.Application.Contracts.API.Identity;
 using E_Commerce.Application.Features.Me.Common;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
@@ -20,11 +20,8 @@ public sealed class UpdateUserProfileHandler : IRequestHandler<UpdateUserProfile
 
     public async Task<Result<UserProfileDto>> Handle(UpdateUserProfileCommand request, CancellationToken cancellationToken)
     {
-        var userId = _userAccessor.UserId;
-        if (!userId.HasValue)
-            return Result<UserProfileDto>.Fail(AuthErrors.InvalidToken);
-
-        var user = await _uow.Users.GetByIdWithLoadingDataAsync(userId.Value, cancellationToken);
+        var userId = _userAccessor.GetRequiredUserId();
+        var user = await _uow.Users.GetByIdWithLoadingDataAsync(userId, cancellationToken);
         if (user is null)
             return Result<UserProfileDto>.Fail(UserErrors.NotFound);
 

@@ -5,23 +5,33 @@ using E_Commerce.Infrastructure.Exceptions;
 using E_Commerce.Infrastructure.Settings;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using Polly;
+using Polly.Registry;
 
 internal sealed class EmailSender : IEmailSender
 {
-    private readonly MailTrapProviderOptions _options;
+    private readonly MailTrapOptions _options;
+    private readonly ResiliencePipeline _pipeline;
+    private readonly ILogger<EmailSender> _logger;
 
-    public EmailSender(IOptions<MailTrapProviderOptions> options)
+    public EmailSender(
+        IOptions<MailTrapOptions> options,
+        ResiliencePipelineProvider<string> pipeline,
+        ILogger<EmailSender> logger)
     {
         _options = options.Value;
+        _pipeline = pipeline.GetPipeline("emailJob");
+        _logger = logger;
     }
 
     public async Task SendAsync(
         EmailAddress recipient,
         string subject,
         string htmlBody,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress("App", _options.Sender));
@@ -36,23 +46,41 @@ internal sealed class EmailSender : IEmailSender
 
         using var smtp = new SmtpClient();
 
+        _logger.LogInformation("Email provider send started");
+
         try
         {
-            await smtp.ConnectAsync(
-                _options.Host,
-                _options.Port,
-                SecureSocketOptions.Auto,
-                cancellationToken);
-            await smtp.AuthenticateAsync(
-                _options.Username,
-                _options.Password,
-                cancellationToken);
-            await smtp.SendAsync(message, cancellationToken);
-            await smtp.DisconnectAsync(true, cancellationToken);
+            await _pipeline.ExecuteAsync(async ctx =>
+            {
+                try
+                {
+                    await smtp.ConnectAsync(
+                        _options.Host,
+                        _options.Port,
+                        SecureSocketOptions.Auto,
+                        cancellationToken);
+                    await smtp.AuthenticateAsync(
+                        _options.Username,
+                        _options.Password,
+                        cancellationToken);
+                    await smtp.SendAsync(message, cancellationToken);
+                    await smtp.DisconnectAsync(true, cancellationToken);
+                }
+                catch (Exception)
+                {
+                    throw new InfrastructureException(InfrastructureErrors.PersistenceFailure);
+                }
+            }, cancellationToken);
+
+            _logger.LogInformation("Email provider send completed");
         }
-        catch (Exception)
+        catch (Exception exception)
         {
-            throw new InfrastructureException(InfrastructureErrors.PersistenceFailure);
+            _logger.LogError(
+                exception,
+                "Email provider send failed");
+
+            throw;
         }
     }
 }

@@ -24,5 +24,13 @@ public static class ProductErrors
     public static readonly Error VariantPriceOverrideInvalid = new(ErrorCodes.Product.VariantPriceOverrideInvalid, "Variant price override is invalid.", ErrorType.Validation);
     public static readonly Error VariantSkuDuplicate = new(ErrorCodes.Product.VariantSkuDuplicate, "Variant SKU already exists.", ErrorType.Conflict);
     public static readonly Error VariantSkuRequired = new(ErrorCodes.Product.VariantSkuRequired, "Variant SKU is required.", ErrorType.Validation);
+    public static readonly Error DiscountPriceRequired = new(ErrorCodes.Product.DiscountPriceRequired, "Discount compare-at price is required.", ErrorType.Validation);
+    public static readonly Error DiscountPriceMustBeGreaterThanActualPrice = new(ErrorCodes.Product.DiscountPriceMustBeGreaterThanActualPrice, "Discount compare-at price must be greater than the actual selling price.", ErrorType.Validation);
+    public static readonly Error DiscountPriceNotAllowedWhenHasDiscountFalse = new(ErrorCodes.Product.DiscountPriceNotAllowedWhenHasDiscountFalse, "Compare-at price is not allowed when product has no discount.", ErrorType.Validation);
+    public static readonly Error InvalidDiscountState = new(ErrorCodes.Product.InvalidDiscountState, "Product discount state is invalid.", ErrorType.Validation);
+    public static readonly Error ProductMustHaveAtLeastOneVariant = new(ErrorCodes.Product.ProductMustHaveAtLeastOneVariant, "Product must have at least one variant.", ErrorType.Validation);
+    public static readonly Error SimpleProductMustHaveExactlyOneVariant = new(ErrorCodes.Product.SimpleProductMustHaveExactlyOneVariant, "Simple product must have exactly one variant.", ErrorType.Validation);
+    public static readonly Error ProductMustHaveOneDefaultVariant = new(ErrorCodes.Product.ProductMustHaveOneDefaultVariant, "Product must have exactly one default variant.", ErrorType.Validation);
+    public static readonly Error CannotAddVariantsToSimpleProduct = new(ErrorCodes.Product.CannotAddVariantsToSimpleProduct, "Product is configured as simple product. Convert it to variant product first.", ErrorType.Validation);
 
 }

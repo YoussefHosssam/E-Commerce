@@ -1,5 +1,6 @@
 ﻿using E_Commerce.Application.Common.Dtos;
 using E_Commerce.Application.Common.Result;
+using E_Commerce.Application.Features.Checkout.Common;
 using MediatR;
 using System;
 using System.Collections.Generic;

@@ -13,4 +13,6 @@ public static class VariantImageErrors
     public static readonly Error InvalidProcessingStatus = new(ErrorCodes.VariantImage.InvalidProcessingStatus, "Variant image processing status is invalid.", ErrorType.Validation);
     public static readonly Error ImageRequired = new(ErrorCodes.VariantImage.ImageRequired, "Variant image is required.", ErrorType.Validation);
     public static readonly Error ImageNotFound = new(ErrorCodes.VariantImage.ImageNotFound, "Variant image was not found.", ErrorType.NotFound);
+    public static readonly Error ExceedImagesLimit = new(ErrorCodes.VariantImage.ExceedLimit, "Max Images for variant is 10.", ErrorType.Conflict);
+
 }

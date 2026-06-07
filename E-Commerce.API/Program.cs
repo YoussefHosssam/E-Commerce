@@ -13,6 +13,7 @@ using System.Text.Json.Serialization;
 using Serilog;
 using Serilog.Events;
 using System.Security.Claims;
+using E_Commerce.Persistence.Seeding;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,16 +23,8 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .CreateBootstrapLogger();
 
-builder.Host.UseSerilog((context, services, loggerConfiguration) =>
-{
-    loggerConfiguration
-        .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .Enrich.WithMachineName()
-        .Enrich.WithThreadId();
-});
-
+LoggingConfiguration.ConfigureBootstrapLogger(builder.Configuration);
+builder.Host.UseApplicationSerilog();
 // Add services to the container.
 
 builder.Services.AddControllers().AddJsonOptions(options =>
@@ -40,13 +33,16 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(
         new JsonStringEnumConverter());
 });
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.ApplyInfrastructureConfiguration(builder.Configuration);
 builder.Services.ApplyPersistenceConfiguration(builder.Configuration);
 builder.Services.ApplyApplicationConfiguration();
 builder.Services.ApplyApiConfiguration(builder.Configuration);
-
+builder.Services.ApplyRateLimitingConfiguration();
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 Log.Information(
     "Application starting in {Environment} environment",
@@ -96,22 +92,30 @@ app.UseSerilogRequestLogging(options =>
     };
 });
 
-app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 
-app.UseMiddleware<SerilogContextEnrichmentMiddleware>();
-
 app.UseAuthorization();
+
+app.UseRateLimiter();
+
+app.UseMiddleware<SerilogContextEnrichmentMiddleware>();
 
 app.UseHangfireDashboard("/hangfire");
 
 app.MapControllers();
 
+
 try
 {
+    if (builder.Configuration.GetValue<bool>("SeedData:Enabled") &&
+        (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing")))
+    {
+        await app.Services.SeedDataAsync();
+    }
+
     app.Run();
 }
 catch (Exception exception)

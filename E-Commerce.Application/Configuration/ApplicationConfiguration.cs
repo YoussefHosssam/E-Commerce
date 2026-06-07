@@ -1,4 +1,5 @@
 ﻿using E_Commerce.Application.Behaviors;
+using E_Commerce.Application.Contracts.Infrastrucuture.Cart;
 using E_Commerce.Application.Contracts.Services;
 using E_Commerce.Application.Features.ImageUploads.Common;
 using E_Commerce.Application.Services;
@@ -32,6 +33,10 @@ namespace E_Commerce.Application.Configuration
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<ICheckoutAddressResolver, CheckoutAddressResolver>();
             services.AddSingleton<OrderNumberGenerator>();
+            services.AddScoped<ICartMergeService, CartMergeService>();
+            services.AddScoped<IVariantService, VariantService>();
+            services.AddScoped<IShipmentFeesService, ShipmentFeesService>();
+
 
             return services;
         }

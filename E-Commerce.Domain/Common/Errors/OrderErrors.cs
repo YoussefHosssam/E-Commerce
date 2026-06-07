@@ -23,6 +23,15 @@ public static class OrderErrors
 
     public static readonly Error NotFound =
     new(ErrorCodes.Order.NotFound, "Order is not found.", ErrorType.NotFound);
+
+    public static readonly Error AlreadyPaid =
+        new(ErrorCodes.Order.AlreadyPaid, "Order is already paid.", ErrorType.Conflict);
+
+    public static readonly Error PaymentNotAllowed =
+        new(ErrorCodes.Order.PaymentNotAllowed, "Order cannot accept payment in its current state.", ErrorType.Conflict);
+
+    public static readonly Error NoPayableAmount =
+        new(ErrorCodes.Order.NoPayableAmount, "Order has no payable amount.", ErrorType.Conflict);
     
     public static readonly Error NumberRequired =
         new(ErrorCodes.Order.NumberRequired, "Order number is required.", ErrorType.Validation);

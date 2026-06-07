@@ -65,10 +65,7 @@ public sealed class CartItem : BaseEntity
     }
     public decimal GetTotal()
     {
-        var price = Variant.PriceOverride?.Amount
-                    ?? Variant.Product.BasePrice.Amount;
-
-        return Quantity * price;
+        return Quantity * Variant.GetPrice().Amount;
     }
     public void DecreaseQuantity(int delta, DateTimeOffset now)
     {

@@ -21,7 +21,7 @@ namespace E_Commerce.Persistence.Repositories
         }
         public async Task<Order?> GetOrderByIdWithDetailsAsync (Guid id , CancellationToken ctn)
         {
-            var order = await _orders.AsNoTracking().Include(o => o.Items).ThenInclude(i => i.Variant).FirstOrDefaultAsync(o => o.Id == id, ctn);
+            var order = await _orders.AsNoTracking().Include(o => o.Items).ThenInclude(i => i.Variant).FirstOrDefaultAsync(o => o.Id == id && o.Status != OrderStatus.Cancelled, ctn);
             return order;
         }
         public async Task<PagedResult<Order>> GetOrdersWithDetailsAsync(Guid userId , PageRequest page, CancellationToken ctn)
@@ -32,7 +32,7 @@ namespace E_Commerce.Persistence.Repositories
 
         public async Task<Order?> GetTrackingOrderByIdWithDetailsAsync(Guid id, CancellationToken ctn)
         {
-            var order = await _orders.Include(o => o.Items).ThenInclude(i => i.Variant).FirstOrDefaultAsync(o => o.Id == id, ctn);
+            var order = await _orders.Include(o => o.Items).ThenInclude(i => i.Variant).FirstOrDefaultAsync(o => o.Id == id && o.Status != OrderStatus.Cancelled, ctn);
             return order;
         }
     }

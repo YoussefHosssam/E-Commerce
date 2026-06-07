@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using E_Commerce.API.Common.Responses;
 using E_Commerce.API.Contracts.Requests.MeRequests;
+using E_Commerce.API.Contracts.Responses;
 using E_Commerce.Application.Features.Me.Commands.CreateUserAddress;
 using E_Commerce.Application.Features.Me.Commands.DeleteUserAddress;
 using E_Commerce.Application.Features.Me.Commands.SetDefaultUserAddress;
@@ -29,18 +30,19 @@ public sealed class MeController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(ApiResult<CurrentUserDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResult<CurrentUserDto>), StatusCodes.Status401Unauthorized)]
-    public async Task<ApiResult<CurrentUserDto>> GetMe(CancellationToken ct)
+    [ProducesResponseType(typeof(ApiResult<UserResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResult<UserResponse>), StatusCodes.Status401Unauthorized)]
+    public async Task<ApiResult<UserResponse>> GetMe(CancellationToken ct)
         => this.FromResult(
             await _sender.Send(new GetCurrentUserQuery(), ct),
+            user => new UserResponse(user),
             "Current user retrieved successfully.");
 
     [HttpPatch("profile")]
-    [ProducesResponseType(typeof(ApiResult<UserProfileDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResult<UserProfileDto>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResult<UserProfileDto>), StatusCodes.Status401Unauthorized)]
-    public async Task<ApiResult<UserProfileDto>> UpdateProfile(
+    [ProducesResponseType(typeof(ApiResult<UserProfileResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResult<UserProfileResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResult<UserProfileResponse>), StatusCodes.Status401Unauthorized)]
+    public async Task<ApiResult<UserProfileResponse>> UpdateProfile(
         [FromBody] UpdateUserProfileRequest request,
         CancellationToken ct)
     {
@@ -54,22 +56,24 @@ public sealed class MeController : ControllerBase
 
         return this.FromResult(
             await _sender.Send(command, ct),
+            userProfile => new UserProfileResponse(userProfile),
             "Profile updated successfully.");
     }
 
     [HttpGet("addresses")]
-    [ProducesResponseType(typeof(ApiResult<IReadOnlyCollection<UserAddressDto>>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResult<IReadOnlyCollection<UserAddressDto>>), StatusCodes.Status401Unauthorized)]
-    public async Task<ApiResult<IReadOnlyCollection<UserAddressDto>>> GetAddresses(CancellationToken ct)
+    [ProducesResponseType(typeof(ApiResult<AddressesResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResult<AddressesResponse>), StatusCodes.Status401Unauthorized)]
+    public async Task<ApiResult<AddressesResponse>> GetAddresses(CancellationToken ct)
         => this.FromResult(
             await _sender.Send(new GetUserAddressesQuery(), ct),
+            addresses => new AddressesResponse(addresses),
             "Addresses retrieved successfully.");
 
     [HttpPost("addresses")]
-    [ProducesResponseType(typeof(ApiResult<UserAddressDto>), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ApiResult<UserAddressDto>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResult<UserAddressDto>), StatusCodes.Status401Unauthorized)]
-    public async Task<ApiResult<UserAddressDto>> CreateAddress(
+    [ProducesResponseType(typeof(ApiResult<AddressResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResult<AddressResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResult<AddressResponse>), StatusCodes.Status401Unauthorized)]
+    public async Task<ApiResult<AddressResponse>> CreateAddress(
         [FromBody] CreateUserAddressRequest request,
         CancellationToken ct)
     {
@@ -91,16 +95,17 @@ public sealed class MeController : ControllerBase
 
         return this.FromResult(
             await _sender.Send(command, ct),
+            address => new AddressResponse(address),
             "Address created successfully.",
             StatusCodes.Status201Created);
     }
 
     [HttpPatch("addresses/{id:guid}")]
-    [ProducesResponseType(typeof(ApiResult<UserAddressDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResult<UserAddressDto>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResult<UserAddressDto>), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ApiResult<UserAddressDto>), StatusCodes.Status404NotFound)]
-    public async Task<ApiResult<UserAddressDto>> UpdateAddress(
+    [ProducesResponseType(typeof(ApiResult<AddressResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResult<AddressResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResult<AddressResponse>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResult<AddressResponse>), StatusCodes.Status404NotFound)]
+    public async Task<ApiResult<AddressResponse>> UpdateAddress(
         Guid id,
         [FromBody] UpdateUserAddressRequest request,
         CancellationToken ct)
@@ -123,6 +128,7 @@ public sealed class MeController : ControllerBase
 
         return this.FromResult(
             await _sender.Send(command, ct),
+            address => new AddressResponse(address),
             "Address updated successfully.");
     }
 
@@ -136,11 +142,12 @@ public sealed class MeController : ControllerBase
             "Address deleted successfully.");
 
     [HttpPatch("addresses/{id:guid}/default")]
-    [ProducesResponseType(typeof(ApiResult<UserAddressDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResult<UserAddressDto>), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ApiResult<UserAddressDto>), StatusCodes.Status404NotFound)]
-    public async Task<ApiResult<UserAddressDto>> SetDefaultAddress(Guid id, CancellationToken ct)
+    [ProducesResponseType(typeof(ApiResult<AddressResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResult<AddressResponse>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResult<AddressResponse>), StatusCodes.Status404NotFound)]
+    public async Task<ApiResult<AddressResponse>> SetDefaultAddress(Guid id, CancellationToken ct)
         => this.FromResult(
             await _sender.Send(new SetDefaultUserAddressCommand(id), ct),
+            address => new AddressResponse(address),
             "Default address updated successfully.");
 }

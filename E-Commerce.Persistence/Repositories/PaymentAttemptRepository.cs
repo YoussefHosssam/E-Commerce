@@ -19,5 +19,45 @@ namespace E_Commerce.Persistence.Repositories
         {
             _paymentAttempts = ctx.PaymentAttempts;        
         }
+
+        public Task<PaymentAttempt?> GetActivePaymentAttemptAsync(
+            Guid orderId,
+            DateTimeOffset now,
+            CancellationToken ct)
+        {
+            return _paymentAttempts
+                .Where(x =>
+                    x.OrderId == orderId &&
+                    (x.Status == PaymentAttemptStatus.Initiated ||
+                     x.Status == PaymentAttemptStatus.AwaitingCustomerAction) &&
+                    x.ExpiresAt > now &&
+                    x.PaymentUrl != null &&
+                    x.PaymentUrl != string.Empty)
+                .OrderByDescending(x => x.CreatedAt)
+                .FirstOrDefaultAsync(ct);
+        }
+
+        public Task<PaymentAttempt?> GetLatestPaymentAttemptAsync(
+            Guid orderId,
+            CancellationToken ct)
+        {
+            return _paymentAttempts
+                .Where(x => x.OrderId == orderId)
+                .OrderByDescending(x => x.CreatedAt)
+                .FirstOrDefaultAsync(ct);
+        }
+
+        public Task<PaymentAttempt?> GetPaymentAttemptByProviderOrderIdAsync(string providerOrderId,CancellationToken ct)
+        {
+            return _paymentAttempts
+                .Where(x => x.ProviderOrderId == providerOrderId && x.Status == PaymentAttemptStatus.AwaitingCustomerAction)
+                .FirstOrDefaultAsync(ct);
+        }
+        public Task<int> CountByOrderIdAsync(
+            Guid orderId,
+            CancellationToken ct)
+        {
+            return _paymentAttempts.CountAsync(x => x.OrderId == orderId, ct);
+        }
     }
 }

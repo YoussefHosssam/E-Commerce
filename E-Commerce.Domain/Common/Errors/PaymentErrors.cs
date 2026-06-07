@@ -15,4 +15,52 @@ public static class PaymentErrors
     public static readonly Error FailedInitSession =new(ErrorCodes.Payment.FailedInitSession,"Failed to initialize payment session.",ErrorType.Failure);
     public static readonly Error FailedDeserializeResponse =new(ErrorCodes.Payment.FailedDeserializeResponse,"Failed to deserialize payment provider response.",ErrorType.Failure);
     public static readonly Error StatusInvalidTransition = new(ErrorCodes.Payment.StatusInvalidTransition, "Payment status transition is invalid.", ErrorType.Conflict);
+    public static readonly Error InitializationFailed = new(ErrorCodes.Payment.InitializationFailed, "Payment initialization failed.", ErrorType.External);
+    public static readonly Error FailParsingWebhook =
+    new(
+        ErrorCodes.Payment.FailParsingWebhook,
+        "Failed to parse or verify payment webhook.",
+        ErrorType.Validation);
+
+    public static readonly Error InvalidOrderId =
+        new(
+            ErrorCodes.Payment.InvalidOrderId,
+            "Payment provider order ID is invalid.",
+            ErrorType.NotFound);
+
+    public static readonly Error InvalidPaymentAmount =
+        new(
+            ErrorCodes.Payment.InvalidPaymentAmount,
+            "Payment amount does not match the order amount.",
+            ErrorType.Conflict);
+
+    public static readonly Error InvalidPaymentCurrency =
+        new(
+            ErrorCodes.Payment.InvalidPaymentCurrency,
+            "Payment currency does not match the order currency.",
+            ErrorType.Conflict);
+
+    public static readonly Error PaymentAttemptNotFound =
+        new(
+            ErrorCodes.Payment.PaymentAttemptNotFound,
+            "Payment attempt was not found.",
+            ErrorType.NotFound);
+
+    public static readonly Error OrderNotFound =
+        new(
+            ErrorCodes.Payment.OrderNotFound,
+            "Order was not found.",
+            ErrorType.NotFound);
+
+    public static readonly Error PaymentAlreadyProcessed =
+        new(
+            ErrorCodes.Payment.PaymentAlreadyProcessed,
+            "Payment has already been processed.",
+            ErrorType.Conflict);
+
+    public static readonly Error MissingProviderOrderId =
+        new(
+            ErrorCodes.Payment.MissingProviderOrderId,
+            "Payment provider order ID is missing.",
+            ErrorType.Validation);
 }

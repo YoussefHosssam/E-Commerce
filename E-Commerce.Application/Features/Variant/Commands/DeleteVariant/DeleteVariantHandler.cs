@@ -27,9 +27,21 @@ public sealed class DeleteVariantHandler : IRequestHandler<DeleteVariantCommand,
             return Result.Fail(VariantErrors.NotFound);
         }
 
-        if (await _uow.Variants.IsVariantReferencedAsync(request.VariantId, cancellationToken))
+        if (product.Variants.Count(x => x.IsActive) <= 1)
         {
-            return Result.Fail(VariantErrors.DeleteReferenced);
+            return Result.Fail(VariantErrors.CannotDeleteLastActiveVariant);
+        }
+
+        if (await _uow.Variants.IsVariantUsedInActiveCartsAsync(request.VariantId, cancellationToken))
+        {
+            return Result.Fail(VariantErrors.CannotDeleteVariantUsedInCart);
+        }
+
+        if (await _uow.Variants.IsVariantUsedInOrdersAsync(request.VariantId, cancellationToken))
+        {
+            product.ArchiveVariant(request.VariantId, DateTimeOffset.UtcNow);
+            await _uow.SaveChangesAsync(cancellationToken);
+            return Result.Success();
         }
 
         product.RemoveVariant(request.VariantId, DateTimeOffset.UtcNow);

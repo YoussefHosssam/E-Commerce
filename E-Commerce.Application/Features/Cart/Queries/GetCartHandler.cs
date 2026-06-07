@@ -1,5 +1,4 @@
 using E_Commerce.Application.Common.Result;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
 using E_Commerce.Application.Contracts.Infrastrucuture.Cart;
 using MediatR;
 using AutoMapper;
@@ -11,6 +10,7 @@ using CartEntity = E_Commerce.Domain.Entities.Cart;
 using System.Threading.Tasks;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Application.Features.Cart.Common;
+using E_Commerce.Application.Contracts.API.Identity;
 
 namespace E_Commerce.Application.Features.Cart.Queries
 {

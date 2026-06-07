@@ -20,12 +20,12 @@ namespace E_Commerce.Application.Features.Auth.Commands.VerifyEmail
     public class ResendEmailHandler : IRequestHandler<ResendEmailCommand, Result>
     {
         private readonly IUnitOfWork _uow;
-        private readonly IEmailJobService _emailJobService;
+        private readonly IEmailQueueService _emailJobService;
         private readonly IVerificationEmailPreparationService _verificationEmailPreparationService;
 
         public ResendEmailHandler(
             IUnitOfWork uow,
-            IEmailJobService emailJobService,
+            IEmailQueueService emailJobService,
             IVerificationEmailPreparationService verificationEmailPreparationService,
             IAuthTokenRepository authTokenRepository)
         {

@@ -1,5 +1,5 @@
 using E_Commerce.Application.Common.Result;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
+using E_Commerce.Application.Contracts.API.Identity;
 using E_Commerce.Domain.Common.Errors;
 using MediatR;
 
@@ -18,15 +18,12 @@ public sealed class DeleteUserAddressHandler : IRequestHandler<DeleteUserAddress
 
     public async Task<Result> Handle(DeleteUserAddressCommand request, CancellationToken cancellationToken)
     {
-        var userId = _userAccessor.UserId;
-        if (!userId.HasValue)
-            return Result.Fail(AuthErrors.InvalidToken);
-
-        var user = await _uow.Users.GetByIdWithLoadingDataAsync(userId.Value, cancellationToken);
+        var userId = _userAccessor.GetRequiredUserId();
+        var user = await _uow.Users.GetByIdWithLoadingDataAsync(userId, cancellationToken);
         if (user is null)
             return Result.Fail(UserErrors.NotFound);
 
-        var addresses = await _uow.UserAddresses.GetByUserIdAsync(userId.Value, true, cancellationToken);
+        var addresses = await _uow.UserAddresses.GetByUserIdAsync(userId, true, cancellationToken);
         var address = addresses.FirstOrDefault(x => x.Id == request.AddressId);
         if (address is null)
             return Result.Fail(UserAddressErrors.NotFound);

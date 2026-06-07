@@ -1,6 +1,6 @@
 using E_Commerce.Application.Common.Result;
+using E_Commerce.Application.Contracts.API.Identity;
 using E_Commerce.Application.Contracts.Infrastructure.Common;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.Enums;

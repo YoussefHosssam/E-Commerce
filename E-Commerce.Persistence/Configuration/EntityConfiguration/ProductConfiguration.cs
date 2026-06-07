@@ -41,6 +41,8 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
                .HasMaxLength(30);
 
         builder.Property(x => x.Brand).HasMaxLength(80);
+        builder.Property(x => x.HasVariants).IsRequired();
+        builder.Property(x => x.HasDiscount).IsRequired();
 
         // Money (BasePrice) — لو Money عندك ValueObject حقيقي: OwnsOne هنا
         builder.OwnsOne(x => x.BasePrice, money =>
@@ -51,6 +53,14 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         // لو BasePrice required (عادةً آه):
         builder.Navigation(x => x.BasePrice).IsRequired();
+
+        builder.OwnsOne(x => x.CompareAtPrice, money =>
+        {
+            money.WithOwner();
+            money.MapMoney("CompareAtPriceAmount", "CompareAtPriceCurrency");
+        });
+
+        builder.Navigation(x => x.CompareAtPrice).IsRequired(false);
 
         builder.Property(x => x.IsActive).IsRequired();
         builder.Property(x => x.UpdatedAt);

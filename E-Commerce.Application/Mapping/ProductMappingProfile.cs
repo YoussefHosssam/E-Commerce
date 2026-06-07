@@ -14,16 +14,21 @@ public class ProductMappingProfile : Profile
             .ForMember(dest => dest.Slug, opt => opt.MapFrom(src => src.Slug.Value))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
             .ForMember(dest => dest.BasePrice, opt => opt.MapFrom(src => MoneyDto.FromMoney(src.BasePrice)))
+            .ForMember(dest => dest.CompareAtPrice, opt => opt.MapFrom(src => src.CompareAtPrice != null ? MoneyDto.FromMoney(src.CompareAtPrice) : null))
+            .ForMember(dest => dest.DefaultVariantId, opt => opt.MapFrom(src => src.Variants.FirstOrDefault(v => v.IsActive && v.IsDefault) != null ? src.Variants.First(v => v.IsActive && v.IsDefault).Id : (Guid?)null))
+            .ForMember(dest => dest.MinPrice, opt => opt.MapFrom(src => src.Variants.Any(v => v.IsActive) ? MoneyDto.FromMoney(src.Variants.Where(v => v.IsActive).OrderBy(v => v.GetPrice().Amount).First().GetPrice()) : null))
+            .ForMember(dest => dest.MaxPrice, opt => opt.MapFrom(src => src.Variants.Any(v => v.IsActive) ? MoneyDto.FromMoney(src.Variants.Where(v => v.IsActive).OrderByDescending(v => v.GetPrice().Amount).First().GetPrice()) : null))
             .ForMember(dest => dest.VariantCount, opt => opt.MapFrom(src => src.Variants.Count));
-
-        CreateMap<Variant, ProductVariantDto>()
-            .ForMember(dest => dest.PriceOverride, opt => opt.MapFrom(src => src.PriceOverride != null ? MoneyDto.FromMoney(src.PriceOverride) : null));
 
         CreateMap<Product, ProductDetailDto>()
             .ForMember(dest => dest.CategorySlug, opt => opt.MapFrom(src => src.Category.Slug.Value))
             .ForMember(dest => dest.Slug, opt => opt.MapFrom(src => src.Slug.Value))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
             .ForMember(dest => dest.BasePrice, opt => opt.MapFrom(src => MoneyDto.FromMoney(src.BasePrice)))
-            .ForMember(dest => dest.Variants, opt => opt.MapFrom(src => src.Variants.OrderBy(x => x.Sku)));
+            .ForMember(dest => dest.CompareAtPrice, opt => opt.MapFrom(src => src.CompareAtPrice != null ? MoneyDto.FromMoney(src.CompareAtPrice) : null))
+            .ForMember(dest => dest.DefaultVariantId, opt => opt.MapFrom(src => src.Variants.FirstOrDefault(v => v.IsActive && v.IsDefault) != null ? src.Variants.First(v => v.IsActive && v.IsDefault).Id : (Guid?)null))
+            .ForMember(dest => dest.MinPrice, opt => opt.MapFrom(src => src.Variants.Any(v => v.IsActive) ? MoneyDto.FromMoney(src.Variants.Where(v => v.IsActive).OrderBy(v => v.GetPrice().Amount).First().GetPrice()) : null))
+            .ForMember(dest => dest.MaxPrice, opt => opt.MapFrom(src => src.Variants.Any(v => v.IsActive) ? MoneyDto.FromMoney(src.Variants.Where(v => v.IsActive).OrderByDescending(v => v.GetPrice().Amount).First().GetPrice()) : null))
+            .ForMember(dest => dest.Variants, opt => opt.MapFrom(src => src.Variants.Where(x => x.IsActive).OrderBy(x => x.Sku)));
     }
 }

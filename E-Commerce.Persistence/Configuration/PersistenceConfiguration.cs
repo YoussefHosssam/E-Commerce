@@ -3,6 +3,7 @@ using E_Commerce.Application.Contracts.Persistence.Shared;
 using E_Commerce.Persistence.Context;
 using E_Commerce.Persistence.Repositories;
 using E_Commerce.Persistence.Repositories.Shared;
+using E_Commerce.Persistence.Seeding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,7 +40,8 @@ public static class PersistenceConfiguration
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddScoped<IPaymentAttemptRepository, PaymentAttemptRepository>();
-        services.AddScoped<IIdempotencyRecordRepository, IdempotencyRecordRepository>();
+        services.AddScoped<ITransactionManager, EfTransactionManager>();
+        services.AddScoped<DatabaseSeeder>();
 
 
 

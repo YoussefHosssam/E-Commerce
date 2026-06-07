@@ -1,6 +1,6 @@
 using E_Commerce.Application.Common.Result;
+using E_Commerce.Application.Contracts.API.Identity;
 using E_Commerce.Application.Contracts.Infrastructure.TotpTwoFactorAuth;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
 using MediatR;
@@ -22,12 +22,8 @@ namespace E_Commerce.Application.Features.Auth.Commands.TwoFactorAuth
 
         public async Task<Result> Handle(VerifyTwoFactorAuthCommand request, CancellationToken cancellationToken)
         {
-            if (!_userAccessor.UserId.HasValue)
-            {
-                return Result.Fail(AuthErrors.InvalidCredentials);
-            }
-
-            User? existingUser = await _uow.Users.GetByIdWithLoadingDataAsync(_userAccessor.UserId.Value, cancellationToken);
+            var userId = _userAccessor.GetRequiredUserId();
+            User? existingUser = await _uow.Users.GetByIdWithLoadingDataAsync(userId, cancellationToken);
             if (existingUser is null)
             {
                 return Result.Fail(AuthErrors.InvalidCredentials);

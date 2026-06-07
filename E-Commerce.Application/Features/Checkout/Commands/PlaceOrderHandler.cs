@@ -2,7 +2,11 @@
 using E_Commerce.Application.Common.Dtos;
 using E_Commerce.Application.Common.Result;
 using E_Commerce.Application.Contracts.Infrastructure.Payment;
+using E_Commerce.Application.Contracts.Infrastructure.Shipment;
+using E_Commerce.Application.Contracts.Infrastructure.Shipment.DTOs;
+using E_Commerce.Application.Contracts.Persistence.Shared;
 using E_Commerce.Application.Contracts.Services;
+using E_Commerce.Application.Features.Checkout.Common;
 using E_Commerce.Application.Features.Order.Common;
 using E_Commerce.Application.Features.Variant.Common;
 using E_Commerce.Domain.Common.Errors;
@@ -26,9 +30,10 @@ internal sealed class PlaceOrderHandler
     private readonly ICheckoutAddressResolver _addressResolver;
     private readonly IOrderService _orderService;
     private readonly IPaymentGateway _paymentGateway;
-    private readonly IShipmentFeesCalculator _shipmentFeesCalculator;
     private readonly IMapper _mapper;
     private readonly ILogger<PlaceOrderHandler> _logger;
+    private readonly ITransactionManager _transactionManager;
+    private readonly IShipmentFeesService _shipmentFeesService;
 
     public PlaceOrderHandler(
         IUnitOfWork uow,
@@ -37,7 +42,8 @@ internal sealed class PlaceOrderHandler
         IPaymentGateway paymentGateway,
         IMapper mapper,
         ILogger<PlaceOrderHandler> logger,
-        IShipmentFeesCalculator shipmentFeesCalculator)
+        IShipmentFeesService shipmentFeesService,
+        ITransactionManager transactionManager)
     {
         _uow = uow;
         _addressResolver = addressResolver;
@@ -45,7 +51,8 @@ internal sealed class PlaceOrderHandler
         _paymentGateway = paymentGateway;
         _mapper = mapper;
         _logger = logger;
-        _shipmentFeesCalculator = shipmentFeesCalculator;
+        _shipmentFeesService = shipmentFeesService;
+        _transactionManager = transactionManager;
     }
 
     public async Task<Result<PlaceOrderResponse>> Handle(
@@ -67,76 +74,82 @@ internal sealed class PlaceOrderHandler
         var cartResult = await GetAndValidateCartAsync(userId, cancellationToken);
 
         if (!cartResult.IsSuccess)
-        {
-            _logger.LogWarning(
-                "Checkout blocked for User {UserId} with {ErrorCode}",
-                userId,
-                cartResult.Error?.Code);
-
             return Result<PlaceOrderResponse>.Fail(cartResult.Error!);
-        }
 
         var cart = cartResult.Data!;
         var cartItems = cart.Items.ToList();
 
-        var inventoryResult = await GetAndValidateInventoriesAsync(
-            cartItems,
-            cancellationToken);
-
-        if (!inventoryResult.IsSuccess)
-        {
-            _logger.LogWarning(
-                "Checkout inventory validation failed for User {UserId} with {ErrorCode}",
-                userId,
-                inventoryResult.Error?.Code);
-
-            return Result<PlaceOrderResponse>.Fail(inventoryResult.Error!);
-        }
-
-        var inventoryByVariantId = inventoryResult.Data!;
-
-        var shipmentFeeResult = await CalculateShipmentFeeAsync(
+        // External call OUTSIDE transaction
+        var shipmentFeeResult = await _shipmentFeesService.CalculateShipmentFeeAsync(
             resolvedAddress,
-            request.SameAsShipping,
-            request.BillingAddress);
+            cart.GetTotalPrice(),
+            cancellationToken);
 
         if (!shipmentFeeResult.IsSuccess)
             return Result<PlaceOrderResponse>.Fail(shipmentFeeResult.Error!);
 
-        var orderResult = await CreateOrderAsync(
-            request,
-            resolvedAddress,
-            shipmentFeeResult.Data,
-            userId,
-            now,
-            cancellationToken);
+        decimal shipmentFee = shipmentFeeResult.Data!;
+        OrderEntity order;
+        PaymentAttempt paymentAttempt;
 
-        if (!orderResult.IsSuccess)
-            return Result<PlaceOrderResponse>.Fail(orderResult.Error!);
+        var transactionResult = await _transactionManager.ExecuteAsync(async ct =>
+        {
+            var inventoryResult = await GetAndValidateInventoriesAsync(cartItems, ct);
 
-        var order = orderResult.Data!;
+            if (!inventoryResult.IsSuccess)
+                return Result<(OrderEntity Order, PaymentAttempt PaymentAttempt)>
+                    .Fail(inventoryResult.Error!);
 
-        await ReserveStockAndCreateOrderItemsAsync(
-            order,
-            cartItems,
-            inventoryByVariantId,
-            userId,
-            now,
-            cancellationToken);
-        var paymentAttempt = await CreatePaymentAttemptAsync(
-            order,
-            now,
-            cancellationToken);
+            var inventoryByVariantId = inventoryResult.Data!;
 
-        cart.SetStatus(CartStatus.CheckedOut, now);
+            var orderResult = await CreateOrderAsync(
+                request,
+                resolvedAddress,
+                shipmentFee,
+                userId,
+                now,
+                ct);
 
-        await _uow.SaveChangesAsync(cancellationToken);
+            if (!orderResult.IsSuccess)
+                return Result<(OrderEntity Order, PaymentAttempt PaymentAttempt)>
+                    .Fail(orderResult.Error!);
+
+            var createdOrder = orderResult.Data!;
+
+            var reserveResult = await ReserveStockAndCreateOrderItemsAsync(
+                createdOrder,
+                cartItems,
+                inventoryByVariantId,
+                userId,
+                now,
+                ct);
+            if (!reserveResult.IsSuccess)
+                return Result<(OrderEntity Order, PaymentAttempt PaymentAttempt)>.Fail(reserveResult.Error!);
+
+            var createdPaymentAttempt = await CreatePaymentAttemptAsync(
+                createdOrder,
+                now,
+                ct);
+
+            cart.SetStatus(CartStatus.CheckedOut, now);
+
+            return Result<(OrderEntity Order, PaymentAttempt PaymentAttempt)>.Success(
+                (createdOrder, createdPaymentAttempt));
+
+        }, cancellationToken);
+
+        if (!transactionResult.IsSuccess)
+            return Result<PlaceOrderResponse>.Fail(transactionResult.Error!);
+
+        order = transactionResult.Data.Order;
+        paymentAttempt = transactionResult.Data.PaymentAttempt;
 
         var providerRequest = BuildProviderPaymentSessionRequest(
             request,
             resolvedAddress,
             order,
             paymentAttempt,
+            shippingFee:shipmentFee,
             cartItems);
 
         var paymentDto = await TryInitializeProviderPaymentSessionAsync(
@@ -145,17 +158,9 @@ internal sealed class PlaceOrderHandler
             providerRequest,
             cancellationToken);
 
-
         await _uow.SaveChangesAsync(cancellationToken);
-
-        _logger.LogInformation(
-            "Order {OrderId} created for User {UserId} with Total {GrandTotal} {Currency} and PaymentAttempt {PaymentAttemptId}",
-            order.Id,
-            userId,
-            order.GrandTotal,
-            order.Currency.Value,
-            paymentAttempt.Id);
-
+        if (paymentDto is null)
+            return Result<PlaceOrderResponse>.Fail(InfrastructureErrors.PaymentGatewayFail);
         return Result<PlaceOrderResponse>.Success(
             new PlaceOrderResponse(
                 order.Id,
@@ -213,6 +218,7 @@ internal sealed class PlaceOrderHandler
             if (!inventoryByVariantId.TryGetValue(item.VariantId, out var inventory))
                 return Result<Dictionary<Guid, Inventory>>.Fail(CheckoutErrors.UnfoundInventory);
 
+            // Friendly early check only
             if (inventory.Available < item.Quantity)
                 return Result<Dictionary<Guid, Inventory>>.Fail(CheckoutErrors.VariantOutOfStock);
         }
@@ -238,37 +244,7 @@ internal sealed class PlaceOrderHandler
             cancellationToken,
             now);
     }
-
-    private async Task<Result<decimal>> CalculateShipmentFeeAsync(
-        ResolvedCheckoutAddress resolvedAddress,
-        bool sameAsShipping,
-        BillingAddressDto? billingAddress)
-    {
-        try
-        {
-            var result = await _shipmentFeesCalculator.CalculateFees(
-                resolvedAddress.ShippingAddress,
-                sameAsShipping,
-                billingAddress);
-
-            if (result is null || !result.IsSuccess || result.Data < 0)
-                return Result<decimal>.Fail(CheckoutErrors.ShipmentFeeCalculationFailed);
-
-            return Result<decimal>.Success(result.Data);
-        }
-        catch (Exception exception)
-        {
-            _logger.LogWarning(
-                exception,
-                "Shipment fee calculation failed for User {UserId} Address {AddressId}",
-                resolvedAddress.User.Id,
-                resolvedAddress.Address.Id);
-
-            return Result<decimal>.Fail(CheckoutErrors.ShipmentFeeCalculationFailed);
-        }
-    }
-
-    private async Task ReserveStockAndCreateOrderItemsAsync(
+    private async Task<Result> ReserveStockAndCreateOrderItemsAsync(
         OrderEntity order,
         IReadOnlyCollection<CartItem> cartItems,
         Dictionary<Guid, Inventory> inventoryByVariantId,
@@ -285,7 +261,9 @@ internal sealed class PlaceOrderHandler
             var variant = item.Variant!;
             var product = variant.Product!;
 
-            inventory.Reserve(item.Quantity, now);
+            var isReserved = await _uow.Inventories.TryReserveAsync(variant.Id, item.Quantity, now, cancellationToken);
+            if (!isReserved)
+                return Result.Fail(InventoryErrors.ReservedQuantityInvalid);
 
             var movement = StockMovement.Create(
                 item.VariantId,
@@ -314,7 +292,7 @@ internal sealed class PlaceOrderHandler
         await _uow.StockMovements.CreateRangeAsync(
             stockMovements,
             cancellationToken);
-
+        return Result.Success();
     }
 
     private async Task<PaymentAttempt> CreatePaymentAttemptAsync(
@@ -349,6 +327,7 @@ internal sealed class PlaceOrderHandler
         ResolvedCheckoutAddress resolvedAddress,
         OrderEntity order,
         PaymentAttempt paymentAttempt,
+        decimal shippingFee,
         IReadOnlyCollection<CartItem> cartItems)
     {
         return new CreateProviderPaymentSessionRequest(
@@ -364,6 +343,7 @@ internal sealed class PlaceOrderHandler
                 request.BillingAddress),
             IdempotencyKey: paymentAttempt.IdempotencyKey,
             SpecialReference: paymentAttempt.Id.ToString("N"),
+            ShippingFee:shippingFee,
             ExpiresAt: paymentAttempt.ExpiresAt);
     }
 
@@ -388,7 +368,7 @@ internal sealed class PlaceOrderHandler
 
             paymentAttempt.MarkFailed(
                 DateTimeOffset.UtcNow,
-                JsonText.Create("{}"));
+                JsonText.Create(providerResult.RawPayloadJson));
 
             return PaymentDto.FailedInitialization(
                 provider: paymentAttempt.Provider,
@@ -434,11 +414,13 @@ internal sealed class PlaceOrderHandler
                 var variant = item.Variant!;
                 var product = variant.Product!;
                 var price = variant.GetPrice();
+                var imageUrl = variant.GetPrimaryImage();
 
                 return new PaymentSessionItemDto(
                     Name: product.Slug.Value,
-                    Amount: price.Amount,
-                    Quantity: item.Quantity);
+                    Money: price,
+                    Quantity: item.Quantity,
+                    ImageUrl:imageUrl);
             })
             .ToList();
     }

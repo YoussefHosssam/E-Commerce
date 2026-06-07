@@ -2,8 +2,8 @@
 using E_Commerce.API.Common.Contracts;
 using E_Commerce.API.Common.Errors;
 using E_Commerce.API.Common.Responses;
-using E_Commerce.Application.Contracts.API;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
+using E_Commerce.Application.Contracts.API.Identity;
+using E_Commerce.Application.Contracts.Infrastructure.Idempotency;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.Enums;
@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace E_Commerce.API.Filters;
 
@@ -22,6 +23,7 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
     private readonly IIdempotencyStore _store;
     private readonly IUserAccessor _userAccessor;
     private readonly ILogger<IdempotencyFilter> _logger;
+
 
     public IdempotencyFilter(
         IIdempotencyStore store,
@@ -46,6 +48,8 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
             await next();
             return;
         }
+
+        var userId = _userAccessor.GetRequiredUserId();
 
         var request = context.HttpContext.Request;
 
@@ -77,13 +81,6 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
             return;
         }
 
-        var userId = _userAccessor.UserId;
-        if (userId is null)
-        {
-            context.Result = Fail(IdempotencyApiErrors.UserIdNotFound);
-            return;
-        }
-
         var operation = attribute.Operation;
         var now = DateTimeOffset.UtcNow;
         var ctn = context.HttpContext.RequestAborted;
@@ -92,23 +89,13 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
             ctn);
 
         var existing = await _store.GetAsync(
-            userId.Value,
+            userId,
             operation,
             idempotencyKey,
             ctn);
 
         if (existing is not null)
         {
-            if (existing.IsExpired(now))
-            {
-                _logger.LogWarning(
-                    "Idempotency key expired for Operation {Operation} and User {UserId}",
-                    operation,
-                    userId);
-
-                context.Result = Fail(IdempotencyApiErrors.KeyExpired);
-                return;
-            }
             if (!existing.HasSameRequestHash(requestHash))
             {
                 _logger.LogWarning(
@@ -120,7 +107,7 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
                 return;
             }
 
-            if (existing.Status == IdempotencyRequestStatus.Completed)
+            if (existing.Status == IdempotencyStatus.Completed)
             {
                 _logger.LogInformation(
                     "Idempotency cached response returned for Operation {Operation} and User {UserId}",
@@ -131,7 +118,7 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
                 return;
             }
 
-            if (existing.Status == IdempotencyRequestStatus.Processing)
+            if (existing.Status == IdempotencyStatus.Processing)
             {
                 _logger.LogWarning(
                     "Idempotency request already processing for Operation {Operation} and User {UserId}",
@@ -142,7 +129,7 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
                 return;
             }
 
-            if (existing.Status == IdempotencyRequestStatus.Failed)
+            if (existing.Status == IdempotencyStatus.Failed)
             {
                 context.Result = Fail(IdempotencyApiErrors.PreviousRequestFailed);
                 return;
@@ -153,9 +140,7 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
             userId,
             operation,
             idempotencyKey,
-            requestHash,
-            now,
-            now.AddMinutes(attribute.ExpirationMinutes));
+            requestHash);
 
         var created = await _store.TryBeginAsync(
             record,
@@ -163,34 +148,32 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
 
         if (!created)
         {
-            var duplicated = await _store.GetAsync(
-                userId,
-                operation,
-                idempotencyKey,
-                ctn);
+            var duplicated = await _store.GetAsync(userId,operation,idempotencyKey,ctn);
 
-            if (duplicated is not null)
+            if (duplicated is null)
             {
-                if (!duplicated.HasSameRequestHash(requestHash))
-                {
-                    context.Result = Fail(IdempotencyApiErrors.KeyUsedWithDifferentRequest);
-                    return;
-                }
-
-                if (duplicated.Status == IdempotencyRequestStatus.Completed)
-                {
-                    context.Result = BuildCachedResult(duplicated);
-                    return;
-                }
-
-                if (duplicated.Status == IdempotencyRequestStatus.Failed)
-                {
-                    context.Result = Fail(IdempotencyApiErrors.PreviousRequestFailed);
-                    return;
-                }
+                context.Result = Fail(IdempotencyApiErrors.RequestAlreadyProcessing);
+                return;
             }
 
-            context.Result = Fail(IdempotencyApiErrors.RequestAlreadyProcessing);
+            if (!duplicated.HasSameRequestHash(requestHash))
+            {
+                context.Result = Fail(IdempotencyApiErrors.KeyUsedWithDifferentRequest);
+                return;
+            }
+
+            context.Result = duplicated.Status switch
+            {
+                IdempotencyStatus.Completed => BuildCachedResult(duplicated),
+
+                IdempotencyStatus.Failed =>
+                    Fail(IdempotencyApiErrors.PreviousRequestFailed),
+
+                IdempotencyStatus.Processing =>
+                    Fail(IdempotencyApiErrors.RequestAlreadyProcessing),
+
+                _ => Fail(IdempotencyApiErrors.RequestAlreadyProcessing)
+            };
             return;
         }
 
@@ -203,7 +186,9 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
         catch (Exception ex)
         {
             await _store.MarkFailedAsync(
-                record.Id,
+                userId,
+                operation,
+                idempotencyKey,
                 ex.Message,
                 CancellationToken.None);
 
@@ -214,7 +199,9 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
         if (executedContext.Exception is not null)
         {
             await _store.MarkFailedAsync(
-                record.Id,
+                userId,
+                operation,
+                idempotencyKey,
                 executedContext.Exception.Message,
                 CancellationToken.None);
 
@@ -224,7 +211,9 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
         if (executedContext.Result is not IApiResult result)
         {
             await _store.MarkFailedAsync(
-                record.Id,
+                userId,
+                operation,
+                idempotencyKey,
                 "Unsupported response type for idempotency caching.",
                 CancellationToken.None);
 
@@ -234,7 +223,9 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
         if (!result.IsSuccess)
         {
             await _store.MarkFailedAsync(
-                record.Id,
+                userId,
+                operation,
+                idempotencyKey,
                 result.Error?.Message ?? "Unknown error",
                 CancellationToken.None);
 
@@ -246,15 +237,20 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
         if (!cachedResponse.ShouldCache)
         {
             await _store.MarkFailedAsync(
-                record.Id,
+                userId,
+                operation,
+                idempotencyKey,
                 "Response type is not cacheable by the idempotency filter.",
                 CancellationToken.None);
 
             return;
         }
-
+        Console.WriteLine("kdlfsnvefnvkjflvskfnvklfndskjnfsjklbn kj gnfljngjsbnkjnbjngsjnnn" +
+            "nnnnnnnnnnnnnnndgbnjbdnbnlkbkbgnnlbjbgdlbgldndbgnbgknjdglnjbgldjbgfjngdb");
         await _store.MarkCompletedAsync(
-            record.Id,
+            userId,
+            operation,
+            idempotencyKey,
             cachedResponse.StatusCode,
             cachedResponse.BodyJson,
             cachedResponse.ContentType,
@@ -294,6 +290,16 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
 
     private static CachedResponse ExtractResponse(IActionResult? result)
     {
+        if (result is IApiResult apiResult)
+        {
+            var json = JsonSerializer.Serialize(apiResult.ResponseObject, CreateJsonOptions());
+
+            return CachedResponse.Cacheable(
+                apiResult.StatusCode,
+                json,
+                "application/json");
+        }
+
         if (result is ObjectResult objectResult)
         {
             var statusCode = objectResult.StatusCode ?? StatusCodes.Status200OK;
@@ -301,7 +307,7 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
             if (statusCode < 200 || statusCode >= 300)
                 return CachedResponse.NotCacheable();
 
-            var json = JsonSerializer.Serialize(objectResult.Value);
+            var json = JsonSerializer.Serialize(objectResult.Value, CreateJsonOptions());
 
             return CachedResponse.Cacheable(
                 statusCode,
@@ -316,7 +322,7 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
             if (statusCode < 200 || statusCode >= 300)
                 return CachedResponse.NotCacheable();
 
-            var json = JsonSerializer.Serialize(jsonResult.Value);
+            var json = JsonSerializer.Serialize(jsonResult.Value, CreateJsonOptions());
 
             return CachedResponse.Cacheable(
                 statusCode,
@@ -336,6 +342,16 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
         }
 
         return CachedResponse.NotCacheable();
+    }
+
+    private static JsonSerializerOptions CreateJsonOptions()
+    {
+        return new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters = { new JsonStringEnumConverter() }
+        };
     }
 
     private static async Task<string> ComputeRequestHashAsync(
@@ -390,4 +406,5 @@ public sealed class IdempotencyFilter : IAsyncResourceFilter
                 "application/json");
         }
     }
+
 }

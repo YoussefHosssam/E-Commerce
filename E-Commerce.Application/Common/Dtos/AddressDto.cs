@@ -11,7 +11,7 @@ namespace E_Commerce.Application.Common.Dtos
         string LastName,
         string Email,
         string PhoneNumber,
-        string? City,
+        string City,
         string? AddressLine1,
         string? AddressLine2);
 

@@ -37,13 +37,24 @@ public sealed class UpdateVariantHandler : IRequestHandler<UpdateVariantCommand,
             return Result<VariantDetailDto>.Fail(VariantErrors.SkuDuplicate);
         }
 
-        Money? priceOverride = null;
-        if (request.PriceOverrideAmount.HasValue)
+        var color = Color.Create(request.Color!.Name, request.Color.HexCode);
+        Money? price = null;
+        var updatePrice = request.HasPriceOverride.HasValue;
+        if (request.HasPriceOverride == true)
         {
-            priceOverride = Money.Create(request.PriceOverrideAmount.Value, CurrencyCode.Create(request.PriceOverrideCurrency!));
+            price = Money.Create(request.VariantPriceOverrideAmount!.Value, product.BasePrice.Currency);
         }
 
-        product.UpdateVariant(request.VariantId, request.Sku, request.Size, request.Color, priceOverride, request.IsActive, DateTimeOffset.UtcNow);
+        var hasDuplicateOptions = product.Variants.Any(x =>
+            x.Id != request.VariantId
+            && x.IsActive
+            && string.Equals(x.Size ?? string.Empty, request.Size?.Trim() ?? string.Empty, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(x.Color.HexCode, color.HexCode, StringComparison.OrdinalIgnoreCase));
+
+        if (hasDuplicateOptions)
+            return Result<VariantDetailDto>.Fail(VariantErrors.DuplicateVariantOptions);
+
+        product.UpdateVariant(request.VariantId, request.Sku, request.Size, color, price, updatePrice, request.IsDefault, request.IsActive, DateTimeOffset.UtcNow);
         await _uow.SaveChangesAsync(cancellationToken);
 
         var updatedVariant = await _uow.Variants.GetByIdWithDetailsAsync(request.VariantId, cancellationToken);

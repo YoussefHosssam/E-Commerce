@@ -12,7 +12,6 @@ public interface IUnitOfWork
     IUserAddressRepository UserAddresses { get; }
     ICartRepository Carts { get; }
     IOrderRepository Orders { get; }
-    IIdempotencyRecordRepository IdempotencyRecords { get; }
     IPaymentRepository Payments { get; }
     IPaymentAttemptRepository PaymentAttempts { get; }
     IGenericRepository<CartItem> CartItems { get; }

@@ -109,6 +109,17 @@ public sealed class Payment : BaseEntity
         Touch(now);
     }
 
+    public void MarkSuccessed(DateTimeOffset now)
+    {
+        EnsureNotFinal();
+        if (Status is not (PaymentStatus.Pending or PaymentStatus.Initiated))
+            throw new DomainValidationException(PaymentErrors.StatusInvalidTransition);
+
+        Status = PaymentStatus.Succeeded;
+        Touch(now);
+    }
+
+
     public void MarkFailed(DateTimeOffset now, JsonText? rawPayloadJson = null)
     {
         EnsureNotFinal();

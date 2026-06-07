@@ -13,12 +13,10 @@ public sealed class Variant : BaseEntity
 
     public string Sku { get; private set; } = default!; // unique (DB unique index too)
     public string? Size { get; private set; }
-    public string? Color { get; private set; }
-
-    // ? Money override ??? decimal
-    public Money? PriceOverride { get; private set; }
-
+    public Color Color { get; private set; } = default!;
+    public Money? Price { get; private set; }
     public bool IsActive { get; private set; } = true;
+    public bool IsDefault { get; private set; }
 
     private readonly List<VariantImage> _images = new();
     public IReadOnlyCollection<VariantImage> Images => _images.AsReadOnly();
@@ -31,14 +29,14 @@ public sealed class Variant : BaseEntity
         Guid productId,
         string sku,
         string? size,
-        string? color,
-        Money? priceOverride)
+        Color color,
+        Money? price)
     {
         ProductId = productId;
         Sku = sku;
         Size = size;
         Color = color;
-        PriceOverride = priceOverride;
+        Price = price;
 
         IsActive = true;
     }
@@ -47,8 +45,10 @@ public sealed class Variant : BaseEntity
         Guid productId,
         string sku,
         string? size,
-        string? color,
-        Money? priceOverride)
+        Color color,
+        Money? price,
+        bool isDefault,
+        CurrencyCode productCurrency)
     {
         if (productId == Guid.Empty)
             throw new DomainValidationException(VariantErrors.ProductRequired);
@@ -56,11 +56,17 @@ public sealed class Variant : BaseEntity
         sku = NormalizeSku(sku);
 
         size = NormalizeOptional(size, 30, VariantErrors.SizeTooLong);
-        color = NormalizeOptional(color, 30, VariantErrors.ColorTooLong);
 
-        ValidatePriceOverride(priceOverride);
+        if (color is null)
+            throw new DomainValidationException(VariantErrors.ColorRequired);
 
-        return new Variant(productId, sku, size, color, priceOverride);
+        ValidatePrice(price, productCurrency);
+
+        var variant = new Variant(productId, sku, size, color, price);
+        if (isDefault)
+            variant.SetDefault();
+
+        return variant;
     }
 
     public void ChangeSku(string sku)
@@ -68,22 +74,27 @@ public sealed class Variant : BaseEntity
         Sku = NormalizeSku(sku);
     }
 
-    public void ChangeAttributes(string? size, string? color)
+    public void ChangeAttributes(string? size, Color color)
     {
         Size = NormalizeOptional(size, 30, VariantErrors.SizeTooLong);
-        Color = NormalizeOptional(color, 30, VariantErrors.ColorTooLong);
+        ChangeColor(color);
     }
 
-    public void SetPriceOverride(Money? priceOverride)
+    public void ChangeColor(Color color)
     {
-        ValidatePriceOverride(priceOverride);
-        PriceOverride = priceOverride;
+        Color = color ?? throw new DomainValidationException(VariantErrors.ColorRequired);
     }
 
-    public void ClearPriceOverride() => PriceOverride = null;
+    public void ChangePrice(Money? price, CurrencyCode productCurrency)
+    {
+        ValidatePrice(price, productCurrency);
+        Price = price;
+    }
 
     public void Activate() => IsActive = true;
     public void Deactivate() => IsActive = false;
+    public void SetDefault() => IsDefault = true;
+    public void UnsetDefault() => IsDefault = false;
 
     public void AddImage(VariantImage image)
     {
@@ -102,6 +113,11 @@ public sealed class Variant : BaseEntity
         _images.Add(image);
     }
 
+    public string? GetPrimaryImage()
+    {
+        var img = _images.FirstOrDefault(i => i.IsPrimary);
+        return img == null ? null : img.Url;
+    }
     public VariantImage GetImage(Guid imageId)
     {
         return _images.FirstOrDefault(x => x.Id == imageId && x.ProcessingStatus != ImageProcessingStatus.Deleted)
@@ -132,7 +148,7 @@ public sealed class Variant : BaseEntity
         if (wasPrimary)
         {
             var next = _images
-                .Where(x => x.ProcessingStatus != ImageProcessingStatus.Deleted && x.ProcessingStatus == ImageProcessingStatus.Ready)
+                .Where(x => x.ProcessingStatus != ImageProcessingStatus.Deleted && x.ProcessingStatus == ImageProcessingStatus.Uploaded)
                 .OrderBy(x => x.SortOrder)
                 .FirstOrDefault();
 
@@ -162,18 +178,29 @@ public sealed class Variant : BaseEntity
     }
     public Money GetPrice()
     {
-        return PriceOverride != null ? PriceOverride : Product.BasePrice;
+        return GetEffectivePrice(Product.BasePrice);
     }
 
-    private static void ValidatePriceOverride(Money? priceOverride)
+    public Money GetEffectivePrice(Money productPrice)
     {
-        if (priceOverride is null) return;
+        if (productPrice is null)
+            throw new DomainValidationException(ProductErrors.BasePriceRequired);
 
-        if (priceOverride.Amount < 0)
+        return Price ?? productPrice;
+    }
+
+    private static void ValidatePrice(Money? price, CurrencyCode productCurrency)
+    {
+        if (price is null) return;
+
+        if (price.Amount <= 0)
             throw new DomainValidationException(VariantErrors.PriceInvalid);
 
-        if (string.IsNullOrWhiteSpace(priceOverride.Currency.Value))
+        if (string.IsNullOrWhiteSpace(price.Currency.Value))
             throw new DomainValidationException(VariantErrors.CurrencyRequired);
+
+        if (price.Currency != productCurrency)
+            throw new DomainValidationException(VariantErrors.CurrencyInvalid);
     }
 
     private static string NormalizeSku(string sku)

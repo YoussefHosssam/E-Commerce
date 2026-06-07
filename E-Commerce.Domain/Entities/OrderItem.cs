@@ -88,7 +88,6 @@ public sealed class OrderItem : BaseEntity
         if (quantity <= 0)
             throw new DomainValidationException(OrderItemErrors.QuantityInvalid);
 
-        // safeguard: line total overflow-ish (???????)
         var lineTotal = unitPrice * quantity;
         if (lineTotal < 0)
             throw new DomainValidationException(OrderItemErrors.LineTotalInvalid);

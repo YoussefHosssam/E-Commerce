@@ -1,4 +1,5 @@
 ﻿using E_Commerce.Domain.ValueObjects;
+using System.Text.Json.Serialization;
 
 public sealed record ProviderWebhookEvent(
     string Provider,
@@ -20,22 +21,48 @@ public sealed record ProviderWebhookEvent(
 
 public sealed record PaymentSessionItemDto(
     string Name,
-    decimal Amount,
-    int Quantity);
+    Money Money,
+    int Quantity,
+    string? ImageUrl = null,
+    string? Description = null);
 
 public record PaymentBillingDataDto(
+    [property: JsonPropertyName("first_name")]
     string FirstName,
+
+    [property: JsonPropertyName("last_name")]
     string LastName,
+
+    [property: JsonPropertyName("email")]
     string Email,
+
+    [property: JsonPropertyName("phone_number")]
     string PhoneNumber,
+
+    [property: JsonPropertyName("street")]
     string Street,
+
+    [property: JsonPropertyName("building")]
     string Building,
+
+    [property: JsonPropertyName("floor")]
     string Floor,
+
+    [property: JsonPropertyName("apartment")]
     string Apartment,
+
+    [property: JsonPropertyName("city")]
     string City,
+
+    [property: JsonPropertyName("state")]
     string State,
+
+    [property: JsonPropertyName("country")]
     string Country,
-    string PostalCode);
+
+    [property: JsonPropertyName("postal_code")]
+    string PostalCode
+);
 public sealed record CreateProviderPaymentSessionRequest(
     Guid OrderId,
     Guid PaymentAttemptId,
@@ -46,6 +73,7 @@ public sealed record CreateProviderPaymentSessionRequest(
     PaymentBillingDataDto BillingData,
     string IdempotencyKey,
     string SpecialReference,
+    decimal ShippingFee,
     DateTimeOffset ExpiresAt);
 public sealed record CreateProviderPaymentSessionResult(
     string Provider,

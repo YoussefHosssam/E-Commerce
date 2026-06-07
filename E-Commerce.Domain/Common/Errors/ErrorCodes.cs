@@ -78,6 +78,14 @@ public static class ErrorCodes
         public const string VariantPriceOverrideInvalid = "PRD_400_VARIANT_PRICE_OVERRIDE_INVALID";
         public const string VariantSkuDuplicate = "PRD_409_VARIANT_SKU_DUPLICATE";
         public const string VariantSkuRequired = "PRD_400_VARIANT_SKU_REQUIRED";
+        public const string DiscountPriceRequired = "PRD_400_DISCOUNT_PRICE_REQUIRED";
+        public const string DiscountPriceMustBeGreaterThanActualPrice = "PRD_400_DISCOUNT_PRICE_TOO_LOW";
+        public const string DiscountPriceNotAllowedWhenHasDiscountFalse = "PRD_400_DISCOUNT_PRICE_NOT_ALLOWED";
+        public const string InvalidDiscountState = "PRD_400_DISCOUNT_STATE_INVALID";
+        public const string ProductMustHaveAtLeastOneVariant = "PRD_400_VARIANT_REQUIRED";
+        public const string SimpleProductMustHaveExactlyOneVariant = "PRD_400_SIMPLE_PRODUCT_VARIANT_COUNT";
+        public const string ProductMustHaveOneDefaultVariant = "PRD_400_DEFAULT_VARIANT_REQUIRED";
+        public const string CannotAddVariantsToSimpleProduct = "PRD_400_SIMPLE_PRODUCT_ADD_VARIANTS";
     }
     public static class Idempotency
     {
@@ -110,10 +118,24 @@ public static class ErrorCodes
         public const string PriceRequired = "VAR_400_PRICE_REQUIRED";
         public const string CurrencyRequired = "VAR_400_CURRENCY_REQUIRED";
         public const string CurrencyInvalid = "VAR_400_CURRENCY_INVALID";
+        public const string ColorRequired = "VAR_400_COLOR_REQUIRED";
+        public const string ColorNameRequired = "VAR_400_COLOR_NAME_REQUIRED";
+        public const string ColorHexCodeRequired = "VAR_400_COLOR_HEX_REQUIRED";
+        public const string ColorHexCodeInvalid = "VAR_400_COLOR_HEX_INVALID";
         public const string ColorTooLong = "VAR_400_COLOR_TOO_LONG";
         public const string ImageRequired = "VAR_400_IMAGE_REQUIRED";
         public const string InventoryRequired = "VAR_400_INVENTORY_REQUIRED";
         public const string SizeTooLong = "VAR_400_SIZE_TOO_LONG";
+        public const string DefaultVariantAlreadyExists = "VAR_409_DEFAULT_EXISTS";
+        public const string ProductMustHaveDefaultVariant = "VAR_400_DEFAULT_REQUIRED";
+        public const string ProductMustHaveAtLeastOneVariant = "VAR_400_REQUIRED";
+        public const string SimpleProductMustHaveExactlyOneVariant = "VAR_400_SIMPLE_PRODUCT_COUNT";
+        public const string VariantProductRequiresRealVariants = "VAR_400_OPTIONS_REQUIRED";
+        public const string CannotDeleteLastActiveVariant = "VAR_409_LAST_ACTIVE";
+        public const string CannotDeleteVariantUsedInOrders = "VAR_409_USED_IN_ORDERS";
+        public const string CannotDeleteVariantUsedInCart = "VAR_409_USED_IN_CART";
+        public const string DuplicateVariantOptions = "VAR_409_DUPLICATE_OPTIONS";
+        public const string VariantDoesNotBelongToProduct = "VAR_400_PRODUCT_MISMATCH";
     }
 
     public static class User
@@ -343,6 +365,9 @@ public static class ErrorCodes
         public const string UserIdRequired = "ORD_400_USER_ID_REQUIRED";
         public const string OrderIdRequired = "ORD_400_ID_REQUIRED";
         public const string NotFound = "ORD_400_NOT_FOUND";
+        public const string AlreadyPaid = "ORDER_ALREADY_PAID";
+        public const string PaymentNotAllowed = "ORDER_PAYMENT_NOT_ALLOWED";
+        public const string NoPayableAmount = "ORDER_NO_PAYABLE_AMOUNT";
 
         public static class ShippingAddress
         {
@@ -396,12 +421,6 @@ public static class ErrorCodes
         public const string VariantSnapshotRequired = "OI_400_VARIANT_SNAPSHOT_REQUIRED";
     }
 
-    public static class Paymob
-    {
-        public const string CancelRequest = "PMB_499_REQUEST_CANCELLED";
-        public const string FailedRequest = "PMB_502_REQUEST_FAILED";
-    }
-
     public static class Payment
     {
         public const string AmountInvalid = "PAY_400_AMOUNT_INVALID";
@@ -417,6 +436,15 @@ public static class ErrorCodes
         public const string StatusInvalidTransition = "PAY_409_STATUS_INVALID_TRANSITION";
         public const string FailedInitSession = "PAY_500_FAILED_INIT_SESSION";
         public const string FailedDeserializeResponse = "PAY_500_FAILED_DESERIALIZE_RESPONSE";
+        public const string InitializationFailed = "PAYMENT_INITIALIZATION_FAILED";
+        public const string FailParsingWebhook = "PAYMENT_400_FAIL_PARSING_WEBHOOK";
+        public const string InvalidOrderId = "PAYMENT_404_INVALID_ORDER_ID";
+        public const string InvalidPaymentAmount = "PAYMENT_409_INVALID_PAYMENT_AMOUNT";
+        public const string InvalidPaymentCurrency = "PAYMENT_409_INVALID_PAYMENT_CURRENCY";
+        public const string PaymentAttemptNotFound = "PAYMENT_404_PAYMENT_ATTEMPT_NOT_FOUND";
+        public const string OrderNotFound = "PAYMENT_404_ORDER_NOT_FOUND";
+        public const string PaymentAlreadyProcessed = "PAYMENT_409_PAYMENT_ALREADY_PROCESSED";
+        public const string MissingProviderOrderId = "PAYMENT_400_MISSING_PROVIDER_ORDER_ID";
     }
 
     public static class Refresh
@@ -460,6 +488,7 @@ public static class ErrorCodes
         public const string InvalidProcessingStatus = "VI_400_STATUS_INVALID";
         public const string ImageRequired = "VI_400_IMAGE_REQUIRED";
         public const string ImageNotFound = "VI_404_IMAGE_NOT_FOUND";
+        public const string ExceedLimit = "VI_400_MAX_LIMIT";
     }
 
     public static class ProductImage
@@ -475,6 +504,8 @@ public static class ErrorCodes
         public const string InvalidProcessingStatus = "PI_400_STATUS_INVALID";
         public const string ImageRequired = "PI_400_IMAGE_REQUIRED";
         public const string ImageNotFound = "PI_404_IMAGE_NOT_FOUND";
+        public const string ExceedLimit = "VI_400_MAX_LIMIT";
+
     }
 
     public static class ImageUpload
@@ -487,10 +518,28 @@ public static class ErrorCodes
         public const string UploadedResourceNotFound = "IMG_404_UPLOADED_RESOURCE_NOT_FOUND";
     }
 
+    public static class ShipmentProvider
+    {
+        public const string AuthenticationFailed = "INF_401_SHIPMENT_AUTH_FAILED";
+        public const string AccessTokenMissing = "INF_401_SHIPMENT_ACCESS_TOKEN_MISSING";
+        public const string RefreshTokenMissing = "INF_401_SHIPMENT_REFRESH_TOKEN_MISSING";
+        public const string TokenRefreshFailed = "INF_401_SHIPMENT_TOKEN_REFRESH_FAILED";
+
+        public const string Unauthorized = "INF_401_SHIPMENT_UNAUTHORIZED";
+
+        public const string RequestFailed = "INF_500_SHIPMENT_REQUEST_FAILED";
+        public const string InvalidResponse = "INF_500_SHIPMENT_INVALID_RESPONSE";
+
+        public const string ShipmentCreationFailed = "INF_500_SHIPMENT_CREATE_FAILED";
+        public const string TrackingFailed = "INF_500_SHIPMENT_TRACKING_FAILED";
+
+        public const string ServiceUnavailable = "INF_503_SHIPMENT_UNAVAILABLE";
+    }
     public static class Infrastructure
     {
         public const string PersistenceFailure = "INF_500_PERSISTENCE";
         public const string DatabaseUnavailable = "INF_503_DB_UNAVAILABLE";
+        public const string PaymentGatewayFail = "INF_400_PG_UNAVAILABLE";
     }
 
     public static class External

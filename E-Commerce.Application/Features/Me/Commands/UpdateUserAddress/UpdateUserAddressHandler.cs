@@ -1,5 +1,5 @@
 using E_Commerce.Application.Common.Result;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
+using E_Commerce.Application.Contracts.API.Identity;
 using E_Commerce.Application.Features.Me.Common;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
@@ -20,15 +20,12 @@ public sealed class UpdateUserAddressHandler : IRequestHandler<UpdateUserAddress
 
     public async Task<Result<UserAddressDto>> Handle(UpdateUserAddressCommand request, CancellationToken cancellationToken)
     {
-        var userId = _userAccessor.UserId;
-        if (!userId.HasValue)
-            return Result<UserAddressDto>.Fail(AuthErrors.InvalidToken);
-
-        var user = await _uow.Users.GetByIdWithLoadingDataAsync(userId.Value, cancellationToken);
+        var userId = _userAccessor.GetRequiredUserId();
+        var user = await _uow.Users.GetByIdWithLoadingDataAsync(userId, cancellationToken);
         if (user is null)
             return Result<UserAddressDto>.Fail(UserErrors.NotFound);
 
-        var address = await _uow.UserAddresses.GetByIdForUserAsync(userId.Value, request.AddressId, true, cancellationToken);
+        var address = await _uow.UserAddresses.GetByIdForUserAsync(userId, request.AddressId, true, cancellationToken);
         if (address is null)
             return Result<UserAddressDto>.Fail(UserAddressErrors.NotFound);
 

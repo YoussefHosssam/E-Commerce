@@ -8,6 +8,8 @@ internal sealed class VariantImageConfiguration : IEntityTypeConfiguration<Varia
     {
         builder.ToTable("VariantImages");
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id)
+       .ValueGeneratedNever();
 
         builder.Property(x => x.StorageKey).IsRequired().HasMaxLength(300);
         builder.Property(x => x.Url).IsRequired().HasMaxLength(1000);
@@ -19,10 +21,6 @@ internal sealed class VariantImageConfiguration : IEntityTypeConfiguration<Varia
         builder.Property(x => x.SortOrder).IsRequired();
         builder.Property(x => x.ProcessingStatus).IsRequired().HasConversion<string>().HasMaxLength(30);
 
-        builder.HasOne<Variant>()
-               .WithMany(v => v.Images)
-               .HasForeignKey(x => x.VariantId)
-               .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(x => x.VariantId);
         builder.HasIndex(x => x.StorageKey).IsUnique();

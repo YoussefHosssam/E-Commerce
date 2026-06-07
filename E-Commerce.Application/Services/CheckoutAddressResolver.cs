@@ -1,6 +1,6 @@
 using E_Commerce.Application.Common.Dtos;
 using E_Commerce.Application.Common.Result;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
+using E_Commerce.Application.Contracts.API.Identity;
 using E_Commerce.Application.Contracts.Services;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
@@ -20,10 +20,8 @@ public sealed class CheckoutAddressResolver : ICheckoutAddressResolver
 
     public async Task<Result<ResolvedCheckoutAddress>> ResolveAsync(CheckoutAddressSelection selection, CancellationToken ct)
     {
-        if (!_userAccessor.UserId.HasValue)
-            return Result<ResolvedCheckoutAddress>.Fail(AuthErrors.InvalidToken);
-
-        var user = await _uow.Users.GetByIdWithLoadingDataAsync(_userAccessor.UserId.Value, ct);
+        var userId = _userAccessor.GetRequiredUserId();
+        var user = await _uow.Users.GetByIdWithLoadingDataAsync(userId, ct);
         if (user is null)
             return Result<ResolvedCheckoutAddress>.Fail(UserErrors.NotFound);
 

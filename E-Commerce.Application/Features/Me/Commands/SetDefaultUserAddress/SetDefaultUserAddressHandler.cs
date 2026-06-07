@@ -1,5 +1,5 @@
 using E_Commerce.Application.Common.Result;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
+using E_Commerce.Application.Contracts.API.Identity;
 using E_Commerce.Application.Features.Me.Common;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
@@ -20,15 +20,12 @@ public sealed class SetDefaultUserAddressHandler : IRequestHandler<SetDefaultUse
 
     public async Task<Result<UserAddressDto>> Handle(SetDefaultUserAddressCommand request, CancellationToken cancellationToken)
     {
-        var userId = _userAccessor.UserId;
-        if (!userId.HasValue)
-            return Result<UserAddressDto>.Fail(AuthErrors.InvalidToken);
-
-        var user = await _uow.Users.GetByIdWithLoadingDataAsync(userId.Value, cancellationToken);
+        var userId = _userAccessor.GetRequiredUserId();
+        var user = await _uow.Users.GetByIdWithLoadingDataAsync(userId, cancellationToken);
         if (user is null)
             return Result<UserAddressDto>.Fail(UserErrors.NotFound);
 
-        var addresses = await _uow.UserAddresses.GetByUserIdAsync(userId.Value, true, cancellationToken);
+        var addresses = await _uow.UserAddresses.GetByUserIdAsync(userId, true, cancellationToken);
         var target = addresses.FirstOrDefault(x => x.Id == request.AddressId);
         if (target is null)
             return Result<UserAddressDto>.Fail(UserAddressErrors.NotFound);

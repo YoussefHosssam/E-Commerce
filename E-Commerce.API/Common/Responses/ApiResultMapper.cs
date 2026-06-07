@@ -13,8 +13,9 @@ internal static class ApiResultMapper
             return ApiResult.Success(successMessage, statusCode: successStatusCode);
         }
 
-        var statusCode = MapStatusCode(result.Error);
-        return ApiResult.Fail(statusCode, result.Error.Code, result.Error.Message);
+        var error = result.Error!;
+        var statusCode = MapStatusCode(error);
+        return ApiResult.Fail(statusCode, error.Code, error.Message);
     }
 
     public static ApiResult<T> FromResult<T>(this ControllerBase controller, Result<T> result, string successMessage, int successStatusCode = StatusCodes.Status200OK)
@@ -26,6 +27,22 @@ internal static class ApiResultMapper
 
         var statusCode = MapStatusCode(result.Error!);
         return ApiResult<T>.Fail(statusCode, result.Error!.Code, result.Error.Message);
+    }
+
+    public static ApiResult<TResponse> FromResult<T, TResponse>(
+        this ControllerBase controller,
+        Result<T> result,
+        Func<T, TResponse> map,
+        string successMessage,
+        int successStatusCode = StatusCodes.Status200OK)
+    {
+        if (result.IsSuccess)
+        {
+            return ApiResult<TResponse>.Success(map(result.Data!), successMessage, result.Meta, successStatusCode);
+        }
+
+        var statusCode = MapStatusCode(result.Error!);
+        return ApiResult<TResponse>.Fail(statusCode, result.Error!.Code, result.Error.Message);
     }
 
     public static int MapStatusCode(Error error)

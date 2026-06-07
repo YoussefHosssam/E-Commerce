@@ -28,6 +28,7 @@ internal class ProductRepository : GenericRepository<Product>, IProductRepositor
             .AsNoTracking()
             .Include(x => x.Category)
             .Include(x => x.Variants)
+                .ThenInclude(x => x.Inventory)
             .OrderByDescending(x => x.CreatedAt).ToPagedResultAsync(pageRequest, ct);
     }
 
@@ -41,7 +42,9 @@ internal class ProductRepository : GenericRepository<Product>, IProductRepositor
         return await query
             .Include(x => x.Category)
             .Include(x => x.Variants)
-            .ThenInclude(x => x.Images)
+                .ThenInclude(x => x.Inventory)
+            .Include(x => x.Variants)
+                .ThenInclude(x => x.Images)
             .Include(x => x.Images)
             .FirstOrDefaultAsync(x => x.Id == id, ct);
     }

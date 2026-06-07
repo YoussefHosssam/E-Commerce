@@ -20,38 +20,61 @@ internal sealed class VariantConfiguration : IEntityTypeConfiguration<Variant>
                .HasMaxLength(64);
 
         builder.Property(x => x.Size).HasMaxLength(30);
-        builder.Property(x => x.Color).HasMaxLength(30);
+        builder.Property(x => x.IsDefault).IsRequired();
+
+        builder.OwnsOne(x => x.Color, color =>
+        {
+            color.WithOwner();
+
+            color.Property(c => c.Name)
+                 .IsRequired()
+                 .HasMaxLength(30)
+                 .HasColumnName("ColorName");
+
+            color.Property(c => c.HexCode)
+                 .IsRequired()
+                 .HasMaxLength(7)
+                 .HasColumnName("ColorHexCode");
+        });
+
+        builder.Navigation(x => x.Color).IsRequired();
 
         builder.Property(x => x.IsActive).IsRequired();
 
-        // Optional Money override
-        builder.OwnsOne(x => x.PriceOverride, money =>
+        builder.OwnsOne(x => x.Price, money =>
         {
             money.WithOwner();
 
             money.Property(m => m.Amount)
                  .HasPrecision(18, 2)
-                 .HasColumnName("PriceOverrideAmount");
+                 .HasColumnName("PriceAmount");
 
             money.Property(m => m.Currency)
                  .HasConversion(ValueConverters.StructString<CurrencyCode>())
                  .HasMaxLength(3)
-                 .HasColumnName("PriceOverrideCurrency");
+                 .HasColumnName("PriceCurrency");
         });
 
-        // PriceOverride nullable
-        builder.Navigation(x => x.PriceOverride).IsRequired(false);
+        builder.Navigation(x => x.Price).IsRequired(false);
 
-        builder.HasIndex(x => x.Sku).IsUnique(); // global unique (حسب ما كتبت في الدومين)
+        builder.HasIndex(x => x.Sku).IsUnique();
         builder.HasIndex(x => new { x.ProductId, x.Sku }).IsUnique();
+        builder.HasIndex(x => new { x.ProductId, x.IsDefault })
+               .IsUnique()
+               .HasFilter("[IsDefault] = 1 AND [IsActive] = 1");
 
         builder.Metadata.FindNavigation(nameof(Variant.Images))!
                .SetPropertyAccessMode(PropertyAccessMode.Field);
 
-        builder.HasMany<VariantImage>()
+        // VariantConfiguration
+        builder.HasMany(v => v.Images)
                .WithOne()
                .HasForeignKey(i => i.VariantId)
                .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(v => v.Images)
+               .UsePropertyAccessMode(PropertyAccessMode.Field);
+
         builder.HasOne(x => x.Inventory)
                 .WithOne(x => x.Variant)
                 .HasForeignKey<Inventory>(x => x.VariantId)

@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using E_Commerce.Application.Common.Pagination;
 using E_Commerce.Application.Common.Result;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
+using E_Commerce.Application.Contracts.API.Identity;
 using E_Commerce.Application.Features.Order.Common;
 using E_Commerce.Application.Features.Product.Queries.GetProducts;
 using E_Commerce.Domain.Common.Errors;
@@ -33,9 +33,8 @@ namespace E_Commerce.Application.Features.Order.Queries
 
         public async Task<Result<List<OrderListDto>>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
         {
-            var userId = _userAccessor.UserId;
-            if (!userId.HasValue) return Result<List<OrderListDto>>.Fail(AuthErrors.InvalidToken);
-            var pagedOrders = await _uow.Orders.GetOrdersWithDetailsAsync(userId.Value, request.page, cancellationToken);
+            var userId = _userAccessor.GetRequiredUserId();
+            var pagedOrders = await _uow.Orders.GetOrdersWithDetailsAsync(userId, request.page, cancellationToken);
             List<OrderListDto> orders = _mapper.Map<List<OrderListDto>>(pagedOrders.Items);
             return Result<List<OrderListDto>>.Success(orders, pagedOrders.ToMetaResult());
         }

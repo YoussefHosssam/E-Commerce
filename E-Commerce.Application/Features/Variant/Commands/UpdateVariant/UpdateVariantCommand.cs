@@ -1,4 +1,5 @@
 using E_Commerce.Application.Common.Result;
+using E_Commerce.Application.Common.Dtos;
 using E_Commerce.Application.Features.Variant.Common;
 using MediatR;
 
@@ -9,8 +10,9 @@ public sealed record UpdateVariantCommand(
     Guid VariantId,
     string Sku,
     string? Size,
-    string? Color,
-    decimal? PriceOverrideAmount,
-    string? PriceOverrideCurrency,
+    ColorDto? Color,
+    bool? HasPriceOverride,
+    decimal? VariantPriceOverrideAmount,
+    bool IsDefault,
     bool IsActive) : IRequest<Result<VariantDetailDto>>;
 

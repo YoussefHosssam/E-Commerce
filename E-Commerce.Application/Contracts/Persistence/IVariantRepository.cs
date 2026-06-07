@@ -11,4 +11,6 @@ public interface IVariantRepository : IGenericRepository<Variant>
     Task<bool> SkuExistsAsync(string sku, Guid? excludedVariantId, CancellationToken ct);
     Task<bool> VariantExistsAsync(Guid id, CancellationToken ct);
     Task<bool> IsVariantReferencedAsync(Guid variantId, CancellationToken ct);
+    Task<bool> IsVariantUsedInOrdersAsync(Guid variantId, CancellationToken ct);
+    Task<bool> IsVariantUsedInActiveCartsAsync(Guid variantId, CancellationToken ct);
 }

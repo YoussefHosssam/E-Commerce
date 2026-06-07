@@ -1,10 +1,10 @@
 ﻿using E_Commerce.Application.Common.Result;
 using E_Commerce.Application.Contracts.Persistence.Shared;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.Enums;
 using MediatR;
+using E_Commerce.Application.Contracts.API.Identity;
 
 namespace E_Commerce.Application.Features.Variant.Commands.UpdateVariant;
 
@@ -65,13 +65,15 @@ internal class UpdateStockMovementHandlder
                 return Result.Fail(StockMovementErrors.TypeInvalid);
         }
 
+        var actorUserId = _userAccessor.GetRequiredUserId();
+
         var movement = StockMovement.Create(
             request.VariantId,
             request.Type,
             delta,
             request.Reason,
             refId: null,
-            actorUserId: _userAccessor.UserId,
+            actorUserId: actorUserId,
             now);
 
         await _uow.StockMovements.CreateAsync(movement, cancellationToken);

@@ -28,14 +28,16 @@ public sealed record ImageUploadVerificationResult(
     long SizeInBytes,
     string Format);
 
-public sealed record ImageDto(
-    Guid Id,
-    string StorageKey,
-    string Url,
-    int Width,
-    int Height,
-    long SizeInBytes,
-    string Format,
-    bool IsPrimary,
-    int SortOrder,
-    string ProcessingStatus);
+public sealed record ImageDto
+{
+    public Guid Id { get; init; }
+    public string StorageKey { get; init; } = default!;
+    public string Url { get; init; } = default!;
+    public int Width { get; init; }
+    public int Height { get; init; }
+    public long SizeInBytes { get; init; }
+    public string Format { get; init; } = default!;
+    public bool IsPrimary { get; init; }
+    public int SortOrder { get; init; }
+    public string ProcessingStatus { get; init; } = default!;
+}

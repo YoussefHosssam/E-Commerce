@@ -1,5 +1,4 @@
 ﻿using E_Commerce.Application.Common.Result;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -9,6 +8,8 @@ using CartEntity = E_Commerce.Domain.Entities.Cart;
 using System.Threading.Tasks;
 using E_Commerce.Domain.Common.Errors;
 using AutoMapper;
+using E_Commerce.Application.Features.Checkout.Common;
+using E_Commerce.Application.Contracts.API.Identity;
 
 namespace E_Commerce.Application.Features.Checkout.Queries
 {
@@ -35,7 +36,7 @@ namespace E_Commerce.Application.Features.Checkout.Queries
         }
         private async Task<CartEntity?> GetUserCart(CancellationToken ct)
         {
-            Guid userId = _userAccessor.UserId!.Value;
+            Guid userId = _userAccessor.GetRequiredUserId();
             CartEntity? cart = await _uow.Carts.GetCartWithItemsByUserId(userId, ct);
             return cart;
         }

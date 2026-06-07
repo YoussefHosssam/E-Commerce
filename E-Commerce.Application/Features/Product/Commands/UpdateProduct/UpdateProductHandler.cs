@@ -1,5 +1,6 @@
 using E_Commerce.Application.Common.Result;
 using E_Commerce.Application.Contracts.Persistence.Shared;
+using E_Commerce.Application.Contracts.Services;
 using E_Commerce.Application.Features.Product.Common;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.ValueObjects;
@@ -12,11 +13,13 @@ public sealed class UpdateProductHandler : IRequestHandler<UpdateProductCommand,
 {
     private readonly IUnitOfWork _uow;
     private readonly IMapper _mapper;
+    private readonly IVariantService _variantService;
 
-    public UpdateProductHandler(IUnitOfWork uow, IMapper mapper)
+    public UpdateProductHandler(IUnitOfWork uow, IMapper mapper, IVariantService variantService)
     {
         _uow = uow;
         _mapper = mapper;
+        _variantService = variantService;
     }
 
     public async Task<Result<ProductDetailDto>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
@@ -48,6 +51,35 @@ public sealed class UpdateProductHandler : IRequestHandler<UpdateProductCommand,
         product.ChangeBrand(request.Brand, now);
         product.ChangeBasePrice(money, now);
         product.ChangeStatus(request.Status, now);
+        if (request.Variants is { Count: > 0 })
+        {
+            foreach (var variant in product.Variants.Where(v => v.IsActive))
+            {
+                if (await _uow.Variants.IsVariantUsedInActiveCartsAsync(variant.Id, cancellationToken))
+                    return Result<ProductDetailDto>.Fail(VariantErrors.CannotDeleteVariantUsedInCart);
+            }
+
+            product.ArchiveActiveVariantsForReplacement(now);
+            product.ChangeVariantMode(request.HasVariants, now);
+
+            var variantsResult = await _variantService.CreateVariantsForProductAsync(product, request.Variants, cancellationToken);
+            if (!variantsResult.IsSuccess)
+                return Result<ProductDetailDto>.Fail(variantsResult.Error!);
+        }
+        else
+        {
+            product.ChangeVariantMode(request.HasVariants, now);
+        }
+
+        if (request.HasDiscount)
+        {
+            var compareAtPrice = Money.Create(request.CompareAtPriceAmount!.Value, CurrencyCode.Create(request.CompareAtPriceCurrency!));
+            product.ApplyDiscount(compareAtPrice);
+        }
+        else
+        {
+            product.RemoveDiscount();
+        }
 
         if (request.IsActive)
         {

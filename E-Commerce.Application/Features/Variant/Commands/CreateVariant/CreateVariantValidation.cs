@@ -9,9 +9,19 @@ public sealed class CreateVariantValidation : AbstractValidator<CreateVariantCom
     public CreateVariantValidation()
     {
         RuleFor(x => x.ProductId).NotEmpty().WithError(VariantErrors.ProductRequired);
-        RuleFor(x => x.Sku).NotEmpty().WithError(VariantErrors.SkuRequired);
-        RuleFor(x => x.PriceOverrideAmount).GreaterThanOrEqualTo(0).When(x => x.PriceOverrideAmount.HasValue).WithError(VariantErrors.PriceInvalid);
-        RuleFor(x => x.PriceOverrideCurrency).Length(3).When(x => !string.IsNullOrWhiteSpace(x.PriceOverrideCurrency)).WithError(VariantErrors.CurrencyInvalid);
-        RuleFor(x => x).Must(x => x.PriceOverrideAmount.HasValue == !string.IsNullOrWhiteSpace(x.PriceOverrideCurrency)).WithError(VariantErrors.PriceRequired);
+        RuleFor(x => x.Variants).NotEmpty().WithError(VariantErrors.ProductMustHaveAtLeastOneVariant);
+        RuleForEach(x => x.Variants).ChildRules(variant =>
+        {
+            variant.RuleFor(x => x.Sku).NotEmpty().WithError(VariantErrors.SkuRequired);
+            variant.RuleFor(x => x.VariantPriceOverrideAmount).GreaterThan(0).When(x => x.VariantPriceOverrideAmount.HasValue).WithError(VariantErrors.PriceInvalid);
+            variant.RuleFor(x => x.Stock).GreaterThanOrEqualTo(0).WithError(VariantErrors.PriceInvalid);
+            variant.RuleFor(x => x.Color).NotNull().WithError(VariantErrors.ColorRequired);
+            variant.When(x => x.Color is not null, () =>
+            {
+                variant.RuleFor(x => x.Color!.Name).NotEmpty().WithError(VariantErrors.ColorNameRequired);
+                variant.RuleFor(x => x.Color!.HexCode).NotEmpty().WithError(VariantErrors.ColorHexCodeRequired);
+                variant.RuleFor(x => x.Color!.HexCode).Matches("^#[0-9A-Fa-f]{6}$").WithError(VariantErrors.ColorHexCodeInvalid);
+            });
+        });
     }
 }

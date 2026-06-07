@@ -1,7 +1,8 @@
 using Asp.Versioning;
+using E_Commerce.API.Configuration;
 using E_Commerce.API.Common.Responses;
 using E_Commerce.API.Contracts.Requests.ImageRequests;
-using E_Commerce.API.Filters;
+using E_Commerce.API.Contracts.Responses;
 using E_Commerce.Application.Features.ImageUploads.Common;
 using E_Commerce.Application.Features.ImageUploads.ProductImages;
 using E_Commerce.Application.Features.ImageUploads.VariantImages;
@@ -9,13 +10,13 @@ using E_Commerce.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using ApiGenerateImageUploadSignatureRequest = E_Commerce.API.Contracts.Requests.ImageRequests.GenerateImageUploadSignatureRequest;
 
 namespace E_Commerce.API.Controllers.V1;
 
 [ApiController]
 [ApiVersion(1)]
-[Authorize]
 [Authorize(Roles = nameof(UserRole.Admin))]
 [Route("api/v{version:apiVersion}")]
 public sealed class ImagesController : ControllerBase
@@ -28,7 +29,8 @@ public sealed class ImagesController : ControllerBase
     }
 
     [HttpPost("products/{productId:guid}/images/upload-signature")]
-    public async Task<ApiResult<GenerateImageUploadSignatureResponse>> GenerateProductImageUploadSignature(
+    [EnableRateLimiting(RateLimitingConfiguration.ExpensiveLimiter)]
+    public async Task<ApiResult<UploadSignatureResponse>> GenerateProductImageUploadSignature(
         Guid productId,
         [FromBody] ApiGenerateImageUploadSignatureRequest request,
         CancellationToken ct)
@@ -37,11 +39,12 @@ public sealed class ImagesController : ControllerBase
             new GenerateProductImageUploadSignatureCommand(productId, request.ContentType, request.SizeInBytes),
             ct);
 
-        return this.FromResult(result, "Product image upload signature generated successfully.");
+        return this.FromResult(result, uploadSignature => new UploadSignatureResponse(uploadSignature), "Product image upload signature generated successfully.");
     }
 
     [HttpPost("products/{productId:guid}/images/complete")]
-    public async Task<ApiResult<ImageDto>> CompleteProductImageUpload(
+    [EnableRateLimiting(RateLimitingConfiguration.ExpensiveLimiter)]
+    public async Task<ApiResult<ImageResponse>> CompleteProductImageUpload(
         Guid productId,
         [FromBody] CompleteImageUploadRequest request,
         CancellationToken ct)
@@ -50,10 +53,11 @@ public sealed class ImagesController : ControllerBase
             new CompleteProductImageUploadCommand(productId, request.StorageKey),
             ct);
 
-        return this.FromResult(result, "Product image upload completed successfully.");
+        return this.FromResult(result, image => new ImageResponse(image), "Product image upload completed successfully.");
     }
 
     [HttpDelete("products/{productId:guid}/images/{imageId:guid}")]
+    [EnableRateLimiting(RateLimitingConfiguration.ExpensiveLimiter)]
     public async Task<ApiResult> DeleteProductImage(
         Guid productId,
         Guid imageId,
@@ -64,6 +68,7 @@ public sealed class ImagesController : ControllerBase
     }
 
     [HttpPatch("products/{productId:guid}/images/{imageId:guid}/primary")]
+    [EnableRateLimiting(RateLimitingConfiguration.ExpensiveLimiter)]
     public async Task<ApiResult> SetPrimaryProductImage(
         Guid productId,
         Guid imageId,
@@ -74,6 +79,7 @@ public sealed class ImagesController : ControllerBase
     }
 
     [HttpPatch("products/{productId:guid}/images/reorder")]
+    [EnableRateLimiting(RateLimitingConfiguration.ExpensiveLimiter)]
     public async Task<ApiResult> ReorderProductImages(
         Guid productId,
         [FromBody] ReorderImagesRequest request,
@@ -85,7 +91,8 @@ public sealed class ImagesController : ControllerBase
     }
 
     [HttpPost("variants/{variantId:guid}/images/upload-signature")]
-    public async Task<ApiResult<GenerateImageUploadSignatureResponse>> GenerateVariantImageUploadSignature(
+    [EnableRateLimiting(RateLimitingConfiguration.ExpensiveLimiter)]
+    public async Task<ApiResult<UploadSignatureResponse>> GenerateVariantImageUploadSignature(
         Guid variantId,
         [FromBody] ApiGenerateImageUploadSignatureRequest request,
         CancellationToken ct)
@@ -94,11 +101,12 @@ public sealed class ImagesController : ControllerBase
             new GenerateVariantImageUploadSignatureCommand(variantId, request.ContentType, request.SizeInBytes),
             ct);
 
-        return this.FromResult(result, "Variant image upload signature generated successfully.");
+        return this.FromResult(result, uploadSignature => new UploadSignatureResponse(uploadSignature), "Variant image upload signature generated successfully.");
     }
 
     [HttpPost("variants/{variantId:guid}/images/complete")]
-    public async Task<ApiResult<ImageDto>> CompleteVariantImageUpload(
+    [EnableRateLimiting(RateLimitingConfiguration.ExpensiveLimiter)]
+    public async Task<ApiResult<ImageResponse>> CompleteVariantImageUpload(
         Guid variantId,
         [FromBody] CompleteImageUploadRequest request,
         CancellationToken ct)
@@ -107,10 +115,11 @@ public sealed class ImagesController : ControllerBase
             new CompleteVariantImageUploadCommand(variantId, request.StorageKey),
             ct);
 
-        return this.FromResult(result, "Variant image upload completed successfully.");
+        return this.FromResult(result, image => new ImageResponse(image), "Variant image upload completed successfully.");
     }
 
     [HttpDelete("variants/{variantId:guid}/images/{imageId:guid}")]
+    [EnableRateLimiting(RateLimitingConfiguration.ExpensiveLimiter)]
     public async Task<ApiResult> DeleteVariantImage(
         Guid variantId,
         Guid imageId,
@@ -121,6 +130,7 @@ public sealed class ImagesController : ControllerBase
     }
 
     [HttpPatch("variants/{variantId:guid}/images/{imageId:guid}/primary")]
+    [EnableRateLimiting(RateLimitingConfiguration.ExpensiveLimiter)]
     public async Task<ApiResult> SetPrimaryVariantImage(
         Guid variantId,
         Guid imageId,
@@ -131,6 +141,7 @@ public sealed class ImagesController : ControllerBase
     }
 
     [HttpPatch("variants/{variantId:guid}/images/reorder")]
+    [EnableRateLimiting(RateLimitingConfiguration.ExpensiveLimiter)]
     public async Task<ApiResult> ReorderVariantImages(
         Guid variantId,
         [FromBody] ReorderImagesRequest request,

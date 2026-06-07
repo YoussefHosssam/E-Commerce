@@ -1,7 +1,6 @@
 using E_Commerce.Application.Common.Result;
 using E_Commerce.Application.Common.Logging;
 using E_Commerce.Application.Contracts.Infrastructure.Common;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
 using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Jwt;
 using E_Commerce.Application.Contracts.Infrastrucuture.Auth.RefreshTokens;
 using E_Commerce.Application.Contracts.Infrastrucuture.Cart;
@@ -16,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using E_Commerce.Application.Contracts.API.Identity;
 
 namespace E_Commerce.Application.Features.Auth.Commands.LoginUser
 {

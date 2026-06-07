@@ -1,5 +1,5 @@
 using E_Commerce.Application.Common.Result;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
+using E_Commerce.Application.Contracts.API.Identity;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.ValueObjects;
@@ -29,11 +29,8 @@ public class ChangeUserPasswordHandler : IRequestHandler<ChangeUserPasswordComma
 
     public async Task<Result> Handle(ChangeUserPasswordCommand request, CancellationToken cancellationToken)
     {
-        var userId = _userAccessor.UserId;
-        if (!userId.HasValue)
-            return Result.Fail(AuthErrors.InvalidToken);
-
-        User? user = await _uow.Users.GetByIdWithLoadingDataAsync(userId.Value, cancellationToken);
+        var userId = _userAccessor.GetRequiredUserId();
+        User? user = await _uow.Users.GetByIdWithLoadingDataAsync(userId, cancellationToken);
         if (user is null)
             return Result.Fail(AuthErrors.InvalidToken);
 

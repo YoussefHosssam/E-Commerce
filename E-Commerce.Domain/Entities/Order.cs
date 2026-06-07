@@ -166,6 +166,8 @@ public sealed class Order : BaseEntity
         Touch(now);
     }
 
+    public bool IsPaid { get { return Status == OrderStatus.Paid; } }
+
     public void UpdateAddresses(JsonText shipping, JsonText billing, DateTimeOffset now)
     {
         EnsureEditable();

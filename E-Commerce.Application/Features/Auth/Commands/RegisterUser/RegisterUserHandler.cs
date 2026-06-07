@@ -4,12 +4,12 @@ using AutoMapper;
 using E_Commerce.Application.Common.Entities;
 using E_Commerce.Application.Contracts.Infrastructure.BackgroundJobs;
 using E_Commerce.Application.Contracts.Infrastructure.Common;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
 using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.ValueObjects;
 using MediatR;
 using E_Commerce.Application.Contracts.Services;
 using Microsoft.Extensions.Logging;
+using E_Commerce.Application.Contracts.API.Identity;
 
 namespace E_Commerce.Application.Features.Auth.Commands.RegisterUser
 {
@@ -18,11 +18,11 @@ namespace E_Commerce.Application.Features.Auth.Commands.RegisterUser
         private readonly IUnitOfWork _uow;
         private readonly IPasswordHasherAdapter _passwordHasher;
         private readonly IVerificationEmailPreparationService _verificationEmailPreparationService;
-        private readonly IEmailJobService _emailJobService;
+        private readonly IEmailQueueService _emailJobService;
         private readonly IMapper _mapper;
         private readonly ILogger<RegisterUserHandler> _logger;
 
-        public RegisterUserHandler(IUnitOfWork uow, IPasswordHasherAdapter passwordHasher, IEmailJobService emailJobService, IMapper mapper, IVerificationEmailPreparationService verificationEmailPreparationService, ILogger<RegisterUserHandler> logger)
+        public RegisterUserHandler(IUnitOfWork uow, IPasswordHasherAdapter passwordHasher, IEmailQueueService emailJobService, IMapper mapper, IVerificationEmailPreparationService verificationEmailPreparationService, ILogger<RegisterUserHandler> logger)
         {
             _uow = uow;
             _passwordHasher = passwordHasher;

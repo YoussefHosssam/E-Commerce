@@ -11,9 +11,16 @@ public sealed class UpdateVariantValidation : AbstractValidator<UpdateVariantCom
         RuleFor(x => x.ProductId).NotEmpty().WithError(VariantErrors.ProductRequired);
         RuleFor(x => x.VariantId).NotEmpty().WithError(VariantErrors.VariantIdRequired);
         RuleFor(x => x.Sku).NotEmpty().WithError(VariantErrors.SkuRequired);
-        RuleFor(x => x.PriceOverrideAmount).GreaterThanOrEqualTo(0).When(x => x.PriceOverrideAmount.HasValue).WithError(VariantErrors.PriceInvalid);
-        RuleFor(x => x.PriceOverrideCurrency).Length(3).When(x => !string.IsNullOrWhiteSpace(x.PriceOverrideCurrency)).WithError(VariantErrors.CurrencyInvalid);
-        RuleFor(x => x).Must(x => x.PriceOverrideAmount.HasValue == !string.IsNullOrWhiteSpace(x.PriceOverrideCurrency)).WithError(VariantErrors.PriceRequired);
+        RuleFor(x => x.VariantPriceOverrideAmount).NotNull().When(x => x.HasPriceOverride == true).WithError(VariantErrors.PriceRequired);
+        RuleFor(x => x.VariantPriceOverrideAmount).GreaterThan(0).When(x => x.HasPriceOverride == true && x.VariantPriceOverrideAmount.HasValue).WithError(VariantErrors.PriceInvalid);
+        RuleFor(x => x.VariantPriceOverrideAmount).Null().When(x => x.HasPriceOverride == false).WithError(VariantErrors.InvalidInput);
+        RuleFor(x => x.Color).NotNull().WithError(VariantErrors.ColorRequired);
+        When(x => x.Color is not null, () =>
+        {
+            RuleFor(x => x.Color!.Name).NotEmpty().WithError(VariantErrors.ColorNameRequired);
+            RuleFor(x => x.Color!.HexCode).NotEmpty().WithError(VariantErrors.ColorHexCodeRequired);
+            RuleFor(x => x.Color!.HexCode).Matches("^#[0-9A-Fa-f]{6}$").WithError(VariantErrors.ColorHexCodeInvalid);
+        });
     }
 }
 

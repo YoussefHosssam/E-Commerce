@@ -334,79 +334,6 @@ namespace E_Commerce.Persistence.Migrations
                     b.ToTable("Favorites", (string)null);
                 });
 
-            modelBuilder.Entity("E_Commerce.Domain.Entities.IdempotencyRecord", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset?>("CompletedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("ContentType")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<DateTimeOffset>("ExpiresAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("FailureReason")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("IdempotencyKey")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
-
-                    b.Property<string>("Operation")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("RequestHash")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("ResourceId")
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
-
-                    b.Property<string>("ResponseBodyJson")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ResponseStatusCode")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExpiresAt");
-
-                    b.HasIndex("ResourceId");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("Operation", "IdempotencyKey");
-
-                    b.HasIndex("UserId", "Operation", "IdempotencyKey")
-                        .IsUnique()
-                        .HasFilter("[UserId] IS NOT NULL");
-
-                    b.ToTable("IdempotencyRecords", (string)null);
-                });
-
             modelBuilder.Entity("E_Commerce.Domain.Entities.Inventory", b =>
                 {
                     b.Property<Guid>("VariantId")
@@ -746,6 +673,12 @@ namespace E_Commerce.Persistence.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("HasDiscount")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasVariants")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -1294,14 +1227,13 @@ namespace E_Commerce.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Color")
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDefault")
                         .HasColumnType("bit");
 
                     b.Property<Guid>("ProductId")
@@ -1321,6 +1253,10 @@ namespace E_Commerce.Persistence.Migrations
                     b.HasIndex("Sku")
                         .IsUnique();
 
+                    b.HasIndex("ProductId", "IsDefault")
+                        .IsUnique()
+                        .HasFilter("[IsDefault] = 1 AND [IsActive] = 1");
+
                     b.HasIndex("ProductId", "Sku")
                         .IsUnique();
 
@@ -1330,7 +1266,6 @@ namespace E_Commerce.Persistence.Migrations
             modelBuilder.Entity("E_Commerce.Domain.Entities.VariantImage", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -1648,10 +1583,36 @@ namespace E_Commerce.Persistence.Migrations
                                 .HasForeignKey("ProductId");
                         });
 
+                    b.OwnsOne("E_Commerce.Domain.ValueObjects.Money", "CompareAtPrice", b1 =>
+                        {
+                            b1.Property<Guid>("ProductId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<decimal>("Amount")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("CompareAtPriceAmount");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("nvarchar(3)")
+                                .HasColumnName("CompareAtPriceCurrency");
+
+                            b1.HasKey("ProductId");
+
+                            b1.ToTable("Products");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ProductId");
+                        });
+
                     b.Navigation("BasePrice")
                         .IsRequired();
 
                     b.Navigation("Category");
+
+                    b.Navigation("CompareAtPrice");
                 });
 
             modelBuilder.Entity("E_Commerce.Domain.Entities.ProductImage", b =>
@@ -1783,7 +1744,7 @@ namespace E_Commerce.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("E_Commerce.Domain.ValueObjects.Money", "PriceOverride", b1 =>
+                    b.OwnsOne("E_Commerce.Domain.ValueObjects.Money", "Price", b1 =>
                         {
                             b1.Property<Guid>("VariantId")
                                 .HasColumnType("uniqueidentifier");
@@ -1791,13 +1752,13 @@ namespace E_Commerce.Persistence.Migrations
                             b1.Property<decimal>("Amount")
                                 .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
-                                .HasColumnName("PriceOverrideAmount");
+                                .HasColumnName("PriceAmount");
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
                                 .HasMaxLength(3)
                                 .HasColumnType("nvarchar(3)")
-                                .HasColumnName("PriceOverrideCurrency");
+                                .HasColumnName("PriceCurrency");
 
                             b1.HasKey("VariantId");
 
@@ -1807,7 +1768,35 @@ namespace E_Commerce.Persistence.Migrations
                                 .HasForeignKey("VariantId");
                         });
 
-                    b.Navigation("PriceOverride");
+                    b.OwnsOne("E_Commerce.Domain.ValueObjects.Color", "Color", b1 =>
+                        {
+                            b1.Property<Guid>("VariantId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("HexCode")
+                                .IsRequired()
+                                .HasMaxLength(7)
+                                .HasColumnType("nvarchar(7)")
+                                .HasColumnName("ColorHexCode");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasMaxLength(30)
+                                .HasColumnType("nvarchar(30)")
+                                .HasColumnName("ColorName");
+
+                            b1.HasKey("VariantId");
+
+                            b1.ToTable("Variants");
+
+                            b1.WithOwner()
+                                .HasForeignKey("VariantId");
+                        });
+
+                    b.Navigation("Color")
+                        .IsRequired();
+
+                    b.Navigation("Price");
 
                     b.Navigation("Product");
                 });

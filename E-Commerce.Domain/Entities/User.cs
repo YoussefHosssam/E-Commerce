@@ -90,7 +90,6 @@ public class User : BaseEntity
                 throw new DomainValidationException(UserErrors.PhoneInvalid);
         }
 
-        // ?? ???? roles ????? ?? enum ??? ????? ??????? ?? ???? ???? undefined
         if (!Enum.IsDefined(typeof(UserRole), role))
             throw new DomainValidationException(UserErrors.RoleInvalid);
         User user = new User(emailAddress, firstName, lastName, phoneNumber, role);

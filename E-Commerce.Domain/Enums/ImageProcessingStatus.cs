@@ -4,7 +4,6 @@ public enum ImageProcessingStatus
 {
     PendingUpload,
     Uploaded,
-    Ready,
     Failed,
     Deleted
 }

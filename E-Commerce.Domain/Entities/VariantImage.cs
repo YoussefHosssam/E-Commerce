@@ -42,16 +42,11 @@ public class VariantImage : BaseEntity
 
         return new VariantImage(variantId, storageKey, isPrimary, sortOrder , uploadExpiresAt);
     }
+
     public void MarkUploaded(string url, int width, int height, long sizeInBytes, string format)
     {
         SetMetadata(url, width, height, sizeInBytes, format);
         ProcessingStatus = ImageProcessingStatus.Uploaded;
-    }
-
-    public void MarkReady(string url, int width, int height, long sizeInBytes, string format)
-    {
-        SetMetadata(url, width, height, sizeInBytes, format);
-        ProcessingStatus = ImageProcessingStatus.Ready;
     }
 
     public void MarkFailed()

@@ -13,9 +13,9 @@ namespace E_Commerce.Infrastructure.Carts
     public sealed class AnonymousCartIdCookie : IAnonymousCartIdCookie
     {
         private readonly IHttpContextAccessor _ctx;
-        private readonly CartSessionOptions _opt;
+        private readonly CartOptions _opt;
 
-        public AnonymousCartIdCookie(IHttpContextAccessor ctx, IOptions<CartSessionOptions> opt)
+        public AnonymousCartIdCookie(IHttpContextAccessor ctx, IOptions<CartOptions> opt)
         {
             _ctx = ctx;
             _opt = opt.Value;

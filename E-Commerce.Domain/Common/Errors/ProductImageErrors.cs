@@ -13,4 +13,6 @@ public static class ProductImageErrors
     public static readonly Error InvalidProcessingStatus = new(ErrorCodes.ProductImage.InvalidProcessingStatus, "Product image processing status is invalid.", ErrorType.Validation);
     public static readonly Error ImageRequired = new(ErrorCodes.ProductImage.ImageRequired, "Product image is required.", ErrorType.Validation);
     public static readonly Error ImageNotFound = new(ErrorCodes.ProductImage.ImageNotFound, "Product image was not found.", ErrorType.NotFound);
+    public static readonly Error ExceedImagesLimit = new(ErrorCodes.VariantImage.ExceedLimit, "Max Images for variant is 10.", ErrorType.Conflict);
+
 }

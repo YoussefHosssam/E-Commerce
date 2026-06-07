@@ -31,6 +31,7 @@ internal sealed class VariantRepository : GenericRepository<Variant>, IVariantRe
 
         return await query
             .Include(x => x.Product)
+            .Include(x => x.Inventory)
             .Include(x => x.Images)
             .FirstOrDefaultAsync(x => x.Id == variantId, ct);
     }
@@ -70,5 +71,17 @@ internal sealed class VariantRepository : GenericRepository<Variant>, IVariantRe
             || await _context.CartItems.AsNoTracking().AnyAsync(x => x.VariantId == variantId, ct)
             || await _context.StockAlerts.AsNoTracking().AnyAsync(x => x.VariantId == variantId, ct)
             || await _context.StockMovements.AsNoTracking().AnyAsync(x => x.VariantId == variantId, ct);
+    }
+
+    public Task<bool> IsVariantUsedInOrdersAsync(Guid variantId, CancellationToken ct)
+    {
+        return _context.OrderItems.AsNoTracking().AnyAsync(x => x.VariantId == variantId, ct);
+    }
+
+    public Task<bool> IsVariantUsedInActiveCartsAsync(Guid variantId, CancellationToken ct)
+    {
+        return _context.CartItems
+            .AsNoTracking()
+            .AnyAsync(x => x.VariantId == variantId && x.Cart.Status != CartStatus.CheckedOut, ct);
     }
 }

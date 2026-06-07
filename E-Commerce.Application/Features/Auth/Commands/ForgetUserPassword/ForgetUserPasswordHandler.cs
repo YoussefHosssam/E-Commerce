@@ -13,13 +13,13 @@ namespace E_Commerce.Application.Features.Auth.Commands.ForgetUserPassword;
 public class ForgetUserPasswordHandler : IRequestHandler<ForgetUserPasswordCommand, Result>
 {
     private readonly IUnitOfWork _uow;
-    private readonly IEmailJobService _emailJobService;
+    private readonly IEmailQueueService _emailJobService;
     private readonly IPasswordResetEmailPreparationService _passwordResetEmailPreparationService;
     private readonly ILogger<ForgetUserPasswordHandler> _logger;
 
     public ForgetUserPasswordHandler(
         IUnitOfWork uow,
-        IEmailJobService emailJobService,
+        IEmailQueueService emailJobService,
         IPasswordResetEmailPreparationService passwordResetEmailPreparationService,
         ILogger<ForgetUserPasswordHandler> logger)
     {

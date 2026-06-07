@@ -7,6 +7,8 @@ using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Options;
+using static E_Commerce.Domain.Common.Errors.ErrorCodes;
+using VariantImage = E_Commerce.Domain.Entities.VariantImage;
 
 namespace E_Commerce.Application.Features.ImageUploads.VariantImages;
 
@@ -40,6 +42,9 @@ internal sealed class GenerateVariantImageUploadSignatureHandler
         var variant = await _uow.Variants.GetByIdWithDetailsAsync(request.VariantId, true, cancellationToken);
         if (variant is null)
             return Result<GenerateImageUploadSignatureResponse>.Fail(VariantErrors.NotFound);
+
+        if (variant.Images.Count(i => i.ProcessingStatus == Domain.Enums.ImageProcessingStatus.Uploaded) > 10)
+            return Result<GenerateImageUploadSignatureResponse>.Fail(VariantImageErrors.ExceedImagesLimit);
 
         var storageKey = _imageStorage.BuildStorageKey<VariantImage>(request.VariantId);
         var sortOrder = variant.Images.Count(x => x.ProcessingStatus != Domain.Enums.ImageProcessingStatus.Deleted) + 1;
@@ -108,7 +113,7 @@ internal sealed class CompleteVariantImageUploadHandler
             return Result<ImageDto>.Fail(verificationError);
         }
 
-        image.MarkReady(resource.Url, resource.Width, resource.Height, resource.SizeInBytes, resource.Format);
+        image.MarkUploaded(resource.Url, resource.Width, resource.Height, resource.SizeInBytes, resource.Format);
         await _uow.SaveChangesAsync(cancellationToken);
 
         return Result<ImageDto>.Success(_mapper.Map<ImageDto>(image));

@@ -40,9 +40,11 @@ internal sealed class GenerateProductImageUploadSignatureHandler
         var product = await _uow.Products.GetByIdWithDetailsAsync(request.ProductId, true, cancellationToken);
         if (product is null)
             return Result<GenerateImageUploadSignatureResponse>.Fail(ProductErrors.NotFound);
+        if (product.Images.Count(i => i.ProcessingStatus == Domain.Enums.ImageProcessingStatus.Uploaded) > 10)
+            return Result<GenerateImageUploadSignatureResponse>.Fail(ProductImageErrors.ExceedImagesLimit);
 
         var storageKey = _imageStorage.BuildStorageKey<ProductImage>(request.ProductId);
-        var sortOrder = product.Images.Count(x => x.ProcessingStatus != Domain.Enums.ImageProcessingStatus.Deleted) + 1;
+        var sortOrder = product.Images.Count(x => x.ProcessingStatus == Domain.Enums.ImageProcessingStatus.Uploaded) + 1;
         var isPrimary = product.Images.All(x => x.ProcessingStatus == Domain.Enums.ImageProcessingStatus.Deleted);
         var expiresAt = now.AddMinutes(15);
         var image = ProductImage.CreatePending(request.ProductId, storageKey, isPrimary, sortOrder , expiresAt);
@@ -108,7 +110,7 @@ internal sealed class CompleteProductImageUploadHandler
             return Result<ImageDto>.Fail(verificationError);
         }
 
-        image.MarkReady(resource.Url, resource.Width, resource.Height, resource.SizeInBytes, resource.Format);
+        image.MarkUploaded(resource.Url, resource.Width, resource.Height, resource.SizeInBytes, resource.Format);
         await _uow.SaveChangesAsync(cancellationToken);
 
         return Result<ImageDto>.Success(_mapper.Map<ImageDto>(image));

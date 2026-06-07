@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning;
 using E_Commerce.API.Common.Responses;
 using E_Commerce.API.Contracts.Requests.CartRequests;
+using E_Commerce.API.Contracts.Responses;
 using E_Commerce.Application.Features.Cart.Commands.AddItem;
 using E_Commerce.Application.Features.Cart.Commands.RemoveItem;
 using E_Commerce.Application.Features.Cart.Common;
@@ -23,13 +24,14 @@ public sealed class CartController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ApiResult<CartSummaryDTO>> GetCart(CancellationToken ct)
+    public async Task<ApiResult<CartResponse>> GetCart(CancellationToken ct)
         => this.FromResult(
             await _sender.Send(new GetCartQuery(), ct),
+            cart => new CartResponse(cart),
             "Cart retrieved successfully.");
 
     [HttpPost("items")]
-    public async Task<ApiResult<CartSummaryDTO>> AddItemToCart(
+    public async Task<ApiResult<CartResponse>> AddItemToCart(
         [FromBody] AddItemRequest request,
         CancellationToken ct)
     {
@@ -39,12 +41,13 @@ public sealed class CartController : ControllerBase
 
         return this.FromResult(
             await _sender.Send(command, ct),
+            cart => new CartResponse(cart),
             "Item added to cart successfully.",
             StatusCodes.Status201Created);
     }
 
     [HttpPatch("items/{cartItemId:guid}")]
-    public async Task<ApiResult<CartSummaryDTO>> EditItemOnCart(
+    public async Task<ApiResult<CartResponse>> EditItemOnCart(
         Guid cartItemId,
         [FromBody] UpdateCartItemRequest request,
         CancellationToken ct)
@@ -55,6 +58,7 @@ public sealed class CartController : ControllerBase
 
         return this.FromResult(
             await _sender.Send(command, ct),
+            cart => new CartResponse(cart),
             "Cart item updated successfully.");
     }
 

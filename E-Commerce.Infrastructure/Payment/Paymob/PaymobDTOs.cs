@@ -125,13 +125,16 @@ namespace E_Commerce.Infrastructure.Payment.Paymob
     }
     public sealed record PaymobSessionRequest
     {
-        public decimal amount => items.Sum(i => i.Amount);
+        public int amount => items.Sum(i => i.Amount * i.Quantity);
+
         public string currency { get; set; } = "EGP";
+
         public required IReadOnlyCollection<int> payment_methods { get; set; }
-        public required IReadOnlyCollection<PaymentSessionItemDto> items { get; set; }
-        public PaymentBillingDataDto billing_data { get; set; } = default!;
-        //public string redirection_url { get; set; } = default!;
-        //public string notification_url { get; set; } = default!;
+
+        public required IReadOnlyCollection<PaymobItem> items { get; set; }
+
+        public required PaymentBillingDataDto billing_data { get; set; }
+
         public string special_reference { get; set; } = default!;
     }
     public sealed record PaymobPaymentIntentionResponse
@@ -140,7 +143,7 @@ namespace E_Commerce.Infrastructure.Payment.Paymob
         public List<PaymobPaymentKey> PaymentKeys { get; init; } = new();
 
         [JsonPropertyName("intention_order_id")]
-        public string IntentionOrderId { get; init; } = default!;
+        public long IntentionOrderId { get; init; } = default!;
 
         [JsonPropertyName("split_payment_methods")]
         public List<object> SplitPaymentMethods { get; init; } = new();
@@ -224,13 +227,13 @@ namespace E_Commerce.Infrastructure.Payment.Paymob
         public string Name { get; init; } = default!;
 
         [JsonPropertyName("amount")]
-        public long Amount { get; init; }
+        public int Amount { get; init; }
 
         [JsonPropertyName("description")]
         public string? Description { get; init; }
 
         [JsonPropertyName("quantity")]
-        public int? Quantity { get; init; }
+        public int Quantity { get; init; }
 
         [JsonPropertyName("image")]
         public string? Image { get; init; }
@@ -271,5 +274,81 @@ namespace E_Commerce.Infrastructure.Payment.Paymob
         public PaymobBillingData(string FirstName, string LastName, string Email, string PhoneNumber, string Street, string Building, string Floor, string Apartment, string City, string State, string Country, string PostalCode) : base(FirstName, LastName, Email, PhoneNumber, Street, Building, Floor, Apartment, City, State, Country, PostalCode)
         {
         }
+    }
+
+    public sealed class PaymobWebhookRequest
+    {
+        public string Type { get; init; } = default!;
+
+        public PaymobTransactionDto Obj { get; init; } = default!;
+    }
+
+    public sealed class PaymobTransactionDto
+    {
+        public long Id { get; init; }
+
+        public bool Success { get; init; }
+
+        public bool Pending { get; init; }
+
+        [JsonPropertyName("is_refunded")]
+        public bool IsRefunded { get; init; }
+
+        [JsonPropertyName("is_voided")]
+        public bool IsVoided { get; init; }
+
+        [JsonPropertyName("amount_cents")]
+        public int AmountCents { get; init; }
+
+        public string Currency { get; init; } = default!;
+
+        [JsonPropertyName("created_at")]
+        public DateTime CreatedAt { get; init; }
+
+        [JsonPropertyName("updated_at")]
+        public DateTime UpdatedAt { get; init; }
+
+        [JsonPropertyName("integration_id")]
+        public long IntegrationId { get; init; }
+
+        public PaymobOrderDto Order { get; init; } = default!;
+
+        [JsonPropertyName("payment_key_claims")]
+        public PaymobPaymentKeyClaimsDto PaymentKeyClaims { get; init; } = default!;
+
+        [JsonPropertyName("source_data")]
+        public PaymobSourceDataDto? SourceData { get; init; }
+    }
+
+    public sealed class PaymobOrderDto
+    {
+        public long Id { get; init; }
+
+        [JsonPropertyName("merchant_order_id")]
+        public string? MerchantOrderId { get; init; }
+    }
+
+    public sealed class PaymobPaymentKeyClaimsDto
+    {
+        [JsonPropertyName("order_id")]
+        public long OrderId { get; init; }
+
+        [JsonPropertyName("user_id")]
+        public long UserId { get; init; }
+
+        [JsonPropertyName("amount_cents")]
+        public int AmountCents { get; init; }
+
+        public string Currency { get; init; } = default!;
+    }
+
+    public sealed class PaymobSourceDataDto
+    {
+        public string? Type { get; init; }
+
+        [JsonPropertyName("sub_type")]
+        public string? SubType { get; init; }
+
+        public string? Pan { get; init; }
     }
 }

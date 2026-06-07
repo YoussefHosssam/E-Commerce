@@ -118,7 +118,6 @@ public sealed class UserAddress : BaseEntity
 
         if (longitude is < -180 or > 180)
             throw new DomainValidationException(UserAddressErrors.LongitudeInvalid);
-
         Latitude = latitude;
         Longitude = longitude;
     }
@@ -138,6 +137,8 @@ public sealed class UserAddress : BaseEntity
 
         if (value.Length > maxLength)
             throw new DomainValidationException(UserAddressErrors.TextTooLong);
+
+        value = char.ToUpper(value[0]) + value.Substring(1).ToLower();
 
         return value;
     }

@@ -1,6 +1,8 @@
 using Asp.Versioning;
+using E_Commerce.API.Configuration;
 using E_Commerce.API.Common.Responses;
 using E_Commerce.API.Contracts.Requests.AuthRequests;
+using E_Commerce.API.Contracts.Responses;
 using E_Commerce.Application.Features.Auth.Commands.ChangeUserPassword;
 using E_Commerce.Application.Features.Auth.Commands.ForgetUserPassword;
 using E_Commerce.Application.Features.Auth.Commands.LoginUser;
@@ -12,6 +14,7 @@ using E_Commerce.Application.Features.Auth.Commands.VerifyEmail;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace E_Commerce.API.Controllers.V1;
 
@@ -29,6 +32,7 @@ public sealed partial class AuthController : ControllerBase
 
     [HttpPost("register")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitingConfiguration.AuthLimiter)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status409Conflict)]
@@ -41,6 +45,7 @@ public sealed partial class AuthController : ControllerBase
 
     [HttpPost("email-verification/resend")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitingConfiguration.AuthLimiter)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status400BadRequest)]
     public async Task<ApiResult> ResendVerificationEmail([FromBody] ResendVerificationEmailRequest request, CancellationToken ct)
@@ -52,6 +57,7 @@ public sealed partial class AuthController : ControllerBase
 
     [HttpPost("email-verification/confirm")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitingConfiguration.AuthLimiter)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status400BadRequest)]
     public async Task<ApiResult> VerifyEmail([FromQuery] VerifyEmailRequest request, CancellationToken ct)
@@ -63,30 +69,33 @@ public sealed partial class AuthController : ControllerBase
 
     [HttpPost("login")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(ApiResult<LoginUserResponse>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResult<LoginUserResponse>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResult<LoginUserResponse>), StatusCodes.Status401Unauthorized)]
-    public async Task<ApiResult<LoginUserResponse>> Login([FromBody] LoginUserRequest request, CancellationToken ct)
+    [EnableRateLimiting(RateLimitingConfiguration.AuthLimiter)]
+    [ProducesResponseType(typeof(ApiResult<AuthResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResult<AuthResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResult<AuthResponse>), StatusCodes.Status401Unauthorized)]
+    public async Task<ApiResult<AuthResponse>> Login([FromBody] LoginUserRequest request, CancellationToken ct)
     {
         var command = new LoginUserCommand(request.Email, request.Password);
         var result = await _sender.Send(command, ct);
-        return this.FromResult(result, "Login completed successfully.");
+        return this.FromResult(result, auth => new AuthResponse(auth), "Login completed successfully.");
     }
 
     [Authorize]
     [HttpPost("two-factor/totp/setup")]
-    [ProducesResponseType(typeof(ApiResult<SetupTwoFactorAuthResponse>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResult<SetupTwoFactorAuthResponse>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResult<SetupTwoFactorAuthResponse>), StatusCodes.Status401Unauthorized)]
-    public async Task<ApiResult<SetupTwoFactorAuthResponse>> SetupTotp([FromBody] SetupTwoFactorAuthRequest request, CancellationToken ct)
+    [EnableRateLimiting(RateLimitingConfiguration.AuthLimiter)]
+    [ProducesResponseType(typeof(ApiResult<TwoFactorSetupResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResult<TwoFactorSetupResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResult<TwoFactorSetupResponse>), StatusCodes.Status401Unauthorized)]
+    public async Task<ApiResult<TwoFactorSetupResponse>> SetupTotp([FromBody] SetupTwoFactorAuthRequest request, CancellationToken ct)
     {
         var command = new SetupTwoFactorAuthCommand(request.Password);
         var result = await _sender.Send(command, ct);
-        return this.FromResult(result, "TOTP setup data generated successfully.");
+        return this.FromResult(result, twoFactorSetup => new TwoFactorSetupResponse(twoFactorSetup), "TOTP setup data generated successfully.");
     }
 
     [Authorize]
     [HttpPost("two-factor/totp/confirm")]
+    [EnableRateLimiting(RateLimitingConfiguration.AuthLimiter)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status401Unauthorized)]
@@ -99,30 +108,33 @@ public sealed partial class AuthController : ControllerBase
 
     [HttpPost("login/two-factor/totp/confirm")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(ApiResult<FinalizeLoginResponse>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResult<FinalizeLoginResponse>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResult<FinalizeLoginResponse>), StatusCodes.Status401Unauthorized)]
-    public async Task<ApiResult<FinalizeLoginResponse>> ConfirmLoginTotp([FromBody] CompleteLoginWithTwoFactorRequest request, CancellationToken ct)
+    [EnableRateLimiting(RateLimitingConfiguration.AuthLimiter)]
+    [ProducesResponseType(typeof(ApiResult<FinalizeAuthResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResult<FinalizeAuthResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResult<FinalizeAuthResponse>), StatusCodes.Status401Unauthorized)]
+    public async Task<ApiResult<FinalizeAuthResponse>> ConfirmLoginTotp([FromBody] CompleteLoginWithTwoFactorRequest request, CancellationToken ct)
     {
         var command = new VerifyLoginTwoFactorAuthCommand(request.ChallengeId, request.OtpCode);
         var result = await _sender.Send(command, ct);
-        return this.FromResult(result, "Login completed successfully.");
+        return this.FromResult(result, auth => new FinalizeAuthResponse(auth), "Login completed successfully.");
     }
 
     [HttpPost("refresh-token")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(ApiResult<RefreshTokensResponse>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResult<RefreshTokensResponse>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResult<RefreshTokensResponse>), StatusCodes.Status401Unauthorized)]
-    public async Task<ApiResult<RefreshTokensResponse>> RefreshToken([FromBody] RefreshTokenRequest request, CancellationToken ct)
+    [EnableRateLimiting(RateLimitingConfiguration.AuthLimiter)]
+    [ProducesResponseType(typeof(ApiResult<RefreshAuthResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResult<RefreshAuthResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResult<RefreshAuthResponse>), StatusCodes.Status401Unauthorized)]
+    public async Task<ApiResult<RefreshAuthResponse>> RefreshToken([FromBody] RefreshTokenRequest request, CancellationToken ct)
     {
         var command = new RefreshTokenCommand(request.RefreshToken);
         var result = await _sender.Send(command, ct);
-        return this.FromResult(result, "Tokens refreshed successfully.");
+        return this.FromResult(result, auth => new RefreshAuthResponse(auth), "Tokens refreshed successfully.");
     }
 
     [Authorize]
     [HttpPost("password/change")]
+    [EnableRateLimiting(RateLimitingConfiguration.AuthLimiter)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status401Unauthorized)]
@@ -135,6 +147,7 @@ public sealed partial class AuthController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("password/forgot")]
+    [EnableRateLimiting(RateLimitingConfiguration.AuthLimiter)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status400BadRequest)]
     public async Task<ApiResult> ForgotPassword([FromBody] ForgetUserPasswordRequest request, CancellationToken ct)
@@ -146,6 +159,7 @@ public sealed partial class AuthController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("password/reset")]
+    [EnableRateLimiting(RateLimitingConfiguration.AuthLimiter)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status401Unauthorized)]

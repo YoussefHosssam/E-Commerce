@@ -1,7 +1,13 @@
 ﻿using Asp.Versioning;
+using E_Commerce.API.Common.Errors;
+using E_Commerce.API.Common.Responses;
 using E_Commerce.API.Filters;
+using E_Commerce.API.Identity;
+using E_Commerce.Application.Contracts.API.Identity;
 using E_Commerce.Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
@@ -57,6 +63,38 @@ namespace E_Commerce.API.Configuration
                     Description = "API documentation for E-Commerce project"
                 });
             });
+            services.Configure<ApiBehaviorOptions>(cfg =>
+            {
+                cfg.InvalidModelStateResponseFactory = ctx =>
+                {
+                    var jsonError = ctx.ModelState
+                        .FirstOrDefault(e => e.Value?.Errors.Any(x => x.Exception is JsonException) == true);
+
+                    if (!jsonError.Equals(default(KeyValuePair<string, ModelStateEntry?>)))
+                    {
+                        var jsonErrorCode = ModelStateApiErrors.UnsupportedFormat;
+
+                        return ApiResult.Fail(
+                            StatusCodes.Status400BadRequest,
+                            jsonErrorCode.Code,
+                            jsonErrorCode.Message);
+                    }
+
+                    var firstError = ctx.ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .FirstOrDefault()?.ErrorMessage;
+
+                    var validationErrorCode = ModelStateApiErrors.ValidationError;
+
+                    return ApiResult.Fail(
+                        StatusCodes.Status400BadRequest,
+                        validationErrorCode.Code,
+                        $"{validationErrorCode.Message} - {firstError}");
+                };
+            });
+            services.AddHttpContextAccessor();
+            services.AddScoped<IUserAccessor, UserAccessor>();
+            services.AddScoped<IdempotencyFilter>();
             return services;
         }
     }

@@ -1,5 +1,4 @@
 using E_Commerce.Application.Common.Result;
-using E_Commerce.Application.Contracts.Infrastrucuture.Auth.Identity;
 using E_Commerce.Application.Contracts.Infrastrucuture.Cart;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;
@@ -14,6 +13,7 @@ using System.Threading.Tasks;
 using CartEntity = E_Commerce.Domain.Entities.Cart;
 using E_Commerce.Application.Features.Cart.Common;
 using Microsoft.Extensions.Logging;
+using E_Commerce.Application.Contracts.API.Identity;
 
 namespace E_Commerce.Application.Features.Cart.Commands.AddItem
 {
@@ -39,71 +39,102 @@ namespace E_Commerce.Application.Features.Cart.Commands.AddItem
             _logger = logger;
         }
 
-        public async Task<Result<CartSummaryDTO>> Handle(AddItemToCartCommand request, CancellationToken cancellationToken)
+        public async Task<Result<CartSummaryDTO>> Handle(
+            AddItemToCartCommand request,
+            CancellationToken cancellationToken)
         {
-            DateTimeOffset now = DateTimeOffset.UtcNow;
-            Guid? userId = _userAccessor.UserId;
-            if (!await _uow.Variants.VariantExistsAsync(request.variantId, cancellationToken)) return Result<CartSummaryDTO>.Fail(CartItemErrors.VariantIdRequired);
-            if (!await _uow.Inventories.IsQuantityValid(request.variantId , request.quantity, cancellationToken)) return Result<CartSummaryDTO>.Fail(CartItemErrors.QuantityInvalid);
-            if (userId.HasValue) return await HandleAddingToAuthenticatedCart(request, userId, now, cancellationToken);
-            string? cartSessionId = _cartService.GetAnonymousId();
-            if (cartSessionId == null) return await HandleAddingToNewCart(request, cancellationToken , now);
-            else return await HandleAddingExistingCart(cartSessionId , request, cancellationToken , now);
+            var now = DateTimeOffset.UtcNow;
+
+            var variant = await _uow.Variants.GetByIdWithDetailsAsync(
+                request.variantId,
+                cancellationToken);
+
+            if (variant is null)
+                return Result<CartSummaryDTO>.Fail(VariantErrors.NotFound);
+
+            if (!variant.IsActive || !variant.Product.IsActive)
+                return Result<CartSummaryDTO>.Fail(CheckoutErrors.InActiveProduct);
+
+            var userId = _userAccessor.UserId;
+
+            var cart = userId.HasValue
+                ? await GetOrCreateUserCartAsync(userId.Value, now, cancellationToken)
+                : await GetOrCreateAnonymousCartAsync(now, cancellationToken);
+
+            return await AddItemToCartAsync(cart, request, now, cancellationToken);
         }
 
-        private async Task<Result<CartSummaryDTO>> HandleAddingToAuthenticatedCart(AddItemToCartCommand request, Guid? userId, DateTimeOffset now, CancellationToken cancellationToken)
+        private async Task<CartEntity> GetOrCreateUserCartAsync(
+            Guid userId,
+            DateTimeOffset now,
+            CancellationToken ct)
         {
-            var cart = await _uow.Carts.GetCartWithItemsByUserId(userId!.Value, cancellationToken);
-            if (cart is null) return await HandleAddingToNewCart(request, cancellationToken, now);
-            return await AddToCartService(cart, request, cancellationToken, now);
+            var cart = await _uow.Carts.GetCartWithItemsByUserId(userId, ct);
+
+            if (cart is not null)
+                return cart;
+
+            cart = CartEntity.CreateForUser(userId, now);
+
+            await _uow.Carts.CreateAsync(cart, ct);
+
+            return cart;
         }
 
-        private async Task<Result<CartSummaryDTO>> HandleAddingExistingCart(string cartSessionId , AddItemToCartCommand request, CancellationToken cancellationToken , DateTimeOffset now)
+        private async Task<CartEntity> GetOrCreateAnonymousCartAsync(
+            DateTimeOffset now,
+            CancellationToken ct)
         {
-            var cart = await _uow.Carts.GetCartWithItemsByToken(cartSessionId, cancellationToken);
-            if (cart is null) return Result<CartSummaryDTO>.Fail(CartErrors.NotActive);
-            return await AddToCartService(cart, request, cancellationToken, now);
-        }
+            var token = _cartService.GetAnonymousId();
 
-        private async Task<Result<CartSummaryDTO>> HandleAddingToNewCart(AddItemToCartCommand request, CancellationToken cancellationToken , DateTimeOffset now)
-        {
-            var cartSessionToken = _cartService.CreateAnonymousId();
-            Guid? userId = _userAccessor.UserId;
-            if (userId is null)
+            if (!string.IsNullOrWhiteSpace(token))
             {
-                CartEntity cart = CartEntity.CreateAnonymous(cartSessionToken, now);
-                await _uow.Carts.CreateAsync(cart, cancellationToken);
-                return await AddToCartService(cart, request, cancellationToken, now);
+                var existingCart = await _uow.Carts.GetCartWithItemsByToken(token, ct);
+
+                if (existingCart is not null)
+                    return existingCart;
             }
-            else
-            {
-                CartEntity cart = CartEntity.CreateForUser(userId.Value, now);
-                await _uow.Carts.CreateAsync(cart, cancellationToken);
-                return await AddToCartService(cart, request, cancellationToken, now);
-            }
+
+            var newToken = _cartService.CreateAnonymousId();
+
+            var cart = CartEntity.CreateAnonymous(newToken, now);
+
+            await _uow.Carts.CreateAsync(cart, ct);
+
+            return cart;
         }
-        private async Task<Result<CartSummaryDTO>> AddToCartService(CartEntity cart , AddItemToCartCommand request , CancellationToken cancellationToken, DateTimeOffset now)
+        private async Task<Result<CartSummaryDTO>> AddItemToCartAsync(
+            CartEntity cart,
+            AddItemToCartCommand request,
+            DateTimeOffset now,
+            CancellationToken ct)
         {
-            var cartQuantity = cart.GetTotalQuantity();
-            if (cartQuantity + request.quantity > 20) return Result<CartSummaryDTO>.Fail(CartErrors.ItemsLimitExceeded);
-            CartItem cartItem = CartItem.Create(cart.Id, request.variantId, request.quantity, now);
-            if (!await _uow.Inventories.IsQuantityValid(request.variantId, cartItem.Quantity, cancellationToken)) return Result<CartSummaryDTO>.Fail(CartItemErrors.QuantityInvalid);
-            cart.AddItem(cartItem, now);
-            await _uow.SaveChangesAsync(cancellationToken);
-            var reloadedCart = cart.UserId.HasValue
-            ? await _uow.Carts.GetCartWithItemsByUserId(cart.UserId.Value, cancellationToken)
-            : await _uow.Carts.GetCartWithItemsByToken(cart.AnonymousToken!, cancellationToken);
-            if (reloadedCart is null)
-                return Result<CartSummaryDTO>.Fail(CartErrors.NotActive);
+            if (cart.GetTotalQuantity() + request.quantity > 20)
+                return Result<CartSummaryDTO>.Fail(CartErrors.ItemsLimitExceeded);
 
-            var cartSummary = _mapper.Map<CartSummaryDTO>(reloadedCart);
+            var isQuantityValid = await _uow.Inventories.IsQuantityValid(
+                request.variantId,
+                request.quantity,
+                ct);
 
-            _logger.LogInformation(
-                "Cart {CartId} updated with Variant {VariantId}, Quantity {Quantity}, User {UserId}",
+            if (!isQuantityValid)
+                return Result<CartSummaryDTO>.Fail(CartItemErrors.QuantityInvalid);
+
+            var cartItem = CartItem.Create(
                 cart.Id,
                 request.variantId,
                 request.quantity,
-                cart.UserId);
+                now);
+
+            cart.AddItem(cartItem, now);
+
+            await _uow.SaveChangesAsync(ct);
+
+            var reloadedCart = cart.UserId.HasValue
+                ? await _uow.Carts.GetCartWithItemsByUserId(cart.UserId.Value, ct)
+                : await _uow.Carts.GetCartWithItemsByToken(cart.AnonymousToken!, ct);
+
+            var cartSummary = _mapper.Map<CartSummaryDTO>(reloadedCart);
 
             return Result<CartSummaryDTO>.Success(cartSummary);
         }

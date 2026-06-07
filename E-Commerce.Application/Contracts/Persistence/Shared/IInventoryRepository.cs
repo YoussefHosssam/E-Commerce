@@ -13,5 +13,6 @@ namespace E_Commerce.Application.Contracts.Persistence.Shared
         Task<bool> IsQuantityValid(Guid variantId, int quantity, CancellationToken ctn);
         Task<int> GetQuantityForVariant(Guid variantId, CancellationToken ctn);
         Task<IEnumerable<Inventory?>> GetByVariantIdsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct);
+        public Task<bool> TryReserveAsync(Guid variantId, int quantity, DateTimeOffset now, CancellationToken ct);
     }
 }

@@ -1,9 +1,12 @@
-﻿namespace E_Commerce.API.Attributes
+﻿using E_Commerce.API.Filters;
+using Microsoft.AspNetCore.Mvc;
+
+namespace E_Commerce.API.Attributes
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-    public sealed class IdempotentAttribute : Attribute
+    public sealed class IdempotentAttribute : TypeFilterAttribute
     {
-        public IdempotentAttribute(string operation)
+        public IdempotentAttribute(string operation) : base(typeof(IdempotencyFilter))
         {
             Operation = operation;
         }

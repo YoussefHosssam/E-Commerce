@@ -36,7 +36,7 @@ namespace E_Commerce.Persistence.Context
         public DbSet<UserCredential> UserCredentials { get; set; }
         public DbSet<TwoFactorLoginChallenge> TwoFactorLoginChallenges { get; set; }
         public DbSet<TwoFactorRecoveryCode> TwoFactorRecoveryCodes { get; set; }
-        public DbSet<IdempotencyRecord> IdempotencyRecords { get; set; }
+        //public DbSet<IdempotencyRecord> IdempotencyRecords { get; set; }
 
         public EcommerceContext(DbContextOptions<EcommerceContext> opt) : base (opt)
         {
