@@ -16,7 +16,7 @@ public sealed class DeleteVariantHandler : IRequestHandler<DeleteVariantCommand,
 
     public async Task<Result> Handle(DeleteVariantCommand request, CancellationToken cancellationToken)
     {
-        var product = await _uow.Products.GetByIdWithDetailsAsync(request.ProductId, true, cancellationToken);
+        var product = await _uow.Products.GetAggregateByIdAsync(request.ProductId, true, cancellationToken);
         if (product is null)
         {
             return Result.Fail(ProductErrors.NotFound);

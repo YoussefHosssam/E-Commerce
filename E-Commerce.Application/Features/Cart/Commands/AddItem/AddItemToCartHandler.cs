@@ -45,7 +45,7 @@ namespace E_Commerce.Application.Features.Cart.Commands.AddItem
         {
             var now = DateTimeOffset.UtcNow;
 
-            var variant = await _uow.Variants.GetByIdWithDetailsAsync(
+            var variant = await _uow.Variants.GetAggregateByIdAsync(
                 request.variantId,
                 cancellationToken);
 

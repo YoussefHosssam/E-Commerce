@@ -1,4 +1,5 @@
 ﻿using E_Commerce.Application.Common.Dtos;
+using E_Commerce.Domain.Enums;
 using E_Commerce.Domain.ValueObjects;
 using System;
 using System.Collections.Generic;
@@ -50,5 +51,6 @@ namespace E_Commerce.Application.Features.Order.Common
         public DateTimeOffset? UpdatedAt { get; init; }
     }
 
+    public sealed record OrderDetailsReadModel(Guid UserId, OrderDto Order);
 
 }

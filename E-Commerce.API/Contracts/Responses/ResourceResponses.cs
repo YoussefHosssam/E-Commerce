@@ -3,6 +3,7 @@ using E_Commerce.Application.Features.Auth.Commands.RefreshUserToken;
 using E_Commerce.Application.Features.Auth.Commands.TwoFactorAuth;
 using E_Commerce.Application.Features.Cart.Common;
 using E_Commerce.Application.Features.Category.Common;
+using E_Commerce.Application.Features.Checkout.Common;
 using E_Commerce.Application.Features.ImageUploads.Common;
 using E_Commerce.Application.Features.Me.Common;
 using E_Commerce.Application.Features.Order.Common;

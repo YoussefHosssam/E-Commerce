@@ -21,11 +21,11 @@ namespace E_Commerce.API.Controllers.V1
     [ApiController()]
     [Authorize]
     [Route("api/v{version:apiVersion}/orders")]
-    public class OrdersControllers : ControllerBase
+    public class OrdersController : ControllerBase
     {
         private readonly ISender _sender;
 
-        public OrdersControllers(ISender sender)
+        public OrdersController(ISender sender)
         {
             _sender = sender;
         }

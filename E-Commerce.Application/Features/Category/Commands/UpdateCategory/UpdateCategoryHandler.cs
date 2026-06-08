@@ -5,25 +5,22 @@ using DomainCategory = E_Commerce.Domain.Entities.Category;
 using E_Commerce.Domain.ValueObjects;
 using MediatR;
 using E_Commerce.Domain.Common.Errors;
-using AutoMapper;
 
 namespace E_Commerce.Application.Features.Category.Commands;
 
 public sealed class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Result<CategoryDetailDto>>
 {
     private readonly IUnitOfWork _uow;
-    private readonly IMapper _mapper;
 
-    public UpdateCategoryHandler(IUnitOfWork uow, IMapper mapper)
+    public UpdateCategoryHandler(IUnitOfWork uow)
     {
         _uow = uow;
-        _mapper = mapper;
     }
 
     public async Task<Result<CategoryDetailDto>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        var category = await _uow.Categories.GetByIdWithDetailsAsync(request.Id, true, cancellationToken);
+        var category = await _uow.Categories.GetAggregateByIdAsync(request.Id, true, cancellationToken);
         if (category is null)
         {
             return Result<CategoryDetailDto>.Fail(CategoryErrors.NotFound);
@@ -75,8 +72,8 @@ public sealed class UpdateCategoryHandler : IRequestHandler<UpdateCategoryComman
         }
 
         await _uow.SaveChangesAsync(cancellationToken);
-        var updatedCategory = await _uow.Categories.GetByIdWithDetailsAsync(category.Id, false, cancellationToken) ?? category;
-        return Result<CategoryDetailDto>.Success(_mapper.Map<CategoryDetailDto>(updatedCategory));
+        var updatedCategory = await _uow.Categories.GetCategoryDetailsDtoAsync(category.Id, cancellationToken);
+        return Result<CategoryDetailDto>.Success(updatedCategory!);
     }
 }
 

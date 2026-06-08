@@ -1,4 +1,6 @@
-﻿using E_Commerce.Domain.Entities;
+using E_Commerce.Domain.Enums;
+
+namespace E_Commerce.Application.Features.Checkout.Common;
 
 public sealed record CheckoutSummaryDto
 {
@@ -11,17 +13,15 @@ public sealed record CheckoutSummaryDto
     public string Currency { get; init; } = default!;
 }
 
-public sealed record CheckoutReviewDto
-(
-    IReadOnlyCollection<CheckoutItemDto> Items ,
-    int TotalItems ,
-    int TotalQuantity ,
-    decimal Subtotal ,
-    decimal ShippingFee ,
-    decimal Total ,
-    string Currency ,
-    CheckoutAddressDto ShippingAddress 
-);
+public sealed record CheckoutReviewDto(
+    IReadOnlyCollection<CheckoutItemDto> Items,
+    int TotalItems,
+    int TotalQuantity,
+    decimal Subtotal,
+    decimal ShippingFee,
+    decimal Total,
+    string Currency,
+    CheckoutAddressDto ShippingAddress);
 
 public sealed record CheckoutAddressDto
 {
@@ -57,14 +57,12 @@ public sealed record CheckoutItemDto
     public string? ImageUrl { get; init; }
 }
 
-public sealed record PlaceOrderResponse
-(
-    Guid OrderId ,
-    string OrderNumber ,
-    decimal TotalAmount ,
+public sealed record PlaceOrderResponse(
+    Guid OrderId,
+    string OrderNumber,
+    decimal TotalAmount,
     string Currency,
-    PaymentDto? Payment
-);
+    PaymentDto? Payment);
 
 public sealed record PaymentDto
 {

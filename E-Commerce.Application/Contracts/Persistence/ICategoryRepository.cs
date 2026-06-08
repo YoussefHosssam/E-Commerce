@@ -1,5 +1,7 @@
 using E_Commerce.Application.Common.Pagination;
 using E_Commerce.Application.Contracts.Persistence.Shared;
+using E_Commerce.Application.Features.Category.Common;
+using E_Commerce.Application.Features.Product.Common;
 using E_Commerce.Domain.Entities;
 using E_Commerce.Domain.ValueObjects;
 
@@ -7,9 +9,10 @@ namespace E_Commerce.Application.Contracts.Persistence;
 
 public interface ICategoryRepository : IGenericRepository<Category>
 {
-    public Task<PagedResult<Category>> GetAllOrderedAsync(PageRequest page, CancellationToken ct);
-    public Task<PagedResult<IReadOnlyCollection<Product>>?> GetProductsForCategory(Guid id, PageRequest page, CancellationToken ct);
-    Task<Category?> GetByIdWithDetailsAsync(Guid id, bool asTracking, CancellationToken ct);
+    public Task<PagedResult<CategoryListItemDto>> GetCategoryListItemDtosAsync(PageRequest page, CancellationToken ct);
+    public Task<PagedResult<ProductListItemDto>?> GetCategoryProductListItemDtosAsync(Guid id, PageRequest page, CancellationToken ct);
+    Task<CategoryDetailDto?> GetCategoryDetailsDtoAsync(Guid id, CancellationToken ct);
+    Task<Category?> GetAggregateByIdAsync(Guid id, bool asTracking, CancellationToken ct);
     Task<bool> SlugExistsAsync(Slug slug, Guid? excludedId, CancellationToken ct);
     Task<bool> NameExistsAsync(string name, Guid? excludedId, CancellationToken ct);
     Task<bool> HasProductsAsync(Guid categoryId, CancellationToken ct);

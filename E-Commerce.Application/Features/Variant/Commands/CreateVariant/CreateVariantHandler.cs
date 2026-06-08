@@ -23,7 +23,7 @@ public sealed class CreateVariantHandler : IRequestHandler<CreateVariantCommand,
 
     public async Task<Result<IReadOnlyCollection<VariantDetailDto>>> Handle(CreateVariantCommand request, CancellationToken cancellationToken)
     {
-        var product = await _uow.Products.GetByIdWithDetailsAsync(request.ProductId, true, cancellationToken);
+        var product = await _uow.Products.GetAggregateByIdAsync(request.ProductId, true, cancellationToken);
         if (product is null)
         {
             return Result<IReadOnlyCollection<VariantDetailDto>>.Fail(ProductErrors.NotFound);

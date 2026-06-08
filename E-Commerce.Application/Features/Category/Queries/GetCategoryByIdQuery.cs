@@ -5,7 +5,6 @@ using E_Commerce.Application.Features.Category.Common;
 using E_Commerce.Domain.Common.Errors;
 using FluentValidation;
 using MediatR;
-using AutoMapper;
 
 namespace E_Commerce.Application.Features.Category.Queries;
 
@@ -24,22 +23,20 @@ public sealed class GetCategoryByIdValidation : AbstractValidator<GetCategoryByI
 public sealed class GetCategoryByIdHandler : IRequestHandler<GetCategoryByIdQuery, Result<CategoryDetailDto>>
 {
     private readonly IUnitOfWork _uow;
-    private readonly IMapper _mapper;
 
-    public GetCategoryByIdHandler(IUnitOfWork uow, IMapper mapper)
+    public GetCategoryByIdHandler(IUnitOfWork uow)
     {
         _uow = uow;
-        _mapper = mapper;
     }
 
     public async Task<Result<CategoryDetailDto>> Handle(GetCategoryByIdQuery request, CancellationToken cancellationToken)
     {
-        var category = await _uow.Categories.GetByIdWithDetailsAsync(request.Id, false, cancellationToken);
+        var category = await _uow.Categories.GetCategoryDetailsDtoAsync(request.Id, cancellationToken);
         if (category is null)
         {
             return Result<CategoryDetailDto>.Fail(CategoryErrors.NotFound);
         }
 
-        return Result<CategoryDetailDto>.Success(_mapper.Map<CategoryDetailDto>(category));
+        return Result<CategoryDetailDto>.Success(category);
     }
 }

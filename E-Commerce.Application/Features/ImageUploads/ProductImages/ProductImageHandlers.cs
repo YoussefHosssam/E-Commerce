@@ -37,7 +37,7 @@ internal sealed class GenerateProductImageUploadSignatureHandler
         if (requestError is not null)
             return Result<GenerateImageUploadSignatureResponse>.Fail(requestError);
 
-        var product = await _uow.Products.GetByIdWithDetailsAsync(request.ProductId, true, cancellationToken);
+        var product = await _uow.Products.GetAggregateByIdAsync(request.ProductId, true, cancellationToken);
         if (product is null)
             return Result<GenerateImageUploadSignatureResponse>.Fail(ProductErrors.NotFound);
         if (product.Images.Count(i => i.ProcessingStatus == Domain.Enums.ImageProcessingStatus.Uploaded) > 10)
@@ -87,7 +87,7 @@ internal sealed class CompleteProductImageUploadHandler
         if (!_validation.HasExpectedPrefix<ProductImage>(request.StorageKey , request.ProductId))
             return Result<ImageDto>.Fail(ImageUploadErrors.StorageKeyInvalid);
 
-        var product = await _uow.Products.GetByIdWithDetailsAsync(request.ProductId, true, cancellationToken);
+        var product = await _uow.Products.GetAggregateByIdAsync(request.ProductId, true, cancellationToken);
         if (product is null)
             return Result<ImageDto>.Fail(ProductErrors.NotFound);
 
@@ -130,7 +130,7 @@ internal sealed class DeleteProductImageHandler : IRequestHandler<DeleteProductI
 
     public async Task<Result> Handle(DeleteProductImageCommand request, CancellationToken cancellationToken)
     {
-        var product = await _uow.Products.GetByIdWithDetailsAsync(request.ProductId, true, cancellationToken);
+        var product = await _uow.Products.GetAggregateByIdAsync(request.ProductId, true, cancellationToken);
         if (product is null)
             return Result.Fail(ProductErrors.NotFound);
 
@@ -154,7 +154,7 @@ internal sealed class SetPrimaryProductImageHandler : IRequestHandler<SetPrimary
 
     public async Task<Result> Handle(SetPrimaryProductImageCommand request, CancellationToken cancellationToken)
     {
-        var product = await _uow.Products.GetByIdWithDetailsAsync(request.ProductId, true, cancellationToken);
+        var product = await _uow.Products.GetAggregateByIdAsync(request.ProductId, true, cancellationToken);
         if (product is null)
             return Result.Fail(ProductErrors.NotFound);
 
@@ -176,7 +176,7 @@ internal sealed class ReorderProductImagesHandler : IRequestHandler<ReorderProdu
 
     public async Task<Result> Handle(ReorderProductImagesCommand request, CancellationToken cancellationToken)
     {
-        var product = await _uow.Products.GetByIdWithDetailsAsync(request.ProductId, true, cancellationToken);
+        var product = await _uow.Products.GetAggregateByIdAsync(request.ProductId, true, cancellationToken);
         if (product is null)
             return Result.Fail(ProductErrors.NotFound);
 

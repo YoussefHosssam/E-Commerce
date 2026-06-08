@@ -1,17 +1,15 @@
-﻿using E_Commerce.Application.Contracts.Persistence.Shared;
+using E_Commerce.Application.Contracts.Persistence.Shared;
+using E_Commerce.Application.Features.Cart.Common;
+using E_Commerce.Application.Features.Checkout.Common;
 using E_Commerce.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace E_Commerce.Application.Contracts.Persistence
+namespace E_Commerce.Application.Contracts.Persistence;
+
+public interface ICartRepository : IGenericRepository<Cart>
 {
-    public interface ICartRepository : IGenericRepository<Cart>
-    {
-        Task<Cart?> GetCartWithItemsByToken(string token, CancellationToken ctn);
-        Task<Cart?> GetCartWithItemsByUserId(Guid id, CancellationToken ctn);
-
-    }
+    Task<Cart?> GetCartWithItemsByToken(string token, CancellationToken ctn);
+    Task<Cart?> GetCartWithItemsByUserId(Guid id, CancellationToken ctn);
+    Task<CartSummaryDTO?> GetCartSummaryDtoByTokenAsync(string token, CancellationToken ctn);
+    Task<CartSummaryDTO?> GetCartSummaryDtoByUserIdAsync(Guid id, CancellationToken ctn);
+    Task<CheckoutSummaryDto?> GetCheckoutSummaryDtoByUserIdAsync(Guid id, CancellationToken ctn);
 }

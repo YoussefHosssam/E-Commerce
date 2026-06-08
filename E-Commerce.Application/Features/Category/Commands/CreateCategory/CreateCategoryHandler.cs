@@ -5,19 +5,16 @@ using DomainCategory = E_Commerce.Domain.Entities.Category;
 using E_Commerce.Domain.ValueObjects;
 using MediatR;
 using E_Commerce.Domain.Common.Errors;
-using AutoMapper;
 
 namespace E_Commerce.Application.Features.Category.Commands;
 
 public sealed class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Result<CategoryDetailDto>>
 {
     private readonly IUnitOfWork _uow;
-    private readonly IMapper _mapper;
 
-    public CreateCategoryHandler(IUnitOfWork uow, IMapper mapper)
+    public CreateCategoryHandler(IUnitOfWork uow)
     {
         _uow = uow;
-        _mapper = mapper;
     }
 
     public async Task<Result<CategoryDetailDto>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
@@ -52,8 +49,8 @@ public sealed class CreateCategoryHandler : IRequestHandler<CreateCategoryComman
         await _uow.Categories.CreateAsync(category, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
-        var createdCategory = await _uow.Categories.GetByIdWithDetailsAsync(category.Id, false, cancellationToken) ?? category;
-        return Result<CategoryDetailDto>.Success(_mapper.Map<CategoryDetailDto>(createdCategory));
+        var createdCategory = await _uow.Categories.GetCategoryDetailsDtoAsync(category.Id, cancellationToken);
+        return Result<CategoryDetailDto>.Success(createdCategory!);
     }
 }
 

@@ -1,19 +1,13 @@
-﻿using E_Commerce.Application.Common.Pagination;
+using E_Commerce.Application.Common.Pagination;
 using E_Commerce.Application.Contracts.Persistence.Shared;
+using E_Commerce.Application.Features.Order.Common;
 using E_Commerce.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace E_Commerce.Application.Contracts.Persistence
+namespace E_Commerce.Application.Contracts.Persistence;
+
+public interface IOrderRepository : IGenericRepository<Order>
 {
-    public interface IOrderRepository : IGenericRepository<Order>
-    {
-        public Task<Order?> GetTrackingOrderByIdWithDetailsAsync(Guid id, CancellationToken ctn);
-        public Task<Order?> GetOrderByIdWithDetailsAsync(Guid id, CancellationToken ctn);
-        public Task<PagedResult<Order>> GetOrdersWithDetailsAsync(Guid userId, PageRequest page, CancellationToken ctn);
-
-    }
+    Task<Order?> GetTrackingOrderByIdWithDetailsAsync(Guid id, CancellationToken ctn);
+    Task<OrderDetailsReadModel?> GetOrderDetailsDtoAsync(Guid id, CancellationToken ctn);
+    Task<PagedResult<OrderListDto>> GetOrderListItemDtosAsync(Guid userId, PageRequest page, CancellationToken ctn);
 }

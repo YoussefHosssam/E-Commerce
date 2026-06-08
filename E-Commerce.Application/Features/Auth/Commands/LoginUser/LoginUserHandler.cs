@@ -48,7 +48,7 @@ namespace E_Commerce.Application.Features.Auth.Commands.LoginUser
                     "Login failed for EmailHash {EmailHash} because user was not found or inactive",
                     SensitiveDataHasher.HashEmail(request.Email));
 
-                return Result<LoginUserResponse>.Fail(UserErrors.NotFound);
+                return Result<LoginUserResponse>.Fail(AuthErrors.InvalidCredentials);
             }
             PasswordHash existHashedPassword = existUser.Credential.PasswordHash;
             bool isCorrectPassword = _passwordHasherAdapter.Verify(existHashedPassword, request.Password);

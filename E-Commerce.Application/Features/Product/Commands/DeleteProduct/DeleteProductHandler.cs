@@ -16,7 +16,7 @@ public sealed class DeleteProductHandler : IRequestHandler<DeleteProductCommand,
 
     public async Task<Result> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
     {
-        var product = await _uow.Products.GetByIdWithDetailsAsync(request.Id, true, cancellationToken);
+        var product = await _uow.Products.GetAggregateByIdAsync(request.Id, true, cancellationToken);
         if (product is null)
         {
             return Result.Fail(ProductErrors.NotFound);

@@ -5,26 +5,23 @@ using E_Commerce.Application.Features.Product.Common;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.ValueObjects;
 using MediatR;
-using AutoMapper;
 
 namespace E_Commerce.Application.Features.Product.Commands.UpdateProduct;
 
 public sealed class UpdateProductHandler : IRequestHandler<UpdateProductCommand, Result<ProductDetailDto>>
 {
     private readonly IUnitOfWork _uow;
-    private readonly IMapper _mapper;
     private readonly IVariantService _variantService;
 
-    public UpdateProductHandler(IUnitOfWork uow, IMapper mapper, IVariantService variantService)
+    public UpdateProductHandler(IUnitOfWork uow, IVariantService variantService)
     {
         _uow = uow;
-        _mapper = mapper;
         _variantService = variantService;
     }
 
     public async Task<Result<ProductDetailDto>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
-        var product = await _uow.Products.GetByIdWithDetailsAsync(request.Id, true, cancellationToken);
+        var product = await _uow.Products.GetAggregateByIdAsync(request.Id, true, cancellationToken);
         if (product is null)
         {
             return Result<ProductDetailDto>.Fail(ProductErrors.NotFound);
@@ -91,8 +88,8 @@ public sealed class UpdateProductHandler : IRequestHandler<UpdateProductCommand,
         }
 
         await _uow.SaveChangesAsync(cancellationToken);
-        var updatedProduct = await _uow.Products.GetByIdWithDetailsAsync(product.Id, false, cancellationToken) ?? product;
-        return Result<ProductDetailDto>.Success(_mapper.Map<ProductDetailDto>(updatedProduct));
+        var updatedProduct = await _uow.Products.GetProductDetailsDtoAsync(product.Id, cancellationToken);
+        return Result<ProductDetailDto>.Success(updatedProduct!);
     }
 }
 

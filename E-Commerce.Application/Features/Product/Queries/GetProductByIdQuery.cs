@@ -5,7 +5,6 @@ using E_Commerce.Application.Features.Product.Common;
 using E_Commerce.Domain.Common.Errors;
 using FluentValidation;
 using MediatR;
-using AutoMapper;
 
 namespace E_Commerce.Application.Features.Product.Queries;
 
@@ -24,22 +23,20 @@ public sealed class GetProductByIdValidation : AbstractValidator<GetProductByIdQ
 public sealed class GetProductByIdHandler : IRequestHandler<GetProductByIdQuery, Result<ProductDetailDto>>
 {
     private readonly IUnitOfWork _uow;
-    private readonly IMapper _mapper;
 
-    public GetProductByIdHandler(IUnitOfWork uow, IMapper mapper)
+    public GetProductByIdHandler(IUnitOfWork uow)
     {
         _uow = uow;
-        _mapper = mapper;
     }
 
     public async Task<Result<ProductDetailDto>> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
     {
-        var product = await _uow.Products.GetByIdWithDetailsAsync(request.Id, false, cancellationToken);
+        var product = await _uow.Products.GetProductDetailsDtoAsync(request.Id, cancellationToken);
         if (product is null)
         {
             return Result<ProductDetailDto>.Fail(ProductErrors.NotFound);
         }
 
-        return Result<ProductDetailDto>.Success(_mapper.Map<ProductDetailDto>(product));
+        return Result<ProductDetailDto>.Success(product);
     }
 }

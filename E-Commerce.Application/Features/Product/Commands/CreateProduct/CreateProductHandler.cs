@@ -5,20 +5,17 @@ using E_Commerce.Application.Features.Product.Common;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.ValueObjects;
 using MediatR;
-using AutoMapper;
 
 namespace E_Commerce.Application.Features.Product.Commands.CreateProduct;
 
 public sealed class CreateProductHandler : IRequestHandler<CreateProductCommand, Result<ProductDetailDto>>
 {
     private readonly IUnitOfWork _uow;
-    private readonly IMapper _mapper;
     private readonly IVariantService _variantService;
 
-    public CreateProductHandler(IUnitOfWork uow, IMapper mapper, IVariantService variantService)
+    public CreateProductHandler(IUnitOfWork uow, IVariantService variantService)
     {
         _uow = uow;
-        _mapper = mapper;
         _variantService = variantService;
     }
 
@@ -57,8 +54,8 @@ public sealed class CreateProductHandler : IRequestHandler<CreateProductCommand,
         await _uow.Products.CreateAsync(product, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
-        var createdProduct = await _uow.Products.GetByIdWithDetailsAsync(product.Id, false, cancellationToken) ?? product;
-        return Result<ProductDetailDto>.Success(_mapper.Map<ProductDetailDto>(createdProduct));
+        var createdProduct = await _uow.Products.GetProductDetailsDtoAsync(product.Id, cancellationToken);
+        return Result<ProductDetailDto>.Success(createdProduct!);
     }
 }
 

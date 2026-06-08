@@ -1,44 +1,28 @@
-﻿using E_Commerce.Application.Common.Result;
-using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CartEntity = E_Commerce.Domain.Entities.Cart;
-using System.Threading.Tasks;
-using E_Commerce.Domain.Common.Errors;
-using AutoMapper;
-using E_Commerce.Application.Features.Checkout.Common;
+using E_Commerce.Application.Common.Result;
 using E_Commerce.Application.Contracts.API.Identity;
+using E_Commerce.Domain.Common.Errors;
+using MediatR;
 
-namespace E_Commerce.Application.Features.Checkout.Queries
+namespace E_Commerce.Application.Features.Checkout.Queries;
+
+public class GetCheckoutSummaryHandler : IRequestHandler<GetCheckoutSummaryQuery, Result<CheckoutSummaryDto>>
 {
-    public class GetCheckoutSummaryHandler : IRequestHandler<GetCheckoutSummaryQuery, Result<CheckoutSummaryDto>>
+    private readonly IUnitOfWork _uow;
+    private readonly IUserAccessor _userAccessor;
+
+    public GetCheckoutSummaryHandler(IUnitOfWork uow, IUserAccessor userAccessor)
     {
-        private readonly IUnitOfWork _uow;
-        private readonly IUserAccessor _userAccessor;
-        private readonly IMapper _mapper;
+        _uow = uow;
+        _userAccessor = userAccessor;
+    }
 
-        public GetCheckoutSummaryHandler(IUnitOfWork uow, IUserAccessor userAccessor, IMapper mapper)
-        {
-            _uow = uow;
-            _userAccessor = userAccessor;
-            _mapper = mapper;
-        }
+    public async Task<Result<CheckoutSummaryDto>> Handle(GetCheckoutSummaryQuery request, CancellationToken cancellationToken)
+    {
+        var userId = _userAccessor.GetRequiredUserId();
+        var checkoutSummary = await _uow.Carts.GetCheckoutSummaryDtoByUserIdAsync(userId, cancellationToken);
+        if (checkoutSummary is null || !checkoutSummary.Items.Any())
+            return Result<CheckoutSummaryDto>.Fail(CheckoutErrors.EmptyCart);
 
-        public async Task<Result<CheckoutSummaryDto>> Handle(GetCheckoutSummaryQuery request, CancellationToken cancellationToken)
-        {
-            CartEntity? cart = await GetUserCart(cancellationToken);
-            if (cart is null || !cart.Items.Any())
-                return Result<CheckoutSummaryDto>.Fail(CheckoutErrors.EmptyCart);
-            CheckoutSummaryDto checkoutSummary = _mapper.Map<CheckoutSummaryDto>(cart);
-            return Result<CheckoutSummaryDto>.Success(checkoutSummary);
-        }
-        private async Task<CartEntity?> GetUserCart(CancellationToken ct)
-        {
-            Guid userId = _userAccessor.GetRequiredUserId();
-            CartEntity? cart = await _uow.Carts.GetCartWithItemsByUserId(userId, ct);
-            return cart;
-        }
+        return Result<CheckoutSummaryDto>.Success(checkoutSummary);
     }
 }

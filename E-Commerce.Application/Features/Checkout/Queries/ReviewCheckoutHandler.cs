@@ -46,17 +46,16 @@ internal sealed class ReviewCheckoutHandler : IRequestHandler<ReviewCheckoutQuer
             return Result<CheckoutReviewDto>.Fail(addressResult.Error!);
 
         var resolvedAddress = addressResult.Data!;
-        var cart = await _uow.Carts.GetCartWithItemsByUserId(resolvedAddress.User.Id, cancellationToken);
+        var summary = await _uow.Carts.GetCheckoutSummaryDtoByUserIdAsync(resolvedAddress.User.Id, cancellationToken);
 
-        if (cart is null || !cart.Items.Any())
+        if (summary is null || !summary.Items.Any())
             return Result<CheckoutReviewDto>.Fail(CheckoutErrors.EmptyCart);
 
-        var shipmentFeeResult = await _shipmentFeesService.CalculateShipmentFeeAsync( resolvedAddress,cart.GetTotalPrice() , cancellationToken);
+        var shipmentFeeResult = await _shipmentFeesService.CalculateShipmentFeeAsync(resolvedAddress, summary.Subtotal, cancellationToken);
 
         if (!shipmentFeeResult.IsSuccess)
             return Result<CheckoutReviewDto>.Fail(shipmentFeeResult.Error!);
 
-        var summary = _mapper.Map<CheckoutSummaryDto>(cart);
         var shippingFee = shipmentFeeResult.Data;
 
         return Result<CheckoutReviewDto>.Success(

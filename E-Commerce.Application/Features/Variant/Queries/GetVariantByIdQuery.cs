@@ -5,7 +5,6 @@ using E_Commerce.Application.Features.Variant.Common;
 using E_Commerce.Domain.Common.Errors;
 using FluentValidation;
 using MediatR;
-using AutoMapper;
 
 namespace E_Commerce.Application.Features.Variant.Queries;
 
@@ -23,22 +22,20 @@ public sealed class GetVariantByIdValidation : AbstractValidator<GetVariantByIdQ
 public sealed class GetVariantByIdHandler : IRequestHandler<GetVariantByIdQuery, Result<VariantDetailDto>>
 {
     private readonly IUnitOfWork _uow;
-    private readonly IMapper _mapper;
 
-    public GetVariantByIdHandler(IUnitOfWork uow, IMapper mapper)
+    public GetVariantByIdHandler(IUnitOfWork uow)
     {
         _uow = uow;
-        _mapper = mapper;
     }
 
     public async Task<Result<VariantDetailDto>> Handle(GetVariantByIdQuery request, CancellationToken cancellationToken)
     {
-        var variant = await _uow.Variants.GetByIdWithDetailsAsync(request.VariantId, cancellationToken);
-        if (variant is null || variant.ProductId != request.ProductId)
+        var variant = await _uow.Variants.GetVariantDetailsDtoAsync(request.ProductId, request.VariantId, cancellationToken);
+        if (variant is null)
         {
             return Result<VariantDetailDto>.Fail(VariantErrors.NotFound);
         }
 
-        return Result<VariantDetailDto>.Success(_mapper.Map<VariantDetailDto>(variant));
+        return Result<VariantDetailDto>.Success(variant);
     }
 }

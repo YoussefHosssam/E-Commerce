@@ -1,4 +1,6 @@
 using E_Commerce.Application.Contracts.Persistence;
+using E_Commerce.Application.Common.Dtos;
+using E_Commerce.Application.Features.Variant.Common;
 using E_Commerce.Domain.Entities;
 using E_Commerce.Persistence.Context;
 using E_Commerce.Persistence.Repositories.Shared;
@@ -17,12 +19,12 @@ internal sealed class VariantRepository : GenericRepository<Variant>, IVariantRe
         _variants = _context.Set<Variant>();
     }
 
-    public async Task<Variant?> GetByIdWithDetailsAsync(Guid variantId, CancellationToken ct)
+    public async Task<Variant?> GetAggregateByIdAsync(Guid variantId, CancellationToken ct)
     {
-        return await GetByIdWithDetailsAsync(variantId, false, ct);
+        return await GetAggregateByIdAsync(variantId, false, ct);
     }
 
-    public async Task<Variant?> GetByIdWithDetailsAsync(Guid variantId, bool asTracking, CancellationToken ct)
+    public async Task<Variant?> GetAggregateByIdAsync(Guid variantId, bool asTracking, CancellationToken ct)
     {
         IQueryable<Variant> query = _variants;
 
@@ -34,6 +36,66 @@ internal sealed class VariantRepository : GenericRepository<Variant>, IVariantRe
             .Include(x => x.Inventory)
             .Include(x => x.Images)
             .FirstOrDefaultAsync(x => x.Id == variantId, ct);
+    }
+
+    public async Task<VariantDetailDto?> GetVariantDetailsDtoAsync(Guid productId, Guid variantId, CancellationToken ct)
+    {
+        return await _variants
+            .AsNoTracking()
+            .Where(x => x.Id == variantId && x.ProductId == productId)
+            .Select(x => new VariantDetailDto
+            {
+                Id = x.Id,
+                ProductId = x.ProductId,
+                ProductSlug = x.Product.Slug.Value,
+                Sku = x.Sku,
+                Size = x.Size,
+                Color = new ColorDto(x.Color.Name, x.Color.HexCode),
+                EffectivePrice = new MoneyDto(
+                    x.Price == null ? x.Product.BasePrice.Amount : x.Price.Amount,
+                    x.Price == null ? x.Product.BasePrice.Currency.Value : x.Price.Currency.Value),
+                VariantPriceOverride = x.Price == null
+                    ? null
+                    : new MoneyDto(x.Price.Amount, x.Price.Currency.Value),
+                Stock = x.Inventory == null ? 0 : x.Inventory.Available,
+                IsDefault = x.IsDefault,
+                IsActive = x.IsActive
+            })
+            .FirstOrDefaultAsync(ct);
+    }
+
+    public async Task<IReadOnlyCollection<VariantListItemDto>?> GetVariantListItemDtosByProductIdAsync(Guid productId, CancellationToken ct)
+    {
+        var productExists = await _context.Products
+            .AsNoTracking()
+            .AnyAsync(x => x.Id == productId, ct);
+
+        if (!productExists)
+            return null;
+
+        return await _variants
+            .AsNoTracking()
+            .Where(x => x.ProductId == productId)
+            .OrderBy(x => x.Sku)
+            .Select(x => new VariantListItemDto
+            {
+                Id = x.Id,
+                ProductId = x.ProductId,
+                ProductSlug = x.Product.Slug.Value,
+                Sku = x.Sku,
+                Size = x.Size,
+                Color = new ColorDto(x.Color.Name, x.Color.HexCode),
+                EffectivePrice = new MoneyDto(
+                    x.Price == null ? x.Product.BasePrice.Amount : x.Price.Amount,
+                    x.Price == null ? x.Product.BasePrice.Currency.Value : x.Price.Currency.Value),
+                VariantPriceOverride = x.Price == null
+                    ? null
+                    : new MoneyDto(x.Price.Amount, x.Price.Currency.Value),
+                Stock = x.Inventory == null ? 0 : x.Inventory.Available,
+                IsDefault = x.IsDefault,
+                IsActive = x.IsActive
+            })
+            .ToListAsync(ct);
     }
 
     public async Task<IReadOnlyCollection<Variant>> GetByProductIdAsync(Guid productId, CancellationToken ct)

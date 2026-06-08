@@ -1,4 +1,3 @@
-﻿using AutoMapper;
 using E_Commerce.Application.Common.Result;
 using E_Commerce.Application.Contracts.API.Identity;
 using E_Commerce.Application.Extensions;
@@ -7,50 +6,43 @@ using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Enums;
 using FluentValidation;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace E_Commerce.Application.Features.Order.Queries
+namespace E_Commerce.Application.Features.Order.Queries;
+
+public record GetOrderByIdQuery(Guid id) : IRequest<Result<OrderDto>>;
+
+public class GetOrderByIdValidation : AbstractValidator<GetOrderByIdQuery>
 {
-    public record GetOrderByIdQuery(Guid id) : IRequest<Result<OrderDto>>;
-    public class GetOrderByIdValidation : AbstractValidator<GetOrderByIdQuery>
+    public GetOrderByIdValidation()
     {
-        public GetOrderByIdValidation()
-        {
-            RuleFor(r => r.id)
-                .NotEmpty()
-                .WithError(OrderErrors.IdRequired);
-        }
+        RuleFor(r => r.id)
+            .NotEmpty()
+            .WithError(OrderErrors.IdRequired);
     }
-    public class GetOrderByIdHandler : IRequestHandler<GetOrderByIdQuery, Result<OrderDto>>
+}
+
+public class GetOrderByIdHandler : IRequestHandler<GetOrderByIdQuery, Result<OrderDto>>
+{
+    private readonly IUserAccessor _userAccessor;
+    private readonly IUnitOfWork _uow;
+
+    public GetOrderByIdHandler(IUserAccessor userAccessor, IUnitOfWork uow)
     {
-        private readonly IUserAccessor _userAccessor;
-        private readonly IUnitOfWork _uow;
-        private readonly IMapper _mapper;
+        _userAccessor = userAccessor;
+        _uow = uow;
+    }
 
-        public GetOrderByIdHandler(IUserAccessor userAccessor, IUnitOfWork uow , IMapper mapper)
-        {
-            _userAccessor = userAccessor;
-            _uow = uow;
-            _mapper = mapper;
-        }
+    public async Task<Result<OrderDto>> Handle(GetOrderByIdQuery request, CancellationToken cancellationToken)
+    {
+        var userId = _userAccessor.GetRequiredUserId();
+        var userRole = _userAccessor.GetRequiredRole();
+        var order = await _uow.Orders.GetOrderDetailsDtoAsync(request.id, cancellationToken);
+        if (order is null)
+            return Result<OrderDto>.Fail(OrderErrors.NotFound);
 
-        public async Task<Result<OrderDto>> Handle(GetOrderByIdQuery request, CancellationToken cancellationToken)
-        {
-            var userId = _userAccessor.GetRequiredUserId();
-            var userRole = _userAccessor.GetRequiredRole();
-            var order = await _uow.Orders.GetOrderByIdWithDetailsAsync(request.id, cancellationToken);
-            if (order is null) return Result<OrderDto>.Fail(OrderErrors.NotFound);
-            OrderDto orderDto = _mapper.Map<OrderDto>(order);
-            if (userRole == UserRole.Admin) return Result<OrderDto>.Success(orderDto);
-            else
-            {
-                if (userId != order.UserId) return Result<OrderDto>.Fail(OrderErrors.NotFound);
-            }
-            return Result<OrderDto>.Success(orderDto);
-        }
+        if (userRole != UserRole.Admin && userId != order.UserId)
+            return Result<OrderDto>.Fail(OrderErrors.NotFound);
+
+        return Result<OrderDto>.Success(order.Order);
     }
 }

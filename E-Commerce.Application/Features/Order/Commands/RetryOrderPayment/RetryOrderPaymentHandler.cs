@@ -6,6 +6,7 @@ using E_Commerce.Application.Contracts.API.Identity;
 using E_Commerce.Application.Contracts.Infrastructure.Payment;
 using E_Commerce.Application.Contracts.Infrastructure.Shipment;
 using E_Commerce.Application.Contracts.Services;
+using E_Commerce.Application.Features.Checkout.Common;
 using E_Commerce.Application.Services;
 using E_Commerce.Domain.Common.Errors;
 using E_Commerce.Domain.Entities;

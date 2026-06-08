@@ -39,7 +39,7 @@ internal sealed class GenerateVariantImageUploadSignatureHandler
         if (requestError is not null)
             return Result<GenerateImageUploadSignatureResponse>.Fail(requestError);
 
-        var variant = await _uow.Variants.GetByIdWithDetailsAsync(request.VariantId, true, cancellationToken);
+        var variant = await _uow.Variants.GetAggregateByIdAsync(request.VariantId, true, cancellationToken);
         if (variant is null)
             return Result<GenerateImageUploadSignatureResponse>.Fail(VariantErrors.NotFound);
 
@@ -90,7 +90,7 @@ internal sealed class CompleteVariantImageUploadHandler
         if (!_validation.HasExpectedPrefix<VariantImage>(request.StorageKey, request.VariantId))
             return Result<ImageDto>.Fail(ImageUploadErrors.StorageKeyInvalid);
 
-        var variant = await _uow.Variants.GetByIdWithDetailsAsync(request.VariantId, true, cancellationToken);
+        var variant = await _uow.Variants.GetAggregateByIdAsync(request.VariantId, true, cancellationToken);
         if (variant is null)
             return Result<ImageDto>.Fail(VariantErrors.NotFound);
 
@@ -133,7 +133,7 @@ internal sealed class DeleteVariantImageHandler : IRequestHandler<DeleteVariantI
 
     public async Task<Result> Handle(DeleteVariantImageCommand request, CancellationToken cancellationToken)
     {
-        var variant = await _uow.Variants.GetByIdWithDetailsAsync(request.VariantId, true, cancellationToken);
+        var variant = await _uow.Variants.GetAggregateByIdAsync(request.VariantId, true, cancellationToken);
         if (variant is null)
             return Result.Fail(VariantErrors.NotFound);
 
@@ -157,7 +157,7 @@ internal sealed class SetPrimaryVariantImageHandler : IRequestHandler<SetPrimary
 
     public async Task<Result> Handle(SetPrimaryVariantImageCommand request, CancellationToken cancellationToken)
     {
-        var variant = await _uow.Variants.GetByIdWithDetailsAsync(request.VariantId, true, cancellationToken);
+        var variant = await _uow.Variants.GetAggregateByIdAsync(request.VariantId, true, cancellationToken);
         if (variant is null)
             return Result.Fail(VariantErrors.NotFound);
 
@@ -179,7 +179,7 @@ internal sealed class ReorderVariantImagesHandler : IRequestHandler<ReorderVaria
 
     public async Task<Result> Handle(ReorderVariantImagesCommand request, CancellationToken cancellationToken)
     {
-        var variant = await _uow.Variants.GetByIdWithDetailsAsync(request.VariantId, true, cancellationToken);
+        var variant = await _uow.Variants.GetAggregateByIdAsync(request.VariantId, true, cancellationToken);
         if (variant is null)
             return Result.Fail(VariantErrors.NotFound);
 
